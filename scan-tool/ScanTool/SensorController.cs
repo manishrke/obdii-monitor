@@ -15,11 +15,6 @@ namespace ScanTool
 
         private Controller controller;
 
-        internal Controller Controller
-        {
-            set { controller = value; }
-        }
-
         Sensor[] sensors = {
                                new Sensor( "Absolute Throttle Position:", "11", 1),
                                new Sensor( "Engine RPM:", "0C", 2),
@@ -28,13 +23,16 @@ namespace ScanTool
                                new Sensor( "Timing Advance (Cyl. #1):", "0E", 1),
                                new Sensor( "Intake Manifold Pressure:", "0B", 1),
                                new Sensor( "Air Flow Rate (MAF sensor):", "10", 2),
-                               new Sensor( "Fuel System 1 Status:", "03", 2),
-                               new Sensor( "Fuel System 2 Status:", "03", 2)
                            };
 
         public Sensor[] Sensors
         {
             get { return sensors; }
+        }
+
+        internal Controller Controller
+        {
+            set { controller = value; }
         }
 
         Sensor[] selectedSensors;
@@ -107,6 +105,15 @@ namespace ScanTool
             }
         }
 
+        public int returnLength(string dataTag)
+        {
+            foreach (Sensor sensor in sensors)
+            {
+                if (sensor.Pid == dataTag)
+                    return sensor.Bytes;
+            }
 
+            return -1;
+        }
     }
 }

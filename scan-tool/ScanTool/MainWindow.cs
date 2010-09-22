@@ -8,6 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Collections;
 using System.Windows.Forms.DataVisualization.Charting;
+using System.Threading;
 
 namespace ScanTool
 {
@@ -28,6 +29,20 @@ namespace ScanTool
 
         Chart[] chartsSensorGraphs;
 
+        Thread updateGraphPlots;
+
+        // This delegate enables asynchronous calls for setting
+        // the text property on a TextBox control.
+        delegate void SetResponseCallback(int i, PollResponse response);
+
+
+        Queue graphQueue = new Queue();
+
+        public Queue GraphQueue
+        {
+            get { return graphQueue; }
+        }
+
         public MainWindow()
         {
             controller = new Controller();
@@ -39,13 +54,6 @@ namespace ScanTool
             comboBoxComPort.SelectedIndex = 3;
         }
 
-        SensorController sensorController = new SensorController();
-
-        internal SensorController SensorController
-        {
-            get { return sensorController; }
-            set { sensorController = value; }
-        }
 
         private void populateSelectionWindow()
         {
@@ -129,6 +137,9 @@ namespace ScanTool
                 buttonCollect.Text = "Stop";
                 this.panelSensorSelection.Visible = false;
                 this.panelSensorGraphs.Visible = true;
+                updateGraphPlots = new Thread(new ThreadStart(updateGraphs));
+                updateGraphPlots.Name = "UpdateGraphs";
+                updateGraphPlots.Start();
             }
             else if (buttonCollect.Text == "Stop")
             {
@@ -137,8 +148,43 @@ namespace ScanTool
                 controller.SensorController.stopPollingReceiving();
                 this.panelSensorSelection.Visible = true;
                 this.panelSensorGraphs.Visible = false;
+                updateGraphPlots.Abort();
             }
         }
+
+        private void updateGraphs()
+        {
+            while (true)
+            {
+                if (graphQueue.Count != 0)
+                {
+                    PollResponse response = (PollResponse)graphQueue.Dequeue();
+                    
+                    for (int i = 0; i < controller.SensorController.SelectedSensors.Length; ++i)
+                    {
+                        if (response.DataTag == controller.SensorController.SelectedSensors[i].Pid)
+                        {
+                            setGraphPoint(i, response);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        private void setGraphPoint(int i, PollResponse response)
+        {
+
+			if (this.chartsSensorGraphs[i].InvokeRequired)
+			{	
+				SetResponseCallback d = new SetResponseCallback(setGraphPoint);
+				this.Invoke(d, new object[] {i,  response });
+			}
+			else
+			{
+				chartsSensorGraphs[i].Series[0].Points.Add(new DataPoint((double)response.Time.Ticks, response.convertData()));
+			}
+		}
 
         private void buttonInitialize_Click(object sender, EventArgs e)
         {
