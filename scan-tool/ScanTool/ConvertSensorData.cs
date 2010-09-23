@@ -90,7 +90,7 @@ namespace ScanTool
         {
             int num = Convert.ToInt32(data, 16);
 
-            return (num / 4).ToString();
+            return ((double)num / 4).ToString();
         }
     }
 }

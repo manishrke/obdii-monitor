@@ -183,6 +183,7 @@ namespace ScanTool
 			else
 			{
 				chartsSensorGraphs[i].Series[0].Points.Add(new DataPoint((double)response.Time.Ticks, response.convertData()));
+                labelsSensorGraphsValues[i].Text = "Value: " + response.convertData();
 			}
 		}
 
