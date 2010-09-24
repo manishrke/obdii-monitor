@@ -31,10 +31,7 @@ namespace ScanTool
 
         Thread updateGraphPlots;
 
-        // This delegate enables asynchronous calls for setting
-        // the text property on a TextBox control.
         delegate void SetResponseCallback(int i, PollResponse response);
-
 
         Queue graphQueue = new Queue();
 
