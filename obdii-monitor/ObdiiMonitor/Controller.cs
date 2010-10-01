@@ -42,7 +42,5 @@ namespace ScanTool
             serial.Controller = this;
             sensorData.Controller = this;
         }
-
-
     }
 }

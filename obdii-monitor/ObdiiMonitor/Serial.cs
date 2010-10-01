@@ -43,7 +43,7 @@ namespace ScanTool
                 serialPort.DataBits = 8;
                 serialPort.StopBits = (StopBits)Enum.Parse(typeof(StopBits), "1");
                 serialPort.Parity = (Parity)Enum.Parse(typeof(Parity), "0");
-                serialPort.ReadTimeout = 2000;
+                serialPort.ReadTimeout = 1000;
                 serialPort.Open();
                 // initialize the elm
                 serialPort.WriteLine("ATZ\r");
@@ -53,11 +53,13 @@ namespace ScanTool
                 serialPort.WriteLine("ATE0\r");
                 while (serialPort.ReadChar() != '>')
                     ;
-                // turn line feeds on
-                serialPort.WriteLine("ATL1\r");
+                serialPort.WriteLine("ATS0\r");
                 while (serialPort.ReadChar() != '>')
                     ;
+                // turn line feeds on
+                serialPort.WriteLine("ATL1\r");
                 initialized = true;
+                serialPort.ReadTimeout = 300;
             }
             catch (Exception ex)
             {

@@ -4,14 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Collections;
 using System.Threading;
+using System.Runtime.CompilerServices;
 
 namespace ScanTool
 {
     class SensorController
     {
         Thread polling, receiving;
-
-        Mutex mutex = new Mutex();
 
         private Controller controller;
 
@@ -52,14 +51,36 @@ namespace ScanTool
             }
         }
 
+        // the following function will both poll and receive data from the elm 327
+        // it will timeout after 300 ms and send a new command
         private void beginPolling()
         {
             while (true)
             {
                 for (int i = 0; i < selectedSensors.Length; ++i)
                 {
-                    controller.Serial.sendCommand("01" + selectedSensors[i].Pid + "\r");
-                    Thread.Sleep(250);
+                    controller.Serial.sendCommand("01" + selectedSensors[i].Pid + "1\r");
+                    bool stopTrying = false, response = false;
+                    DateTime time = DateTime.Now;
+                    while (!stopTrying && !response)
+                    {
+                        try
+                        {
+                            string buffer = controller.Serial.dataReceived();
+                            if (buffer.Length > 0 && buffer[0] == '>')
+                            {
+                                response = true;
+                                controller.SensorData.parseData(buffer);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            if (DateTime.Now.Subtract(time) > new TimeSpan(12000000))
+                            {
+                                stopTrying = true;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -83,13 +104,13 @@ namespace ScanTool
         public void initializePollingReceivingThreads()
         {
             polling = new Thread(new ThreadStart(beginPolling));
-            receiving = new Thread(new ThreadStart(beginCollecting));
+           // receiving = new Thread(new ThreadStart(beginCollecting));
 
             polling.Name = "Polling";
-            receiving.Name = "Receiving";
+            //receiving.Name = "Receiving";
             
             polling.Start();
-            receiving.Start();
+          //  receiving.Start();
         }
 
         public void stopPollingReceiving()

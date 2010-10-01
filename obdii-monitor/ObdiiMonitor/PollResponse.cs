@@ -9,6 +9,13 @@ namespace ScanTool
     {
         private static string startTag = "ZZ";
 
+        private string dataType;
+
+        public string DataType
+        {
+            get { return dataType; }
+        }
+
         private string dataTag;
 
         public string DataTag
@@ -37,11 +44,12 @@ namespace ScanTool
             get { return time; }
         }
 
-        public PollResponse(DateTime time, string data, string dataTag, int length)
+        public PollResponse(DateTime time, string data, string dataTag, string dataType, int length)
         {
             this.time = time;
             this.data = data;
             this.dataTag = dataTag;
+            this.dataType = dataType;
             this.length = length;
         }
 
@@ -52,7 +60,7 @@ namespace ScanTool
 
         public override string ToString()
         {
-            return startTag + time.TimeOfDay + length + dataTag;
+            return startTag + time.ToString("yyyyMMddHHmmssfff") + length + dataType + dataTag + data;
         }
     }
 }

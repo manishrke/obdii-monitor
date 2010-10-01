@@ -86,7 +86,8 @@ namespace ScanTool
 
             ChartArea[] chartAreas = new ChartArea[numsSelected.Count];
             Legend[] legends = new Legend[numsSelected.Count];
-            Series[] series = new Series[numsSelected.Count];
+            Series[] seriesLines = new Series[numsSelected.Count];
+            Series[] seriesPoints = new Series[numsSelected.Count];
 
             int height = START_HEIGHT;
             int width = START_WIDTH;
@@ -105,15 +106,21 @@ namespace ScanTool
 
                 chartsSensorGraphs[i] = new Chart();
                 chartAreas[i] = new ChartArea();
+                chartAreas[i].AlignmentStyle = AreaAlignmentStyles.All;
+                chartAreas[i].AxisX.IsReversed = true;
                 legends[i] = new Legend();
-                series[i] = new Series();
+                seriesLines[i] = new Series();
+
+                seriesPoints[i] = new Series();
 
                 chartsSensorGraphs[i].ChartAreas.Add(chartAreas[i]);
                 chartsSensorGraphs[i].Legends.Add(legends[i]);
-                series[i].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-                chartsSensorGraphs[i].Series.Add(series[i]);
+                seriesLines[i].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+                seriesPoints[i].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Point;
+                chartsSensorGraphs[i].Series.Add(seriesLines[i]);
+                chartsSensorGraphs[i].Series.Add(seriesPoints[i]);
                 chartsSensorGraphs[i].Location = new System.Drawing.Point(23, 50);
-                chartsSensorGraphs[i].Size = new System.Drawing.Size(850, 170);
+                chartsSensorGraphs[i].Size = new System.Drawing.Size(170, 170);
                 chartsSensorGraphs[i].Location = new Point(width, height + 200 * i + 25);
                 this.panelSensorGraphs.Controls.Add(chartsSensorGraphs[i]);
             }
@@ -179,7 +186,11 @@ namespace ScanTool
 			}
 			else
 			{
-				chartsSensorGraphs[i].Series[0].Points.Add(new DataPoint((double)response.Time.Ticks, response.convertData()));
+                foreach (Series series in chartsSensorGraphs[i].Series)
+                {
+                    series.Points.Add(new DataPoint((double)response.Time.TimeOfDay.TotalSeconds, response.convertData()));
+                }
+                chartsSensorGraphs[i].Size = new System.Drawing.Size(chartsSensorGraphs[i].Size.Width + 40, chartsSensorGraphs[i].Size.Height);
                 labelsSensorGraphsValues[i].Text = "Value: " + response.convertData();
 			}
 		}
