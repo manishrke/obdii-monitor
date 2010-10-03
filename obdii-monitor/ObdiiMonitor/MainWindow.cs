@@ -147,12 +147,16 @@ namespace ScanTool
             }
             else if (buttonCollect.Text == "Stop")
             {
+                buttonCollect.Text = "Reset";
+                controller.SensorController.stopPollingReceiving();
+                updateGraphPlots.Abort();
+            }
+            else if (buttonCollect.Text == "Reset")
+            {
                 populateSelectionWindow();
                 buttonCollect.Text = "Collect Data";
-                controller.SensorController.stopPollingReceiving();
                 this.panelSensorSelection.Visible = true;
                 this.panelSensorGraphs.Visible = false;
-                updateGraphPlots.Abort();
             }
         }
 
