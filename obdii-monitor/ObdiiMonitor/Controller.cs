@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Windows.Forms;
+using System.IO;
 
-namespace ScanTool
+namespace ObdiiMonitor
 {
     class Controller
     {
@@ -20,6 +22,20 @@ namespace ScanTool
         public SensorController SensorController
         {
             get { return sensorController; }
+        }
+
+        private LoadController loadController = new LoadController();
+
+        internal LoadController LoadController
+        {
+            get { return loadController; }
+        }
+
+        private SaveController saveController = new SaveController();
+
+        internal SaveController SaveController
+        {
+            get { return saveController; }
         }
 
         private Serial serial = new Serial();
@@ -39,8 +55,22 @@ namespace ScanTool
         public Controller()
         {
             sensorController.Controller = this;
+            loadController.Controller = this;
+            saveController.Controller = this;
             serial.Controller = this;
             sensorData.Controller = this;
         }
+
+        public void cancelAllThreads()
+        {
+            if (MainWindow.updateGraphPlots != null)
+                MainWindow.updateGraphPlots.Abort();
+
+            if (sensorController.polling != null)
+                sensorController.polling.Abort();
+
+            if (sensorController.receiving != null)
+                sensorController.receiving.Abort();
+        }
     }
-}
+ }

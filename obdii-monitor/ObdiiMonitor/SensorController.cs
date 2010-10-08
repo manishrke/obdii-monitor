@@ -5,23 +5,24 @@ using System.Text;
 using System.Collections;
 using System.Threading;
 using System.Runtime.CompilerServices;
+using System.Diagnostics;
 
-namespace ScanTool
+namespace ObdiiMonitor
 {
     class SensorController
     {
-        Thread polling, receiving;
+        internal Thread polling, receiving;
 
         private Controller controller;
 
         Sensor[] sensors = {
-                               new Sensor( "Absolute Throttle Position:", "11", 1),
-                               new Sensor( "Engine RPM:", "0C", 2),
-                               new Sensor( "Vehicle Speed:", "0D", 1),
-                               new Sensor( "Calculated Load Value:", "04", 1),
-                               new Sensor( "Timing Advance (Cyl. #1):", "0E", 1),
-                               new Sensor( "Intake Manifold Pressure:", "0B", 1),
-                               new Sensor( "Air Flow Rate (MAF sensor):", "10", 2),
+                               new Sensor( "Absolute Throttle Position:", "11", 4),
+                               new Sensor( "Engine RPM:", "0C", 6),
+                               new Sensor( "Vehicle Speed:", "0D", 4),
+                               new Sensor( "Calculated Load Value:", "04", 4),
+                               new Sensor( "Timing Advance (Cyl. #1):", "0E", 4),
+                               new Sensor( "Intake Manifold Pressure:", "0B", 4),
+                               new Sensor( "Air Flow Rate (MAF sensor):", "10", 6),
                            };
 
         public Sensor[] Sensors
@@ -55,6 +56,11 @@ namespace ScanTool
         // it will timeout after 300 ms and send a new command
         private void beginPolling()
         {
+            controller.SensorData.clearPollResponses();
+
+            Stopwatch stopWatch = new Stopwatch();
+            stopWatch.Start();
+
             while (true)
             {
                 for (int i = 0; i < selectedSensors.Length; ++i)
@@ -70,7 +76,7 @@ namespace ScanTool
                             if (buffer.Length > 0 && buffer[0] == '>')
                             {
                                 response = true;
-                                controller.SensorData.parseData(buffer);
+                                controller.SensorData.parseData(buffer, (int)stopWatch.ElapsedMilliseconds);
                             }
                         }
                         catch (Exception ex)
@@ -82,22 +88,6 @@ namespace ScanTool
                         }
                     }
                 }
-            }
-        }
-
-        private void beginCollecting()
-        {
-            while (true)
-            {
-                    try
-                    {
-                        string buffer = controller.Serial.dataReceived();
-                        controller.SensorData.parseData(buffer);
-                    }
-                    catch (TimeoutException ex)
-                    {
-
-                    }
             }
         }
 

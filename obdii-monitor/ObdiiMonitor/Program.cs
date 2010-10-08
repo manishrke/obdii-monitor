@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace ScanTool
+namespace ObdiiMonitor
 {
     static class Program
     {

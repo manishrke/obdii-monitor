@@ -10,7 +10,7 @@ using System.Collections;
 using System.Windows.Forms.DataVisualization.Charting;
 using System.Threading;
 
-namespace ScanTool
+namespace ObdiiMonitor
 {
     public partial class MainWindow : Form
     {
@@ -29,7 +29,7 @@ namespace ScanTool
 
         Chart[] chartsSensorGraphs;
 
-        Thread updateGraphPlots;
+        internal Thread updateGraphPlots;
 
         delegate void SetResponseCallback(int i, PollResponse response);
 
@@ -137,19 +137,14 @@ namespace ScanTool
 
                 controller.SensorController.initializeSelectedSensors(numsSelected);
                 controller.SensorController.initializePollingReceivingThreads();
-                populateGraphWindow(numsSelected);
-                buttonCollect.Text = "Stop";
-                this.panelSensorSelection.Visible = false;
-                this.panelSensorGraphs.Visible = true;
-                updateGraphPlots = new Thread(new ThreadStart(updateGraphs));
-                updateGraphPlots.Name = "UpdateGraphs";
-                updateGraphPlots.Start();
+                controller.SensorData.clearPollResponses();
+                showSetupGraphWindow(numsSelected);
+                startGraphPlotThread();
             }
             else if (buttonCollect.Text == "Stop")
             {
                 buttonCollect.Text = "Reset";
-                controller.SensorController.stopPollingReceiving();
-                updateGraphPlots.Abort();
+                controller.cancelAllThreads();
             }
             else if (buttonCollect.Text == "Reset")
             {
@@ -160,22 +155,45 @@ namespace ScanTool
             }
         }
 
-        private void updateGraphs()
+        internal void startGraphPlotThread()
+        {
+            updateGraphPlots = new Thread(new ThreadStart(updateGraphs));
+            updateGraphPlots.Name = "UpdateGraphs";
+            updateGraphPlots.Start();
+        }
+
+        internal void showSetupGraphWindow(ArrayList numsSelected)
+        {
+            populateGraphWindow(numsSelected);
+            buttonCollect.Text = "Stop";
+            this.panelSensorSelection.Visible = false;
+            this.panelSensorGraphs.Visible = true;
+        }
+
+        public void updateGraphs()
         {
             while (true)
             {
                 if (graphQueue.Count != 0)
                 {
                     PollResponse response = (PollResponse)graphQueue.Dequeue();
-                    
-                    for (int i = 0; i < controller.SensorController.SelectedSensors.Length; ++i)
-                    {
-                        if (response.DataTag == controller.SensorController.SelectedSensors[i].Pid)
+
+                    if (response.DataType == "OB")
+                        for (int i = 0; i < controller.SensorController.SelectedSensors.Length; ++i)
                         {
-                            setGraphPoint(i, response);
-                            break;
+                            try
+                            {
+                                if (response.Data.Substring(0, 2) == controller.SensorController.SelectedSensors[i].Pid)
+                                {
+                                    setGraphPoint(i, response);
+                                    break;
+                                }
+                            }
+                            catch (Exception e)
+                            {
+
+                            }
                         }
-                    }
                 }
             }
         }
@@ -192,9 +210,9 @@ namespace ScanTool
 			{
                 foreach (Series series in chartsSensorGraphs[i].Series)
                 {
-                    series.Points.Add(new DataPoint((double)response.Time.TimeOfDay.TotalSeconds, response.convertData()));
+                    series.Points.Add(new DataPoint((double)response.Time, response.convertData()));
                 }
-                chartsSensorGraphs[i].Size = new System.Drawing.Size(chartsSensorGraphs[i].Size.Width + 40, chartsSensorGraphs[i].Size.Height);
+                chartsSensorGraphs[i].Size = new System.Drawing.Size(chartsSensorGraphs[i].Size.Width + 15, chartsSensorGraphs[i].Size.Height);
                 labelsSensorGraphsValues[i].Text = "Value: " + response.convertData();
 			}
 		}
@@ -210,6 +228,51 @@ namespace ScanTool
             {
                 labelStatus.Text = "Could not connect. Try again.";
                 MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            controller.cancelAllThreads();
+
+            if ((controller.SensorData.PollResponses == null) || (controller.SensorData.PollResponses.Count == 0))
+            {
+                MessageBox.Show("No data to save.");
+                return;
+            }
+
+            saveFileDialog.Reset();
+
+            saveFileDialog.ShowDialog();
+
+            if (!saveFileDialog.CheckPathExists)
+            {
+                MessageBox.Show("The path does not exist.");
+                return;
+            }
+
+            controller.SaveController.saveData(saveFileDialog.FileName);
+        }
+
+        private void loadToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            controller.cancelAllThreads();
+
+            openFileDialog.ShowDialog();
+
+            if (!openFileDialog.CheckFileExists)
+            {
+                MessageBox.Show("File does not exist.");
+                return;
+            }
+
+            try
+            {
+                controller.LoadController.loadData(openFileDialog.FileName);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error, invalid file format." + e.ToString());
             }
         }
     }
