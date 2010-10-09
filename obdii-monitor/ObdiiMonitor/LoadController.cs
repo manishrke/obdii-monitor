@@ -85,10 +85,10 @@ namespace ObdiiMonitor
             }
 
             controller.SensorController.initializeSelectedSensors(numsSelected);
-
-            controller.MainWindow.showSetupGraphWindow(numsSelected);
-
-            controller.MainWindow.startGraphPlotThread();
+            controller.MainWindow.populateGraphWindow(numsSelected);
+            controller.MainWindow.loadDataIntoSensorDataGraphs();
+            controller.MainWindow.showSensorDataPanel();
+            controller.MainWindow.showResetButton();
         }
     }
 }

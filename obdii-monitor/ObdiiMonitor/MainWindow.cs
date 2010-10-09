@@ -62,9 +62,9 @@ namespace ObdiiMonitor
             int height = START_HEIGHT;
             int width = START_WIDTH;
 
-            for (int i=0; i < controller.SensorController.Sensors.Length; ++i) 
+            for (int i = 0; i < controller.SensorController.Sensors.Length; ++i)
             {
-                labelsSensorSelection[i] = new Label(); 
+                labelsSensorSelection[i] = new Label();
                 labelsSensorSelection[i].Text = controller.SensorController.Sensors[i].Label;
                 labelsSensorSelection[i].Location = new Point(width + 20, height + 25 * i + 5);
                 this.panelSensorSelection.Controls.Add(labelsSensorSelection[i]);
@@ -76,7 +76,7 @@ namespace ObdiiMonitor
             }
         }
 
-        private void populateGraphWindow(ArrayList numsSelected)
+        internal void populateGraphWindow(ArrayList numsSelected)
         {
             this.panelSensorGraphs.Controls.Clear();
 
@@ -138,13 +138,14 @@ namespace ObdiiMonitor
                 controller.SensorController.initializeSelectedSensors(numsSelected);
                 controller.SensorController.initializePollingReceivingThreads();
                 controller.SensorData.clearPollResponses();
-                showSetupGraphWindow(numsSelected);
+                populateGraphWindow(numsSelected);
+                showSensorDataPanel();
+                buttonCollect.Text = "Stop";
                 startGraphPlotThread();
             }
             else if (buttonCollect.Text == "Stop")
             {
-                buttonCollect.Text = "Reset";
-                controller.cancelAllThreads();
+                showResetButton();
             }
             else if (buttonCollect.Text == "Reset")
             {
@@ -155,19 +156,23 @@ namespace ObdiiMonitor
             }
         }
 
+        internal void showResetButton()
+        {
+            buttonCollect.Text = "Reset";
+            controller.cancelAllThreads();
+        }
+
+        internal void showSensorDataPanel()
+        {
+            this.panelSensorSelection.Visible = false;
+            this.panelSensorGraphs.Visible = true;
+        }
+
         internal void startGraphPlotThread()
         {
             updateGraphPlots = new Thread(new ThreadStart(updateGraphs));
             updateGraphPlots.Name = "UpdateGraphs";
             updateGraphPlots.Start();
-        }
-
-        internal void showSetupGraphWindow(ArrayList numsSelected)
-        {
-            populateGraphWindow(numsSelected);
-            buttonCollect.Text = "Stop";
-            this.panelSensorSelection.Visible = false;
-            this.panelSensorGraphs.Visible = true;
         }
 
         public void updateGraphs()
@@ -201,21 +206,21 @@ namespace ObdiiMonitor
         private void setGraphPoint(int i, PollResponse response)
         {
 
-			if (this.chartsSensorGraphs[i].InvokeRequired)
-			{	
-				SetResponseCallback d = new SetResponseCallback(setGraphPoint);
-				this.Invoke(d, new object[] {i,  response });
-			}
-			else
-			{
+            if (this.chartsSensorGraphs[i].InvokeRequired)
+            {
+                SetResponseCallback d = new SetResponseCallback(setGraphPoint);
+                this.Invoke(d, new object[] { i, response });
+            }
+            else
+            {
                 foreach (Series series in chartsSensorGraphs[i].Series)
                 {
                     series.Points.Add(new DataPoint((double)response.Time, response.convertData()));
                 }
                 chartsSensorGraphs[i].Size = new System.Drawing.Size(chartsSensorGraphs[i].Size.Width + 15, chartsSensorGraphs[i].Size.Height);
                 labelsSensorGraphsValues[i].Text = "Value: " + response.convertData();
-			}
-		}
+            }
+        }
 
         private void buttonInitialize_Click(object sender, EventArgs e)
         {
@@ -272,7 +277,31 @@ namespace ObdiiMonitor
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error, invalid file format." + e.ToString());
+                MessageBox.Show("Error, invalid file format." + ex.Message + ex.StackTrace);
+            }
+        }
+
+        internal void loadDataIntoSensorDataGraphs()
+        {
+            foreach (PollResponse response in controller.SensorData.PollResponses)
+            {
+                if (response.DataType == "OB")
+                {
+                    for (int i = 0; i < controller.SensorController.SelectedSensors.Length; ++i)
+                    {
+                        if ((response.Data.Length > 2)&&(controller.SensorController.SelectedSensors[i].Pid == response.Data.Substring(0, 2)))
+                        {
+                            chartsSensorGraphs[i].Size = new Size(chartsSensorGraphs[i].Size.Width + 10, chartsSensorGraphs[i].Size.Height);
+                            foreach (Series series in chartsSensorGraphs[i].Series) {
+                                string str = ConvertSensorData.convert(controller.SensorController.SelectedSensors[i].Pid, response.Data.Substring(2));
+                                if (str != null)
+                                    series.Points.Add(new DataPoint(response.Time, str));
+                            }
+                            break;
+                        }
+                    }
+
+                }
             }
         }
     }
