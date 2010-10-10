@@ -15,6 +15,8 @@ namespace ObdiiMonitor
             set { controller = value; }
         }
 
+        // the following function will convert in order the PollResponse objects in SensorData.PollResponses to byte arrays
+        // and write the byte arrays to a file.
         internal void saveData(string fileName)
         {
             if (File.Exists(fileName))
@@ -26,14 +28,7 @@ namespace ObdiiMonitor
 
             foreach (PollResponse response in controller.SensorData.PollResponses)
             {
-                Stream input = response.ToStream();
-
-                byte[] buffer = new byte[8 * 64];
-                int len;
-                while ((len = input.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    output.Write(buffer, 0, len);
-                }
+                output.Write(response.ToBytes(), 0, response.ToBytes().Length);
             }
 
             output.Close();

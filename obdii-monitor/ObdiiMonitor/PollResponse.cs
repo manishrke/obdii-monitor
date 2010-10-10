@@ -87,7 +87,7 @@ namespace ObdiiMonitor
             return Double.Parse(data);
         }
 
-        public Stream ToStream()
+        public byte[] ToBytes()
         {
             Stream stream = new MemoryStream();
 
@@ -105,14 +105,16 @@ namespace ObdiiMonitor
 
             stream.Position = 0;
 
-            return stream;
+            byte[] bytes = new byte[9 + length];
+
+            stream.Read(bytes, 0, bytes.Length);
+
+            return bytes;
         }
 
         public override string ToString()
         {
             return startTag + '-' + length + '-' + time + '-' + dataType + '-' + data;
         }
-
-
     }
 }
