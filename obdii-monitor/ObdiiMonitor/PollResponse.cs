@@ -111,7 +111,7 @@ namespace ObdiiMonitor
 
         public override string ToString()
         {
-            return START_TAG + '-' + length + '-' + time + '-' + dataType + '-' + data;
+            return length + "-" + time + "-" + dataType + "-" + data;
         }
     }
 }

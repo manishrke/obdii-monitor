@@ -41,11 +41,11 @@ namespace ObdiiMonitor
 
                 int length = fileStream.ReadByte();
 
-                byte[] data = new byte[length + 9];
+                byte[] data = new byte[length + PollResponse.CONSTANT_LENGTH];
 
                 fileStream.Position = start;
 
-                fileStream.Read(data, 0, length + 9);
+                fileStream.Read(data, 0, length + PollResponse.CONSTANT_LENGTH);
 
                 controller.SensorData.loadData(data);
             }
