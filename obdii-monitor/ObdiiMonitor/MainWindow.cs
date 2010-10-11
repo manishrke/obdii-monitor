@@ -76,12 +76,16 @@ namespace ObdiiMonitor
             }
         }
 
+        // This function will take the integers in numselected and add the a graph for each of the indexes that
+        // numsSelected represents  in the Sensors table of SensorController.
+        // This function assumes that the SelectedSensors member of SensorControlelr has already been intialized and set to the indexes that
+        // numsSelected represents
         internal void populateGraphWindow(ArrayList numsSelected)
         {
             this.panelSensorGraphs.Controls.Clear();
 
             labelsSensorGraphs = new Label[numsSelected.Count];
-            labelsSensorGraphsValues = new Label[controller.SensorController.SelectedSensors.Length];
+            labelsSensorGraphsValues = new Label[numsSelected.Count];
             chartsSensorGraphs = new Chart[numsSelected.Count];
 
             ChartArea[] chartAreas = new ChartArea[numsSelected.Count];
@@ -281,7 +285,9 @@ namespace ObdiiMonitor
             }
         }
 
-        internal void loadDataIntoSensorDataGraphs()
+        // this function will load the data in SensorData.PollResponses into the corresponding graphs
+        // that have already been created 
+        internal void loadDataIntoSensorGraphs()
         {
             foreach (PollResponse response in controller.SensorData.PollResponses)
             {

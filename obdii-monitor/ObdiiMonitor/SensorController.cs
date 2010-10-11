@@ -42,6 +42,8 @@ namespace ObdiiMonitor
             get { return selectedSensors; }
         }
 
+        // initializes an array of the sensors that will either be polled or the results from prior polling
+        // will be displayed in graphs
         public void initializeSelectedSensors(ArrayList numsSelected)
         {
             selectedSensors = new Sensor[numsSelected.Count];
