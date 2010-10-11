@@ -8,7 +8,9 @@ namespace ObdiiMonitor
 {
     class PollResponse
     {
-        public static string startTag = "ZZ";
+        public static char START_TAG = '\x00EE';
+
+        public static int CONSTANT_LENGTH = 8;
 
         private string dataType;
 
@@ -48,31 +50,26 @@ namespace ObdiiMonitor
 
         public PollResponse(byte[] bytes)
         {
-            if (bytes.Length < 3)
+            if (bytes.Length < 2)
                 throw new Exception();
 
-            string str = "";
-
-            str += (char)bytes[0];
-            str += (char)bytes[1];
-
-            if (str != startTag)
+            if (bytes[0] != START_TAG)
                 throw new Exception();
 
-            length = bytes[2];
+            length = bytes[1];
 
-            if ((length + 9) != bytes.Length)
+            if ((length + CONSTANT_LENGTH) != bytes.Length)
                 throw new Exception();
 
-            time = System.BitConverter.ToInt32(bytes, 3);
+            time = System.BitConverter.ToInt32(bytes, 2);
 
             ASCIIEncoding enc = new ASCIIEncoding();
 
-            dataType = enc.GetString(bytes, 7, 2);
+            dataType = enc.GetString(bytes, 6, 2);
 
             if (dataType == "OB")
             {
-                data = enc.GetString(bytes, 9, length);
+                data = enc.GetString(bytes, CONSTANT_LENGTH, length);
             }
             else
                 throw new Exception();
@@ -93,7 +90,7 @@ namespace ObdiiMonitor
 
             System.Text.UTF8Encoding encoding = new System.Text.UTF8Encoding();
 
-            stream.Write(encoding.GetBytes(startTag), 0, encoding.GetBytes(startTag).Length);
+            stream.Write(System.BitConverter.GetBytes(START_TAG), 0, 1);
 
             stream.Write(System.BitConverter.GetBytes(data.Length), 0, 1);
 
@@ -105,7 +102,7 @@ namespace ObdiiMonitor
 
             stream.Position = 0;
 
-            byte[] bytes = new byte[9 + length];
+            byte[] bytes = new byte[CONSTANT_LENGTH + length];
 
             stream.Read(bytes, 0, bytes.Length);
 
@@ -114,7 +111,7 @@ namespace ObdiiMonitor
 
         public override string ToString()
         {
-            return startTag + '-' + length + '-' + time + '-' + dataType + '-' + data;
+            return START_TAG + '-' + length + '-' + time + '-' + dataType + '-' + data;
         }
     }
 }

@@ -24,22 +24,20 @@ namespace ObdiiMonitor
         internal void loadData(string fileName)
         {
             controller.SensorData.clearPollResponses();
+            controller.MainWindow.GraphQueue.Clear();
 
             FileStream fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
 
             while (fileStream.Position < fileStream.Length)
             {
 
-                while ((char)fileStream.ReadByte() != PollResponse.startTag[0])
+                while ((char)fileStream.ReadByte() != PollResponse.START_TAG)
                     ;
 
                 if (fileStream.Position >= fileStream.Length)
                     break;
 
                 long start = fileStream.Position - 1;
-
-                if ((char)fileStream.ReadByte() != PollResponse.startTag[1])
-                    continue;
 
                 int length = fileStream.ReadByte();
 
