@@ -49,12 +49,12 @@ namespace ObdiiMonitor
                 int length = fileStream.ReadByte();
 
                 // initialize a byte array that should hold all the data required to create a PollResponse
-                byte[] data = new byte[length + PollResponse.CONSTANT_LENGTH];
+                byte[] data = new byte[length + PollResponse.START_TAG_LENGTH];
 
                 fileStream.Position = start;
 
                 // copy the data starting from the start tag to a length of the length byte plus a defined constant number of bytes
-                fileStream.Read(data, 0, length + PollResponse.CONSTANT_LENGTH);
+                fileStream.Read(data, 0, length + PollResponse.START_TAG_LENGTH);
 
                 // send what should be a single poll response to the SensorData.loadData function that will construct a PollResponse object
                 // and store them in order in the pollRespnses member, any error checking of a bad data parameter will occur there

@@ -299,9 +299,16 @@ namespace ObdiiMonitor
                         {
                             chartsSensorGraphs[i].Size = new Size(chartsSensorGraphs[i].Size.Width + 10, chartsSensorGraphs[i].Size.Height);
                             foreach (Series series in chartsSensorGraphs[i].Series) {
-                                string str = ConvertSensorData.convert(controller.SensorController.SelectedSensors[i].Pid, response.Data.Substring(2));
-                                if (str != null)
-                                    series.Points.Add(new DataPoint(response.Time, str));
+                                try
+                                {
+                                    string str = ConvertSensorData.convert(controller.SensorController.SelectedSensors[i].Pid, response.Data.Substring(2));
+                                    if (str != null)
+                                        series.Points.Add(new DataPoint(response.Time, str));
+                                }
+                                catch (Exception e)
+                                {
+                                    Console.WriteLine(e.Message);
+                                }
                             }
                             break;
                         }

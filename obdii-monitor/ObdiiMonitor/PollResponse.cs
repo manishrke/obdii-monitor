@@ -10,7 +10,9 @@ namespace ObdiiMonitor
     {
         public static char START_TAG = '\x00EE';
 
-        public static int CONSTANT_LENGTH = 8;
+        public static int START_TAG_LENGTH = 2;
+
+        public static int CONSTANT_START = 8;
 
         private string dataType;
 
@@ -58,7 +60,7 @@ namespace ObdiiMonitor
 
             length = bytes[1];
 
-            if ((length + CONSTANT_LENGTH) != bytes.Length)
+            if ((length + START_TAG_LENGTH) != bytes.Length)
                 throw new Exception();
 
             time = System.BitConverter.ToInt32(bytes, 2);
@@ -69,10 +71,10 @@ namespace ObdiiMonitor
 
             if (dataType == "OB")
             {
-                data = enc.GetString(bytes, CONSTANT_LENGTH, length);
+                data = enc.GetString(bytes, CONSTANT_START, length - CONSTANT_START + START_TAG_LENGTH);
             }
             else
-                throw new Exception();
+                ;
 
         }
 
@@ -102,7 +104,7 @@ namespace ObdiiMonitor
 
             stream.Position = 0;
 
-            byte[] bytes = new byte[CONSTANT_LENGTH + length];
+            byte[] bytes = new byte[START_TAG_LENGTH + length];
 
             stream.Read(bytes, 0, bytes.Length);
 
