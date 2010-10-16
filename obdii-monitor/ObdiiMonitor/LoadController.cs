@@ -35,7 +35,7 @@ namespace ObdiiMonitor
             while (fileStream.Position < fileStream.Length)
             {
                 // read until it finds the start tag
-                while ((fileStream.Position < fileStream.Length)&&((char)fileStream.ReadByte() != PollResponse.START_TAG))
+                while ((fileStream.Position < fileStream.Length)&&((char)fileStream.ReadByte() != PollResponse.StartTag))
                     ;
 
                 // if it's the end of the file break from while l0op
@@ -49,12 +49,12 @@ namespace ObdiiMonitor
                 int length = fileStream.ReadByte();
 
                 // initialize a byte array that should hold all the data required to create a PollResponse
-                byte[] data = new byte[length + PollResponse.START_TAG_LENGTH];
+                byte[] data = new byte[length + PollResponse.StartTagLength];
 
                 fileStream.Position = start;
 
                 // copy the data starting from the start tag to a length of the length byte plus a defined constant number of bytes
-                fileStream.Read(data, 0, length + PollResponse.START_TAG_LENGTH);
+                fileStream.Read(data, 0, length + PollResponse.StartTagLength);
 
                 // send what should be a single poll response to the SensorData.loadData function that will construct a PollResponse object
                 // and store them in order in the pollRespnses member, any error checking of a bad data parameter will occur there

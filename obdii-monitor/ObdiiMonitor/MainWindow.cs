@@ -219,10 +219,10 @@ namespace ObdiiMonitor
             {
                 foreach (Series series in chartsSensorGraphs[i].Series)
                 {
-                    series.Points.Add(new DataPoint((double)response.Time, response.convertData()));
+                    series.Points.Add(new DataPoint((double)response.Time, response.ConvertData()));
                 }
                 chartsSensorGraphs[i].Size = new System.Drawing.Size(chartsSensorGraphs[i].Size.Width + 15, chartsSensorGraphs[i].Size.Height);
-                labelsSensorGraphsValues[i].Text = "Value: " + response.convertData();
+                labelsSensorGraphsValues[i].Text = "Value: " + response.ConvertData();
             }
         }
 
