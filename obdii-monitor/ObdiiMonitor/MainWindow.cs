@@ -277,7 +277,7 @@ namespace ObdiiMonitor
 
             try
             {
-                controller.LoadController.loadData(openFileDialog.FileName);
+                controller.LoadController.LoadData(openFileDialog.FileName);
             }
             catch (Exception ex)
             {

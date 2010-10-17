@@ -1,32 +1,54 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.Collections;
-
+﻿// <copyright file="LoadController.cs" company="University of Louisville">
+// Copyright (c) 2010 All Rights Reserved
+// </copyright>
+// <author>Bradley Schoch</author>
+// <author>Nicholas Bell</author>
+// <date>2010-10-16</date>
+// <summary>Contains functions for loading log data from a file and displaying this data to a graph</summary>
 namespace ObdiiMonitor
 {
-    class LoadController
+    using System;
+    using System.Collections;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Text;
+
+    /// <summary>
+    /// Contains functions for loading log data from a file and displaying this data to a graph
+    /// </summary>
+    public class LoadController
     {
+        /// <summary>
+        /// See Controller.cs
+        /// TODO: Possibly explain what this actually does.
+        /// </summary>
         private Controller controller;
 
+        /// <summary>
+        /// Sets the controller.
+        /// </summary>
+        /// <value>The controller.</value>
         internal Controller Controller
         {
-            set { controller = value; }
+            set { this.controller = value; }
         }
 
-        // the following function will attempt to open fileName 
-        // and attempt to find sections of the stream that start with with the chosen start tag
-        // if so it supsequently looks for a single byte length and copies the bytes from the beginning
-        // of the start tag to the the length plus a defined  length of bytes that will always be there
-        // it then sends that data to be converted into a PollResponse object
-        internal void loadData(string fileName)
+        /// <summary>
+        /// The following function will attempt to open fileName 
+        /// and attempt to find sections of the stream that start with with the chosen start tag defined
+        /// in PollResponse.cs. If so it subsequently looks for a single byte length and copies the 
+        /// bytes from the beginning of the start tag to the the length plus a defined  length of bytes
+        /// that will always be there. It then sends that data to be converted into a PollResponse object
+        /// </summary>
+        /// <param name="fileName">Name of the file.</param>
+        internal void LoadData(string fileName)
         {
             // clear the pollResponses ArrayList member in SensorData to begin loading in new data
-            controller.SensorData.clearPollResponses();
+            this.controller.SensorData.clearPollResponses();
+
             // Clear the GraphQueue, not sure if the GraphQueue will stick around.
-            controller.MainWindow.GraphQueue.Clear();
+            this.controller.MainWindow.GraphQueue.Clear();
 
             // open the FileStream of the fileName
             FileStream fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
@@ -35,12 +57,16 @@ namespace ObdiiMonitor
             while (fileStream.Position < fileStream.Length)
             {
                 // read until it finds the start tag
-                while ((fileStream.Position < fileStream.Length)&&((char)fileStream.ReadByte() != PollResponse.StartTag))
-                    ;
+                while ((fileStream.Position < fileStream.Length) && ((char)fileStream.ReadByte() != PollResponse.StartTag))
+                {
+                    // Waiting
+                }
 
                 // if it's the end of the file break from while l0op
                 if (fileStream.Position >= fileStream.Length)
+                {
                     break;
+                }
 
                 // record the start position of the start tag, this may be changed to index the position right after the start tag
                 long start = fileStream.Position - 1;
@@ -58,23 +84,28 @@ namespace ObdiiMonitor
 
                 // send what should be a single poll response to the SensorData.loadData function that will construct a PollResponse object
                 // and store them in order in the pollRespnses member, any error checking of a bad data parameter will occur there
-                controller.SensorData.loadData(data);
+                this.controller.SensorData.loadData(data);
             }
 
             // now that the data has been loaded into the software
             // create a series of graphs to represent the data
-            createGraphs(controller.SensorData.PollResponses);
+            this.CreateGraphs(this.controller.SensorData.PollResponses);
 
             // load the data into the graphs just created
-            controller.MainWindow.loadDataIntoSensorGraphs();
+            this.controller.MainWindow.loadDataIntoSensorGraphs();
 
             // now that the data has all been loaded, show the panel
-            controller.MainWindow.showSensorDataPanel();
+            this.controller.MainWindow.showSensorDataPanel();
+
             // show the Reset text on the action button of the window
-            controller.MainWindow.showResetButton();
+            this.controller.MainWindow.showResetButton();
         }
 
-        private void createGraphs(ArrayList pollResponses)
+        /// <summary>
+        /// Creates the graphs.
+        /// </summary>
+        /// <param name="pollResponses">The poll responses.</param>
+        private void CreateGraphs(ArrayList pollResponses)
         {
             HashSet<string> set = new HashSet<string>();
             ArrayList numsSelected = new ArrayList();
@@ -92,27 +123,25 @@ namespace ObdiiMonitor
                         set.Add(response.Data.Substring(0, 2));
                     }
                 }
-
-                
             }
 
-            
             // now compile a list of the index of the pids from the sensors table in SensorController 
             foreach (string str in set)
             {
-                for (int i=0; i < controller.SensorController.Sensors.Length; ++i)
+                for (int i = 0; i < this.controller.SensorController.Sensors.Length; ++i)
                 {
-                    if (controller.SensorController.Sensors[i].Pid == str)
+                    if (this.controller.SensorController.Sensors[i].Pid == str)
                     {
                         numsSelected.Add(i);
                     }
                 }
             }
 
-            //initialize the selectedSensors member of SensorController
-            controller.SensorController.initializeSelectedSensors(numsSelected);
+            // initialize the selectedSensors member of SensorController
+            this.controller.SensorController.initializeSelectedSensors(numsSelected);
+
             // create the initial graphs based off the sensors in selectedSensor member of SensorController
-            controller.MainWindow.populateGraphWindow(numsSelected);
+            this.controller.MainWindow.populateGraphWindow(numsSelected);
         }
     }
 }
