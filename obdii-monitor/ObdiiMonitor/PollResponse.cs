@@ -166,7 +166,7 @@ namespace ObdiiMonitor
 
             stream.Write(System.BitConverter.GetBytes(StartTag), 0, 1);
 
-            stream.Write(System.BitConverter.GetBytes(this.data.Length), 0, 1);
+            stream.Write(System.BitConverter.GetBytes(this.data.Length + ConstantStart - StartTag), 0, 1);
 
             stream.Write(System.BitConverter.GetBytes(this.time), 0, System.BitConverter.GetBytes(this.time).Length);
 
