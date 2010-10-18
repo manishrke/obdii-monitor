@@ -4,7 +4,7 @@
 // <author>Bradley Schoch</author>
 // <author>Nicholas Bell</author>
 // <date>2010-10-16</date>
-// <summary>Contains logic for handing responses to polls.</summary>
+// <summary>Contains logic for handling responses to polls.</summary>
 namespace ObdiiMonitor
 {
     using System;
@@ -14,7 +14,7 @@ namespace ObdiiMonitor
     using System.Text;
 
     /// <summary>
-    /// Contains logic for handing responses to polls.
+    /// Contains logic for handling responses to polls.
     /// </summary>
     public class PollResponse
     {

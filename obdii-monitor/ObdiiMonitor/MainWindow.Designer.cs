@@ -78,14 +78,14 @@
             // saveToolStripMenuItem
             // 
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.saveToolStripMenuItem.Text = "Save";
             this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
             // 
             // loadToolStripMenuItem
             // 
             this.loadToolStripMenuItem.Name = "loadToolStripMenuItem";
-            this.loadToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
+            this.loadToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.loadToolStripMenuItem.Text = "Load";
             this.loadToolStripMenuItem.Click += new System.EventHandler(this.loadToolStripMenuItem_Click);
             // 
@@ -95,20 +95,22 @@
             this.textFileToolStripMenuItem,
             this.spreadsheetToolStripMenuItem});
             this.exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-            this.exportToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
+            this.exportToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.exportToolStripMenuItem.Text = "Export";
             // 
             // textFileToolStripMenuItem
             // 
             this.textFileToolStripMenuItem.Name = "textFileToolStripMenuItem";
-            this.textFileToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
+            this.textFileToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.textFileToolStripMenuItem.Text = "Text File";
+            this.textFileToolStripMenuItem.Click += new System.EventHandler(this.textFileToolStripMenuItem_Click);
             // 
             // spreadsheetToolStripMenuItem
             // 
             this.spreadsheetToolStripMenuItem.Name = "spreadsheetToolStripMenuItem";
-            this.spreadsheetToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
+            this.spreadsheetToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.spreadsheetToolStripMenuItem.Text = "Spreadsheet";
+            this.spreadsheetToolStripMenuItem.Click += new System.EventHandler(this.spreadsheetToolStripMenuItem_Click);
             // 
             // viewToolStripMenuItem
             // 

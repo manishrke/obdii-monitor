@@ -13,6 +13,7 @@ namespace ObdiiMonitor
     using System.ComponentModel;
     using System.Data;
     using System.Drawing;
+    using System.IO;
     using System.Linq;
     using System.Text;
     using System.Threading;
@@ -92,10 +93,10 @@ namespace ObdiiMonitor
         }
 
         /// <summary>
-        // This function will take the integers in numselected and add the a graph for each of the indexes that
-        // numsSelected represents  in the Sensors table of SensorController.
-        // This function assumes that the SelectedSensors member of SensorController has already been intialized and set to the indexes that
-        // numsSelected represents
+        /// This function will take the integers in numselected and add the a graph for each of the indexes that
+        /// numsSelected represents  in the Sensors table of SensorController.
+        /// This function assumes that the SelectedSensors member of SensorController has already been intialized and set to the indexes that
+        /// numsSelected represents
         /// </summary>
         /// <param name="numsSelected">The indices of selected sensors to display.</param>
         internal void PopulateGraphWindow(ArrayList numsSelected)
@@ -362,6 +363,60 @@ namespace ObdiiMonitor
                         }
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Handles the Click event to export the data to a spreadsheet.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
+        private void spreadsheetToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // TODO: To be implemented
+        }
+
+        /// <summary>
+        /// Handles the Click event to export the data to a text file.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
+        private void textFileToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Displays a SaveFileDialog so the user can save the collected data
+            SaveFileDialog saveTextFileDiag = new SaveFileDialog();
+            saveTextFileDiag.Filter = "Text File (*.txt)|*.txt|All Files (*.*)|*.*";
+            saveTextFileDiag.Title = "Save Collected Data";
+            saveTextFileDiag.ShowDialog();
+
+            // If the file name is not an empty string open it for saving.
+            if (saveTextFileDiag.FileName != string.Empty)
+            {
+                StreamWriter sw = new StreamWriter(saveTextFileDiag.OpenFile());
+                string separatorAsterisk = "********************************************************************************";
+                string separatorDash = "--------------------------------------------------------------------------------";
+
+                for (int i = 0; i < this.controller.SensorController.SelectedSensors.Length; ++i)
+                {
+                    sw.WriteLine(separatorAsterisk);
+                    sw.WriteLine(this.controller.SensorController.SelectedSensors[i].Label);
+                    sw.WriteLine(separatorDash);
+                    sw.WriteLine("Time\t\tValue");
+                    sw.WriteLine(separatorDash);
+
+                    foreach (Series series in this.chartsSensorGraphs[i].Series)
+                    {
+                        if (series.ChartType.ToString() == "Point")
+                        {
+                            foreach (DataPoint point in series.Points)
+                            {
+                                sw.WriteLine(point.XValue + "\t\t" + point.YValues[0]);
+                            }
+                        }
+                    }
+                }
+
+                sw.Close();
             }
         }
     }
