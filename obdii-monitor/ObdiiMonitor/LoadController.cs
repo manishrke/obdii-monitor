@@ -92,13 +92,13 @@ namespace ObdiiMonitor
             this.CreateGraphs(this.controller.SensorData.PollResponses);
 
             // load the data into the graphs just created
-            this.controller.MainWindow.loadDataIntoSensorGraphs();
+            this.controller.MainWindow.LoadDataIntoSensorGraphs();
 
             // now that the data has all been loaded, show the panel
-            this.controller.MainWindow.showSensorDataPanel();
+            this.controller.MainWindow.ShowSensorDataPanel();
 
             // show the Reset text on the action button of the window
-            this.controller.MainWindow.showResetButton();
+            this.controller.MainWindow.ShowResetButton();
         }
 
         /// <summary>
@@ -141,7 +141,7 @@ namespace ObdiiMonitor
             this.controller.SensorController.initializeSelectedSensors(numsSelected);
 
             // create the initial graphs based off the sensors in selectedSensor member of SensorController
-            this.controller.MainWindow.populateGraphWindow(numsSelected);
+            this.controller.MainWindow.PopulateGraphWindow(numsSelected);
         }
     }
 }

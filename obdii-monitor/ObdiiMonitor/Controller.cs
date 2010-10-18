@@ -63,8 +63,8 @@ namespace ObdiiMonitor
 
         public void cancelAllThreads()
         {
-            if (MainWindow.updateGraphPlots != null)
-                MainWindow.updateGraphPlots.Abort();
+            if (MainWindow.UpdateGraphPlots != null)
+                MainWindow.UpdateGraphPlots.Abort();
 
             if (sensorController.polling != null)
                 sensorController.polling.Abort();

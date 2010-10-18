@@ -1,21 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using System.Collections;
-using System.Windows.Forms.DataVisualization.Charting;
-using System.Threading;
-
+﻿// <copyright file="MainWindow.cs" company="University of Louisville">
+// Copyright (c) 2010 All Rights Reserved
+// </copyright>
+// <author>Bradley Schoch</author>
+// <author>Nicholas Bell</author>
+// <date>2010-10-17</date>
+// <summary>Contains logic for handing responses to polls.</summary>
 namespace ObdiiMonitor
 {
+    using System;
+    using System.Collections;
+    using System.Collections.Generic;
+    using System.ComponentModel;
+    using System.Data;
+    using System.Drawing;
+    using System.Linq;
+    using System.Text;
+    using System.Threading;
+    using System.Windows.Forms;
+    using System.Windows.Forms.DataVisualization.Charting;
+
+    /// <summary>
+    /// 
+    /// </summary>
     public partial class MainWindow : Form
     {
-        public static int START_HEIGHT = 4;
-        public static int START_WIDTH = 4;
+        public static int StartHeight = 4;
+        public static int StartWidth = 4;
 
         Controller controller;
 
@@ -29,7 +39,7 @@ namespace ObdiiMonitor
 
         Chart[] chartsSensorGraphs;
 
-        internal Thread updateGraphPlots;
+        internal Thread UpdateGraphPlots;
 
         delegate void SetResponseCallback(int i, PollResponse response);
 
@@ -37,77 +47,85 @@ namespace ObdiiMonitor
 
         public Queue GraphQueue
         {
-            get { return graphQueue; }
+            get { return this.graphQueue; }
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MainWindow"/> class.
+        /// </summary>
         public MainWindow()
         {
-            controller = new Controller();
-            controller.MainWindow = this;
+            this.controller = new Controller();
+            this.controller.MainWindow = this;
             InitializeComponent();
-            populateSelectionWindow();
+            this.PopulateSelectionWindow();
             panelSensorGraphs.Visible = false;
             comboBoxBaudRate.SelectedIndex = 1;
             comboBoxComPort.SelectedIndex = 3;
         }
 
-
-        private void populateSelectionWindow()
+        /// <summary>
+        /// Populates the selection window.
+        /// </summary>
+        private void PopulateSelectionWindow()
         {
             this.panelSensorSelection.Controls.Clear();
 
-            labelsSensorSelection = new Label[controller.SensorController.Sensors.Length];
-            checkboxesSensorSelection = new CheckBox[controller.SensorController.Sensors.Length];
+            this.labelsSensorSelection = new Label[this.controller.SensorController.Sensors.Length];
+            this.checkboxesSensorSelection = new CheckBox[this.controller.SensorController.Sensors.Length];
 
-            int height = START_HEIGHT;
-            int width = START_WIDTH;
+            int height = StartHeight;
+            int width = StartWidth;
 
-            for (int i = 0; i < controller.SensorController.Sensors.Length; ++i)
+            for (int i = 0; i < this.controller.SensorController.Sensors.Length; ++i)
             {
-                labelsSensorSelection[i] = new Label();
-                labelsSensorSelection[i].Text = controller.SensorController.Sensors[i].Label;
-                labelsSensorSelection[i].Location = new Point(width + 20, height + 25 * i + 5);
-                this.panelSensorSelection.Controls.Add(labelsSensorSelection[i]);
+                this.labelsSensorSelection[i] = new Label();
+                this.labelsSensorSelection[i].Text = this.controller.SensorController.Sensors[i].Label;
+                this.labelsSensorSelection[i].Location = new Point(width + 20, height + (25 * i) + 5);
+                this.panelSensorSelection.Controls.Add(this.labelsSensorSelection[i]);
 
-                checkboxesSensorSelection[i] = new CheckBox();
-                checkboxesSensorSelection[i].Location = new Point(width, height + 25 * i);
-                checkboxesSensorSelection[i].Checked = true;
-                this.panelSensorSelection.Controls.Add(checkboxesSensorSelection[i]);
+                this.checkboxesSensorSelection[i] = new CheckBox();
+                this.checkboxesSensorSelection[i].Location = new Point(width, height + (25 * i));
+                this.checkboxesSensorSelection[i].Checked = true;
+                this.panelSensorSelection.Controls.Add(this.checkboxesSensorSelection[i]);
             }
         }
 
+        /// <summary>
         // This function will take the integers in numselected and add the a graph for each of the indexes that
         // numsSelected represents  in the Sensors table of SensorController.
-        // This function assumes that the SelectedSensors member of SensorControlelr has already been intialized and set to the indexes that
+        // This function assumes that the SelectedSensors member of SensorController has already been intialized and set to the indexes that
         // numsSelected represents
-        internal void populateGraphWindow(ArrayList numsSelected)
+        /// </summary>
+        /// <param name="numsSelected">The indices of selected sensors to display.</param>
+        internal void PopulateGraphWindow(ArrayList numsSelected)
         {
             this.panelSensorGraphs.Controls.Clear();
-            labelsSensorGraphs = new Label[numsSelected.Count];
-            labelsSensorGraphsValues = new Label[numsSelected.Count];
-            chartsSensorGraphs = new Chart[numsSelected.Count];
+            this.labelsSensorGraphs = new Label[numsSelected.Count];
+            this.labelsSensorGraphsValues = new Label[numsSelected.Count];
+            this.chartsSensorGraphs = new Chart[numsSelected.Count];
 
             ChartArea[] chartAreas = new ChartArea[numsSelected.Count];
             Legend[] legends = new Legend[numsSelected.Count];
             Series[] seriesLines = new Series[numsSelected.Count];
             Series[] seriesPoints = new Series[numsSelected.Count];
 
-            int height = START_HEIGHT;
-            int width = START_WIDTH;
+            int height = StartHeight;
+            int width = StartWidth;
 
             for (int i = 0; i < numsSelected.Count; ++i)
             {
-                labelsSensorGraphs[i] = new Label();
-                labelsSensorGraphs[i].Text = controller.SensorController.Sensors[(int)numsSelected[i]].Label;
-                labelsSensorGraphs[i].Location = new Point(width, height + 200 * i);
-                this.panelSensorGraphs.Controls.Add(labelsSensorGraphs[i]);
+                this.labelsSensorGraphs[i] = new Label();
+                this.labelsSensorGraphs[i].Text = this.controller.SensorController.Sensors[(int)numsSelected[i]].Label;
+                this.labelsSensorGraphs[i].Location = new Point(width, height + (200 * i));
+                this.panelSensorGraphs.Controls.Add(this.labelsSensorGraphs[i]);
 
-                labelsSensorGraphsValues[i] = new Label();
-                labelsSensorGraphsValues[i].Text = "Value: ";
-                labelsSensorGraphsValues[i].Location = new Point(width + labelsSensorGraphs[i].Size.Width + 5, height + 200 * i);
-                this.panelSensorGraphs.Controls.Add(labelsSensorGraphsValues[i]);
+                this.labelsSensorGraphsValues[i] = new Label();
+                this.labelsSensorGraphsValues[i].Text = "Value: ";
+                this.labelsSensorGraphsValues[i].Location = new Point(width + this.labelsSensorGraphs[i].Size.Width + 5, height + (200 * i));
+                this.panelSensorGraphs.Controls.Add(this.labelsSensorGraphsValues[i]);
 
-                chartsSensorGraphs[i] = new Chart();
+                this.chartsSensorGraphs[i] = new Chart();
                 chartAreas[i] = new ChartArea();
                 chartAreas[i].AlignmentStyle = AreaAlignmentStyles.All;
                 chartAreas[i].AxisX.IsReversed = true;
@@ -116,16 +134,16 @@ namespace ObdiiMonitor
 
                 seriesPoints[i] = new Series();
 
-                chartsSensorGraphs[i].ChartAreas.Add(chartAreas[i]);
-                chartsSensorGraphs[i].Legends.Add(legends[i]);
+                this.chartsSensorGraphs[i].ChartAreas.Add(chartAreas[i]);
+                this.chartsSensorGraphs[i].Legends.Add(legends[i]);
                 seriesLines[i].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
                 seriesPoints[i].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Point;
-                chartsSensorGraphs[i].Series.Add(seriesLines[i]);
-                chartsSensorGraphs[i].Series.Add(seriesPoints[i]);
-                chartsSensorGraphs[i].Location = new System.Drawing.Point(23, 50);
-                chartsSensorGraphs[i].Size = new System.Drawing.Size(170, 170);
-                chartsSensorGraphs[i].Location = new Point(width, height + 200 * i + 25);
-                this.panelSensorGraphs.Controls.Add(chartsSensorGraphs[i]);
+                this.chartsSensorGraphs[i].Series.Add(seriesLines[i]);
+                this.chartsSensorGraphs[i].Series.Add(seriesPoints[i]);
+                this.chartsSensorGraphs[i].Location = new System.Drawing.Point(23, 50);
+                this.chartsSensorGraphs[i].Size = new System.Drawing.Size(170, 170);
+                this.chartsSensorGraphs[i].Location = new Point(width, height + (200 * i) + 25);
+                this.panelSensorGraphs.Controls.Add(this.chartsSensorGraphs[i]);
             }
         }
 
@@ -134,95 +152,108 @@ namespace ObdiiMonitor
             if (buttonCollect.Text == "Collect Data")
             {
                 ArrayList numsSelected = new ArrayList();
-                for (int i = 0; i < checkboxesSensorSelection.Length; ++i)
-                    if (checkboxesSensorSelection[i].Checked)
+                for (int i = 0; i < this.checkboxesSensorSelection.Length; ++i)
+                {
+                    if (this.checkboxesSensorSelection[i].Checked)
+                    {
                         numsSelected.Add(i);
+                    }
+                }
 
-                controller.SensorController.initializeSelectedSensors(numsSelected);
-                controller.SensorController.initializePollingReceivingThreads();
-                controller.SensorData.clearPollResponses();
-                populateGraphWindow(numsSelected);
-                showSensorDataPanel();
+                this.controller.SensorController.initializeSelectedSensors(numsSelected);
+                this.controller.SensorController.initializePollingReceivingThreads();
+                this.controller.SensorData.clearPollResponses();
+                this.PopulateGraphWindow(numsSelected);
+                this.ShowSensorDataPanel();
                 buttonCollect.Text = "Stop";
-                startGraphPlotThread();
+                this.StartGraphPlotThread();
             }
             else if (buttonCollect.Text == "Stop")
             {
-                showResetButton();
+                this.ShowResetButton();
             }
             else if (buttonCollect.Text == "Reset")
             {
-                populateSelectionWindow();
+                this.PopulateSelectionWindow();
                 buttonCollect.Text = "Collect Data";
                 this.panelSensorSelection.Visible = true;
                 this.panelSensorGraphs.Visible = false;
             }
         }
 
-        internal void showResetButton()
+        internal void ShowResetButton()
         {
             buttonCollect.Text = "Reset";
-            controller.cancelAllThreads();
+            this.controller.cancelAllThreads();
         }
 
-        internal void showSensorDataPanel()
+        internal void ShowSensorDataPanel()
         {
             this.panelSensorSelection.Visible = false;
             this.panelSensorGraphs.Visible = true;
         }
 
-        internal void startGraphPlotThread()
+        internal void StartGraphPlotThread()
         {
-            updateGraphPlots = new Thread(new ThreadStart(updateGraphs));
-            updateGraphPlots.Name = "UpdateGraphs";
-            updateGraphPlots.Start();
+            this.UpdateGraphPlots = new Thread(new ThreadStart(this.UpdateGraphs));
+            this.UpdateGraphPlots.Name = "UpdateGraphs";
+            this.UpdateGraphPlots.Start();
         }
 
-        public void updateGraphs()
+        /// <summary>
+        /// Updates the graphs.
+        /// </summary>
+        public void UpdateGraphs()
         {
             while (true)
             {
-                if (graphQueue.Count != 0)
+                if (this.graphQueue.Count != 0)
                 {
-                    PollResponse response = (PollResponse)graphQueue.Dequeue();
+                    PollResponse response = (PollResponse)this.graphQueue.Dequeue();
 
                     if (response.DataType == "OB")
-                        for (int i = 0; i < controller.SensorController.SelectedSensors.Length; ++i)
+                    {
+                        for (int i = 0; i < this.controller.SensorController.SelectedSensors.Length; ++i)
                         {
                             try
                             {
-                                if (response.Data.Substring(0, 2) == controller.SensorController.SelectedSensors[i].Pid)
+                                if (response.Data.Substring(0, 2) == this.controller.SensorController.SelectedSensors[i].Pid)
                                 {
-                                    setGraphPoint(i, response);
+                                    this.SetGraphPoint(i, response);
                                     break;
                                 }
                             }
                             catch (Exception e)
                             {
-
                             }
                         }
+                    }
                 }
             }
         }
 
-        private void setGraphPoint(int i, PollResponse response)
+        /// <summary>
+        /// Sets the graph point.
+        /// </summary>
+        /// <param name="i">The point index.</param>
+        /// <param name="response">The response from the microcontroller.</param>
+        private void SetGraphPoint(int i, PollResponse response)
         {
-
             if (this.chartsSensorGraphs[i].InvokeRequired)
             {
-                SetResponseCallback d = new SetResponseCallback(setGraphPoint);
+                SetResponseCallback d = new SetResponseCallback(this.SetGraphPoint);
                 this.Invoke(d, new object[] { i, response });
             }
             else
             {
-                foreach (Series series in chartsSensorGraphs[i].Series)
+                foreach (Series series in this.chartsSensorGraphs[i].Series)
                 {
                     series.Points.Add(new DataPoint((double)response.Time, response.ConvertData()));
-                    createDataPointToolTip(series.Points[series.Points.Count - 1]);
+                    this.CreateDataPointToolTip(series.Points[series.Points.Count - 1]);
                 }
-                chartsSensorGraphs[i].Size = new System.Drawing.Size(chartsSensorGraphs[i].Size.Width + 15, chartsSensorGraphs[i].Size.Height);
-                labelsSensorGraphsValues[i].Text = "Value: " + response.ConvertData();
+
+                this.chartsSensorGraphs[i].Size = new System.Drawing.Size(this.chartsSensorGraphs[i].Size.Width + 15, this.chartsSensorGraphs[i].Size.Height);
+                this.labelsSensorGraphsValues[i].Text = "Value: " + response.ConvertData();
             }
         }
 
@@ -230,7 +261,7 @@ namespace ObdiiMonitor
         {
             try
             {
-                controller.Serial.initialize(comboBoxBaudRate.Text, comboBoxComPort.Text);
+                this.controller.Serial.initialize(comboBoxBaudRate.Text, comboBoxComPort.Text);
                 labelStatus.Text = comboBoxComPort.Text + " now open.";
             }
             catch (Exception ex)
@@ -242,9 +273,9 @@ namespace ObdiiMonitor
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            controller.cancelAllThreads();
+            this.controller.cancelAllThreads();
 
-            if ((controller.SensorData.PollResponses == null) || (controller.SensorData.PollResponses.Count == 0))
+            if ((this.controller.SensorData.PollResponses == null) || (this.controller.SensorData.PollResponses.Count == 0))
             {
                 MessageBox.Show("No data to save.");
                 return;
@@ -260,12 +291,12 @@ namespace ObdiiMonitor
                 return;
             }
 
-            controller.SaveController.saveData(saveFileDialog.FileName);
+            this.controller.SaveController.saveData(saveFileDialog.FileName);
         }
 
         private void loadToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            controller.cancelAllThreads();
+            this.controller.cancelAllThreads();
 
             openFileDialog.ShowDialog();
 
@@ -277,7 +308,7 @@ namespace ObdiiMonitor
 
             try
             {
-                controller.LoadController.LoadData(openFileDialog.FileName);
+                this.controller.LoadController.LoadData(openFileDialog.FileName);
             }
             catch (Exception ex)
             {
@@ -290,32 +321,35 @@ namespace ObdiiMonitor
         /// Creates the string used for the mouse hover text (ToolTip) of a point.
         /// </summary>
         /// <param name="pt">The datapoint for which to set the ToolTip property.</param>
-        private void createDataPointToolTip(DataPoint pt)
+        private void CreateDataPointToolTip(DataPoint pt)
         {
             pt.ToolTip = "Value:\t" + pt.YValues[0].ToString() + "\nTime:\t" + pt.XValue;
         }
 
-        // this function will load the data in SensorData.PollResponses into the corresponding graphs
-        // that have already been created 
-        internal void loadDataIntoSensorGraphs()
+        /// <summary>
+        /// this function will load the data in SensorData.PollResponses into the corresponding graphs
+        /// that have already been created 
+        /// </summary>
+        internal void LoadDataIntoSensorGraphs()
         {
-            foreach (PollResponse response in controller.SensorData.PollResponses)
+            foreach (PollResponse response in this.controller.SensorData.PollResponses)
             {
                 if (response.DataType == "OB")
                 {
-                    for (int i = 0; i < controller.SensorController.SelectedSensors.Length; ++i)
+                    for (int i = 0; i < this.controller.SensorController.SelectedSensors.Length; ++i)
                     {
-                        if ((response.Data.Length > 2)&&(controller.SensorController.SelectedSensors[i].Pid == response.Data.Substring(0, 2)))
+                        if ((response.Data.Length > 2) && (this.controller.SensorController.SelectedSensors[i].Pid == response.Data.Substring(0, 2)))
                         {
-                            chartsSensorGraphs[i].Size = new Size(chartsSensorGraphs[i].Size.Width + 10, chartsSensorGraphs[i].Size.Height);
-                            foreach (Series series in chartsSensorGraphs[i].Series) {
+                            this.chartsSensorGraphs[i].Size = new Size(this.chartsSensorGraphs[i].Size.Width + 10, this.chartsSensorGraphs[i].Size.Height);
+                            foreach (Series series in this.chartsSensorGraphs[i].Series)
+                            {
                                 try
                                 {
-                                    string str = ConvertSensorData.convert(controller.SensorController.SelectedSensors[i].Pid, response.Data.Substring(2));
+                                    string str = ConvertSensorData.convert(this.controller.SensorController.SelectedSensors[i].Pid, response.Data.Substring(2));
                                     if (str != null)
                                     {
                                         series.Points.Add(new DataPoint(response.Time, str));
-                                        createDataPointToolTip(series.Points[series.Points.Count - 1]);
+                                        this.CreateDataPointToolTip(series.Points[series.Points.Count - 1]);
                                     }
                                 }
                                 catch (Exception e)
@@ -323,6 +357,7 @@ namespace ObdiiMonitor
                                     Console.WriteLine(e.Message);
                                 }
                             }
+
                             break;
                         }
                     }
