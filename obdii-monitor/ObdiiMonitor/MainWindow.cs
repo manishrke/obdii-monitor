@@ -4,7 +4,7 @@
 // <author>Bradley Schoch</author>
 // <author>Nicholas Bell</author>
 // <date>2010-10-17</date>
-// <summary>Contains logic for handing responses to polls.</summary>
+// <summary>Windows Forms frontend.</summary>
 namespace ObdiiMonitor
 {
     using System;
@@ -20,7 +20,7 @@ namespace ObdiiMonitor
     using System.Windows.Forms.DataVisualization.Charting;
 
     /// <summary>
-    /// 
+    /// Windows Forms frontend
     /// </summary>
     public partial class MainWindow : Form
     {
