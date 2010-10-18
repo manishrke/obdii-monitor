@@ -83,7 +83,6 @@ namespace ObdiiMonitor
         internal void populateGraphWindow(ArrayList numsSelected)
         {
             this.panelSensorGraphs.Controls.Clear();
-
             labelsSensorGraphs = new Label[numsSelected.Count];
             labelsSensorGraphsValues = new Label[numsSelected.Count];
             chartsSensorGraphs = new Chart[numsSelected.Count];
@@ -220,6 +219,7 @@ namespace ObdiiMonitor
                 foreach (Series series in chartsSensorGraphs[i].Series)
                 {
                     series.Points.Add(new DataPoint((double)response.Time, response.ConvertData()));
+                    createDataPointToolTip(series.Points[series.Points.Count - 1]);
                 }
                 chartsSensorGraphs[i].Size = new System.Drawing.Size(chartsSensorGraphs[i].Size.Width + 15, chartsSensorGraphs[i].Size.Height);
                 labelsSensorGraphsValues[i].Text = "Value: " + response.ConvertData();
@@ -285,6 +285,16 @@ namespace ObdiiMonitor
             }
         }
 
+        /// <summary>
+        /// Implemented in response to Issue 12.
+        /// Creates the string used for the mouse hover text (ToolTip) of a point.
+        /// </summary>
+        /// <param name="pt">The datapoint for which to set the ToolTip property.</param>
+        private void createDataPointToolTip(DataPoint pt)
+        {
+            pt.ToolTip = "Value:\t" + pt.YValues[0].ToString() + "\nTime:\t" + pt.XValue;
+        }
+
         // this function will load the data in SensorData.PollResponses into the corresponding graphs
         // that have already been created 
         internal void loadDataIntoSensorGraphs()
@@ -303,7 +313,10 @@ namespace ObdiiMonitor
                                 {
                                     string str = ConvertSensorData.convert(controller.SensorController.SelectedSensors[i].Pid, response.Data.Substring(2));
                                     if (str != null)
+                                    {
                                         series.Points.Add(new DataPoint(response.Time, str));
+                                        createDataPointToolTip(series.Points[series.Points.Count - 1]);
+                                    }
                                 }
                                 catch (Exception e)
                                 {
@@ -313,7 +326,6 @@ namespace ObdiiMonitor
                             break;
                         }
                     }
-
                 }
             }
         }
