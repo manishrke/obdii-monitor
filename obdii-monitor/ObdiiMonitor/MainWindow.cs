@@ -286,6 +286,11 @@ namespace ObdiiMonitor
 
             saveFileDialog.ShowDialog();
 
+            if (saveFileDialog.FileName == "")
+            {
+                return;
+            }
+
             if (!saveFileDialog.CheckPathExists)
             {
                 MessageBox.Show("The path does not exist.");
@@ -297,15 +302,22 @@ namespace ObdiiMonitor
 
         private void loadToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            this.controller.cancelAllThreads();
+            openFileDialog.Reset();
 
             openFileDialog.ShowDialog();
+
+            if (openFileDialog.FileName == "")
+            {
+                return;
+            }
 
             if (!openFileDialog.CheckFileExists)
             {
                 MessageBox.Show("File does not exist.");
                 return;
             }
+
+            this.controller.cancelAllThreads();
 
             try
             {
