@@ -379,14 +379,49 @@ namespace ObdiiMonitor
         }
 
         /// <summary>
-        /// Handles the Click event to export the data to a spreadsheet.
+        /// Handles the Click event to export the data to a *.csv spreadsheet, which is a fairly universal format
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
         private void spreadsheetToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // TODO: To be implemented
-        }
+            if (this.controller.SensorController.SelectedSensors != null)
+            {
+                SaveFileDialog saveTextFileDiag = new SaveFileDialog();
+                saveTextFileDiag.Filter = "CSV File (*.csv)|*.csv";
+                saveTextFileDiag.Title = "Save Collected Data";
+                saveTextFileDiag.ShowDialog();
+
+                // If the file name is not an empty string open it for saving.
+                if (saveTextFileDiag.FileName != string.Empty)
+                {
+                    StreamWriter sw = new StreamWriter(saveTextFileDiag.OpenFile());
+
+                    sw.WriteLine("Sensor, Time, Value");
+
+                    for (int i = 0; i < this.controller.SensorController.SelectedSensors.Length; ++i)
+                    {
+                        foreach (Series series in this.chartsSensorGraphs[i].Series)
+                        {
+                            if (series.ChartType.ToString() == "Point")
+                            {
+                                foreach (DataPoint point in series.Points)
+                                {
+                                    sw.WriteLine(this.controller.SensorController.SelectedSensors[i].Label + "," +
+                                        point.XValue + "," + point.YValues[0]);
+                                }
+                            }
+                        }
+                    }
+
+                    sw.Close();
+                }
+            }
+            else
+            {
+                MessageBox.Show("No data exists to export", "Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            }
+       }
 
         /// <summary>
         /// Handles the Click event to export the data to a text file.
@@ -395,40 +430,47 @@ namespace ObdiiMonitor
         /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
         private void textFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // Displays a SaveFileDialog so the user can save the collected data
-            SaveFileDialog saveTextFileDiag = new SaveFileDialog();
-            saveTextFileDiag.Filter = "Text File (*.txt)|*.txt|All Files (*.*)|*.*";
-            saveTextFileDiag.Title = "Save Collected Data";
-            saveTextFileDiag.ShowDialog();
-
-            // If the file name is not an empty string open it for saving.
-            if (saveTextFileDiag.FileName != string.Empty)
+            if (this.controller.SensorController.SelectedSensors != null)
             {
-                StreamWriter sw = new StreamWriter(saveTextFileDiag.OpenFile());
-                string separatorAsterisk = "********************************************************************************";
-                string separatorDash = "--------------------------------------------------------------------------------";
+                // Displays a SaveFileDialog so the user can save the collected data
+                SaveFileDialog saveTextFileDiag = new SaveFileDialog();
+                saveTextFileDiag.Filter = "Text File (*.txt)|*.txt|All Files (*.*)|*.*";
+                saveTextFileDiag.Title = "Save Collected Data";
+                saveTextFileDiag.ShowDialog();
 
-                for (int i = 0; i < this.controller.SensorController.SelectedSensors.Length; ++i)
+                // If the file name is not an empty string open it for saving.
+                if (saveTextFileDiag.FileName != string.Empty)
                 {
-                    sw.WriteLine(separatorAsterisk);
-                    sw.WriteLine(this.controller.SensorController.SelectedSensors[i].Label);
-                    sw.WriteLine(separatorDash);
-                    sw.WriteLine("Time\t\tValue");
-                    sw.WriteLine(separatorDash);
+                    StreamWriter sw = new StreamWriter(saveTextFileDiag.OpenFile());
+                    string separatorAsterisk = "********************************************************************************";
+                    string separatorDash = "--------------------------------------------------------------------------------";
 
-                    foreach (Series series in this.chartsSensorGraphs[i].Series)
+                    for (int i = 0; i < this.controller.SensorController.SelectedSensors.Length; ++i)
                     {
-                        if (series.ChartType.ToString() == "Point")
+                        sw.WriteLine(separatorAsterisk);
+                        sw.WriteLine(this.controller.SensorController.SelectedSensors[i].Label);
+                        sw.WriteLine(separatorDash);
+                        sw.WriteLine("Time\t\tValue");
+                        sw.WriteLine(separatorDash);
+
+                        foreach (Series series in this.chartsSensorGraphs[i].Series)
                         {
-                            foreach (DataPoint point in series.Points)
+                            if (series.ChartType.ToString() == "Point")
                             {
-                                sw.WriteLine(point.XValue + "\t\t" + point.YValues[0]);
+                                foreach (DataPoint point in series.Points)
+                                {
+                                    sw.WriteLine(point.XValue + "\t\t" + point.YValues[0]);
+                                }
                             }
                         }
                     }
-                }
 
-                sw.Close();
+                    sw.Close();
+                }
+            }
+            else
+            {
+                MessageBox.Show("No data exists to export", "Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
     }
