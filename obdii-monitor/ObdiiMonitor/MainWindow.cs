@@ -286,7 +286,7 @@ namespace ObdiiMonitor
 
             saveFileDialog.ShowDialog();
 
-            if (saveFileDialog.FileName == "")
+            if (saveFileDialog.FileName == string.Empty)
             {
                 return;
             }
@@ -306,7 +306,7 @@ namespace ObdiiMonitor
 
             openFileDialog.ShowDialog();
 
-            if (openFileDialog.FileName == "")
+            if (openFileDialog.FileName == string.Empty)
             {
                 return;
             }
