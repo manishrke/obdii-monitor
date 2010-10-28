@@ -9,13 +9,14 @@ using System.Diagnostics;
 
 namespace ObdiiMonitor
 {
-    class SensorController
+    public class SensorController
     {
         internal Thread polling, receiving;
 
         private Controller controller;
 
         Sensor[] sensors = {
+                               new Sensor("Accelleration:", "AC", 3),
                                new Sensor( "Absolute Throttle Position:", "11", 4),
                                new Sensor( "Engine RPM:", "0C", 6),
                                new Sensor( "Vehicle Speed:", "0D", 4),

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace ObdiiMonitor
 {
-    class Sensor
+    public class Sensor
     {
         string label;
 

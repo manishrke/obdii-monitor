@@ -7,7 +7,7 @@ using System.IO;
 
 namespace ObdiiMonitor
 {
-    class Controller
+    public class Controller
     {
         private MainWindow mainWindow;
 
@@ -38,6 +38,13 @@ namespace ObdiiMonitor
             get { return saveController; }
         }
 
+        private ConvertSensorData convertSensorData = new ConvertSensorData();
+
+        internal ConvertSensorData ConvertSensorData
+        {
+            get { return convertSensorData; }
+        }
+
         private Serial serial = new Serial();
 
         public Serial Serial
@@ -59,6 +66,7 @@ namespace ObdiiMonitor
             saveController.Controller = this;
             serial.Controller = this;
             sensorData.Controller = this;
+            convertSensorData.Controller = this;
         }
 
         public void cancelAllThreads()

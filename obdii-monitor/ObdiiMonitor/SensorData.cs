@@ -7,7 +7,7 @@ using System.Collections;
 
 namespace ObdiiMonitor
 {
-    class SensorData
+    public class SensorData
     {
         private static string SENSOR_RESPONSE = "41";
 
@@ -48,7 +48,7 @@ namespace ObdiiMonitor
 
                 pollData = data.Substring(0, length);
 
-                PollResponse pollResponse = new PollResponse(time, pollData, dataType, length);
+                PollResponse pollResponse = new PollResponse(controller, time, pollData, dataType, length);
 
                 Console.WriteLine(pollResponse.ToString());
 
@@ -62,7 +62,7 @@ namespace ObdiiMonitor
         {
             try
             {
-                PollResponse response = new PollResponse(data);
+                PollResponse response = new PollResponse(controller, data);
                 pollResponses.Add(response);
                 controller.MainWindow.GraphQueue.Enqueue(response);
                 Console.WriteLine(response);

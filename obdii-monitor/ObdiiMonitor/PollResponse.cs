@@ -19,12 +19,18 @@ namespace ObdiiMonitor
     public class PollResponse
     {
         /// <summary>
+        /// See Controller.cs
+        /// TODO: Possibly explain what this actually does.
+        /// </summary>
+        private Controller controller;
+
+        /// <summary>
         /// Dataword that indicates the beginning of the data to be read.
         /// </summary>
         public static char StartTag = '\x00EE';
 
         /// <summary>
-        /// Length of the above start tag, in bytes.
+        /// Length of the above start tagn, in bytes.
         /// </summary>
         public static int StartTagLength = 2;
 
@@ -97,8 +103,9 @@ namespace ObdiiMonitor
         /// <param name="data">The data that was collected.</param>
         /// <param name="dataType">Type of the data.</param>
         /// <param name="length">The length of the data in bytes.</param>
-        public PollResponse(int time, string data, string dataType, int length)
+        public PollResponse(Controller controller, int time, string data, string dataType, int length)
         {
+            this.controller = controller;
             this.time = time;
             this.data = data;
             this.dataType = dataType;
@@ -109,8 +116,10 @@ namespace ObdiiMonitor
         /// Initializes a new instance of the <see cref="PollResponse"/> class.
         /// </summary>
         /// <param name="bytes">The bytes.</param>
-        public PollResponse(byte[] bytes)
+        public PollResponse(Controller controller, byte[] bytes)
         {
+            this.controller = controller;
+
             if (bytes.Length < 2)
             {
                 throw new Exception();
@@ -134,7 +143,7 @@ namespace ObdiiMonitor
 
             this.dataType = enc.GetString(bytes, 6, 2);
 
-            if (this.dataType == "OB")
+            if ((this.dataType == "OB")||(this.DataType == "AC"))
             {
                 this.data = enc.GetString(bytes, ConstantStart, this.length - ConstantStart + StartTagLength);
             }
@@ -148,7 +157,7 @@ namespace ObdiiMonitor
         {
             if ((this.data.Length > 2) && (this.dataType == "OB"))
             {
-                return Double.Parse(ConvertSensorData.convert(this.data.Substring(0, 2), this.data.Substring(2)));
+                return Double.Parse(controller.ConvertSensorData.convert(this.data.Substring(0, 2), this.data.Substring(2)));
             }
 
             return Double.Parse(this.data);

@@ -6,7 +6,7 @@ using System.IO.Ports;
 
 namespace ObdiiMonitor
 {
-    class Serial
+    public class Serial
     {
         Controller controller;
 

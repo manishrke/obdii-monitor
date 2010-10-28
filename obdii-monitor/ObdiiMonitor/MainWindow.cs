@@ -358,7 +358,35 @@ namespace ObdiiMonitor
                             {
                                 try
                                 {
-                                    string str = ConvertSensorData.convert(this.controller.SensorController.SelectedSensors[i].Pid, response.Data.Substring(2));
+                                    string str = controller.ConvertSensorData.convert(this.controller.SensorController.SelectedSensors[i].Pid, response.Data.Substring(2));
+                                    if (str != null)
+                                    {
+                                        series.Points.Add(new DataPoint(response.Time, str));
+                                        this.CreateDataPointToolTip(series.Points[series.Points.Count - 1]);
+                                    }
+                                }
+                                catch (Exception e)
+                                {
+                                    Console.WriteLine(e.Message);
+                                }
+                            }
+
+                            break;
+                        }
+                    }
+                }
+                else if (response.DataType == "AC")
+                {
+                    for (int i = 0; i < this.controller.SensorController.SelectedSensors.Length; ++i)
+                    {
+                        if (this.controller.SensorController.SelectedSensors[i].Pid == response.DataType)
+                        {
+                            this.chartsSensorGraphs[i].Size = new Size(this.chartsSensorGraphs[i].Size.Width + 10, this.chartsSensorGraphs[i].Size.Height);
+                            foreach (Series series in this.chartsSensorGraphs[i].Series)
+                            {
+                                try
+                                {
+                                    string str = controller.ConvertSensorData.convert(response.DataType, response.Data);
                                     if (str != null)
                                     {
                                         series.Points.Add(new DataPoint(response.Time, str));

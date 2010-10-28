@@ -47,6 +47,9 @@ namespace ObdiiMonitor
             // clear the pollResponses ArrayList member in SensorData to begin loading in new data
             this.controller.SensorData.clearPollResponses();
 
+            // clear the initialAccellerometerReading
+            this.controller.ConvertSensorData.resetInitialAccelerometerReading();
+
             // Clear the GraphQueue, not sure if the GraphQueue will stick around.
             this.controller.MainWindow.GraphQueue.Clear();
 
@@ -122,6 +125,11 @@ namespace ObdiiMonitor
                     {
                         set.Add(response.Data.Substring(0, 2));
                     }
+                }
+                // if the data type is the accellerometer
+                else if (response.DataType == "AC")
+                {
+                    set.Add(response.DataType);
                 }
             }
 
