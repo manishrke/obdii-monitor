@@ -107,7 +107,6 @@ namespace ObdiiMonitor
             this.chartsSensorGraphs = new Chart[numsSelected.Count];
 
             ChartArea[] chartAreas = new ChartArea[numsSelected.Count];
-            Legend[] legends = new Legend[numsSelected.Count];
             Series[] seriesLines = new Series[numsSelected.Count];
             Series[] seriesPoints = new Series[numsSelected.Count];
 
@@ -130,13 +129,12 @@ namespace ObdiiMonitor
                 chartAreas[i] = new ChartArea();
                 chartAreas[i].AlignmentStyle = AreaAlignmentStyles.All;
                 chartAreas[i].AxisX.IsReversed = true;
-                legends[i] = new Legend();
+                chartAreas[i].AxisX.Minimum = 0;
                 seriesLines[i] = new Series();
 
                 seriesPoints[i] = new Series();
 
                 this.chartsSensorGraphs[i].ChartAreas.Add(chartAreas[i]);
-                this.chartsSensorGraphs[i].Legends.Add(legends[i]);
                 seriesLines[i].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
                 seriesPoints[i].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Point;
                 this.chartsSensorGraphs[i].Series.Add(seriesLines[i]);
