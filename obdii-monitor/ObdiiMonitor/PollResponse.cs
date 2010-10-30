@@ -16,7 +16,7 @@ namespace ObdiiMonitor
     /// <summary>
     /// Contains logic for handling responses to polls.
     /// </summary>
-    public class PollResponse
+    class PollResponse
     {
         /// <summary>
         /// See Controller.cs
@@ -144,6 +144,10 @@ namespace ObdiiMonitor
             this.dataType = enc.GetString(bytes, 6, 2);
 
             if ((this.dataType == "OB")||(this.DataType == "AC"))
+            {
+                this.data = enc.GetString(bytes, ConstantStart, this.length - ConstantStart + StartTagLength);
+            }
+            else if (this.dataType == "TC")
             {
                 this.data = enc.GetString(bytes, ConstantStart, this.length - ConstantStart + StartTagLength);
             }

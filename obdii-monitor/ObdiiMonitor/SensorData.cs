@@ -10,7 +10,7 @@ namespace ObdiiMonitor
     public class SensorData
     {
         private static string SENSOR_RESPONSE = "41";
-
+        private static string TC_RESPONSE = "43";
         private Controller controller;
 
         internal Controller Controller
@@ -55,6 +55,26 @@ namespace ObdiiMonitor
                 pollResponses.Add(pollResponse);
 
                 controller.MainWindow.GraphQueue.Enqueue(pollResponse);
+            }
+            else if (data.Contains(TC_RESPONSE))
+            {
+                dataType = "TC";
+                data = data.Substring(data.IndexOf(SENSOR_RESPONSE) + SENSOR_RESPONSE.Length);
+
+                if (data.Length > 1)
+                    length = controller.SensorController.returnLength(data.Substring(0, 2));
+                else
+                    return;
+
+                pollData = data.Substring(0, length);
+               // .Set_Data(pollData);
+ //               PollResponse pollResponse = new PollResponse(time, pollData, dataType, length);
+
+ //               Console.WriteLine(pollResponse.ToString());
+
+  //              pollResponses.Add(pollResponse);
+
+  //              controller.MainWindow.GraphQueue.Enqueue(pollResponse);
             }
         }
 

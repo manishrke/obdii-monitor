@@ -78,14 +78,14 @@
             // saveToolStripMenuItem
             // 
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.saveToolStripMenuItem.Text = "Save";
             this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
             // 
             // loadToolStripMenuItem
             // 
             this.loadToolStripMenuItem.Name = "loadToolStripMenuItem";
-            this.loadToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
+            this.loadToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.loadToolStripMenuItem.Text = "Load";
             this.loadToolStripMenuItem.Click += new System.EventHandler(this.loadToolStripMenuItem_Click);
             // 
@@ -95,7 +95,7 @@
             this.textFileToolStripMenuItem,
             this.spreadsheetToolStripMenuItem});
             this.exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-            this.exportToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
+            this.exportToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.exportToolStripMenuItem.Text = "Export";
             // 
             // textFileToolStripMenuItem
@@ -124,14 +124,16 @@
             // sensorDataToolStripMenuItem
             // 
             this.sensorDataToolStripMenuItem.Name = "sensorDataToolStripMenuItem";
-            this.sensorDataToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
+            this.sensorDataToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.sensorDataToolStripMenuItem.Text = "Sensor Data";
             // 
             // troubleCodesToolStripMenuItem
             // 
+//            this.troubleCodesToolStripMenuItem.Enabled = false;
             this.troubleCodesToolStripMenuItem.Name = "troubleCodesToolStripMenuItem";
-            this.troubleCodesToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
+            this.troubleCodesToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.troubleCodesToolStripMenuItem.Text = "Trouble Codes";
+            this.troubleCodesToolStripMenuItem.Click += new System.EventHandler(this.troubleCodesToolStripMenuItem_Click);
             // 
             // panelSensorSelection
             // 

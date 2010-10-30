@@ -326,6 +326,11 @@ namespace ObdiiMonitor
                 MessageBox.Show("Error, invalid file format." + ex.Message + ex.StackTrace);
             }
         }
+        private void troubleCodesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            TCWindow tc = new TCWindow();
+            tc.Show();
+        }
 
         /// <summary>
         /// Implemented in response to Issue 12.
