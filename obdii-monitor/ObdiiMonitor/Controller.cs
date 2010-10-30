@@ -38,13 +38,6 @@ namespace ObdiiMonitor
             get { return saveController; }
         }
 
-        private ConvertSensorData convertSensorData = new ConvertSensorData();
-
-        internal ConvertSensorData ConvertSensorData
-        {
-            get { return convertSensorData; }
-        }
-
         private Serial serial = new Serial();
 
         public Serial Serial
@@ -59,6 +52,13 @@ namespace ObdiiMonitor
             get { return sensorData; }
         }
 
+        private AccelerometerConverter accelerometerConverver = new AccelerometerConverter();
+
+        internal AccelerometerConverter AccelerometerConverver
+        {
+            get { return accelerometerConverver; }
+        }
+
         public Controller()
         {
             sensorController.Controller = this;
@@ -66,7 +66,7 @@ namespace ObdiiMonitor
             saveController.Controller = this;
             serial.Controller = this;
             sensorData.Controller = this;
-            convertSensorData.Controller = this;
+            accelerometerConverver.Controller = this;
         }
 
         public void cancelAllThreads()

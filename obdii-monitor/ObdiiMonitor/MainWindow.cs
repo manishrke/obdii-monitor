@@ -361,12 +361,8 @@ namespace ObdiiMonitor
                             {
                                 try
                                 {
-                                    string str = controller.ConvertSensorData.convert(this.controller.SensorController.SelectedSensors[i].Pid, response.Data.Substring(2));
-                                    if (str != null)
-                                    {
-                                        series.Points.Add(new DataPoint(response.Time, str));
-                                        this.CreateDataPointToolTip(series.Points[series.Points.Count - 1]);
-                                    }
+                                    series.Points.Add(new DataPoint(response.Time, response.ConvertData()));
+                                    this.CreateDataPointToolTip(series.Points[series.Points.Count - 1]);
                                 }
                                 catch (Exception e)
                                 {
@@ -389,12 +385,8 @@ namespace ObdiiMonitor
                             {
                                 try
                                 {
-                                    string str = controller.ConvertSensorData.convert(response.DataType, response.Data);
-                                    if (str != null)
-                                    {
-                                        series.Points.Add(new DataPoint(response.Time, str));
+                                    series.Points.Add(new DataPoint(response.Time, response.ConvertData()));
                                         this.CreateDataPointToolTip(series.Points[series.Points.Count - 1]);
-                                    }
                                 }
                                 catch (Exception e)
                                 {

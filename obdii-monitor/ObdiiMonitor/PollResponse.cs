@@ -143,15 +143,19 @@ namespace ObdiiMonitor
 
             this.dataType = enc.GetString(bytes, 6, 2);
 
-            if ((this.dataType == "OB")||(this.DataType == "AC"))
+            if (this.dataType == "OB")
             {
                 this.data = enc.GetString(bytes, ConstantStart, this.length - ConstantStart + StartTagLength);
             }
-            else if (this.dataType == "TC")
+            else if (this.dataType == "AC")
             {
                 this.data = enc.GetString(bytes, ConstantStart, this.length - ConstantStart + StartTagLength);
                 if (data.Length != 3)
                     throw new Exception();
+            }
+            else if (this.dataType == "TC")
+            {
+                this.data = enc.GetString(bytes, ConstantStart, this.length - ConstantStart + StartTagLength);
             }
         }
 
@@ -159,14 +163,24 @@ namespace ObdiiMonitor
         /// Converts the data.
         /// </summary>
         /// <returns>Converted data.</returns>
-        public double ConvertData()
+        public string ConvertData()
         {
             if ((this.data.Length > 2) && (this.dataType == "OB"))
             {
-                return Double.Parse(controller.ConvertSensorData.convert(this.data.Substring(0, 2), this.data.Substring(2)));
+                return ConvertSensorData.convert(this.data.Substring(0, 2), this.data.Substring(2));
             }
 
-            return Double.Parse(this.data);
+            if (this.dataType == "AC")
+            {
+                return controller.AccelerometerConverver.convert(data).ToString();
+            }
+
+            if (this.dataType == "GP")
+            {
+                return this.data;
+            }
+
+            return "";
         }
 
         /// <summary>

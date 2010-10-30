@@ -5,29 +5,12 @@ using System.Text;
 
 namespace ObdiiMonitor
 {
-    class ConvertSensorData
+    static class ConvertSensorData
     {
-        private Controller controller;
-
-        internal Controller Controller
-        {
-            set { controller = value; }
-        }
-
-        private byte[] initialAccelerometerReading = null;
-
-        public void resetInitialAccelerometerReading()
-        {
-            initialAccelerometerReading = null;
-        }
-
-        public string convert(string dataTag, string data)
+        public static string convert(string dataTag, string data)
         {
             switch (dataTag)
             {
-                // Accellerometer
-                case "AC":
-                    return caseAC(data);
                 // Absolute Throttle Position
                 case "11":
                     return case11(data);
@@ -54,29 +37,8 @@ namespace ObdiiMonitor
             return null;
         }
 
-        // Accelerometer
-        private string caseAC(string data)
-        {
-            if (data.Length != 3)
-            {
-                return "0";
-            }
-
-            ASCIIEncoding enc = new ASCIIEncoding();
-            byte[] bytes = enc.GetBytes(data);
-
-            if (initialAccelerometerReading == null)
-            {
-                initialAccelerometerReading = bytes;
-            }
-
-            int accelleration = bytes[2];
-
-            return accelleration.ToString();
-        }
-
         // Air Flow Rate (MAF sensor)
-        private string case10(string data)
+        private static string case10(string data)
         {
             int num = Convert.ToInt32(data, 16);
 
@@ -84,7 +46,7 @@ namespace ObdiiMonitor
         }
 
         // Intake Manifold Pressure
-        private string case0B(string data)
+        private static string case0B(string data)
         {
             int num = Convert.ToInt32(data, 16);
 
@@ -92,7 +54,7 @@ namespace ObdiiMonitor
         }
 
         // Timing Advance (Cyl. #1)
-        private string case0E(string data)
+        private static  string case0E(string data)
         {
             int num = Convert.ToInt32(data, 16);
 
@@ -100,7 +62,7 @@ namespace ObdiiMonitor
         }
 
         // Calculated Load Value
-        private string case04(string data)
+        private static string case04(string data)
         {
             int num = Convert.ToInt32(data, 16);
 
@@ -108,7 +70,7 @@ namespace ObdiiMonitor
         }
 
         // Vehicle Speed
-        private string case0D(string data)
+        private static string case0D(string data)
         {
             int num = Convert.ToInt32(data, 16);
 
@@ -116,7 +78,7 @@ namespace ObdiiMonitor
         }
 
         // Engine RPM
-        private string case11(string data)
+        private static string case11(string data)
         {
             int num = Convert.ToInt32(data, 16);
 
@@ -124,7 +86,7 @@ namespace ObdiiMonitor
         }
 
         // Absolute Throttle Position
-        private string case0C(string data)
+        private static string case0C(string data)
         {
             int num = Convert.ToInt32(data, 16);
 

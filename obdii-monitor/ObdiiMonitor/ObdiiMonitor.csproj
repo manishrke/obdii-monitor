@@ -50,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AccelerometerConverter.cs" />
     <Compile Include="Controller.cs" />
     <Compile Include="ConvertSensorData.cs" />
     <Compile Include="TCWindow.cs">
