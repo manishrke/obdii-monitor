@@ -7,7 +7,7 @@ using System.IO;
 
 namespace ObdiiMonitor
 {
-    class Controller
+    public class Controller
     {
         private MainWindow mainWindow;
 

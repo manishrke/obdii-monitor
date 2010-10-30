@@ -150,6 +150,8 @@ namespace ObdiiMonitor
             else if (this.dataType == "TC")
             {
                 this.data = enc.GetString(bytes, ConstantStart, this.length - ConstantStart + StartTagLength);
+                if (data.Length != 3)
+                    throw new Exception();
             }
         }
 
@@ -204,7 +206,14 @@ namespace ObdiiMonitor
         /// </returns>
         public override string ToString()
         {
+            if (dataType == "AC")
+            {
+                ASCIIEncoding enc = new ASCIIEncoding();
+                byte[] nums = enc.GetBytes(this.data);
+                return this.length + "-" + this.time + "-" + this.dataType + "-" + nums[0] + "." + nums[1] + "." + nums[2];
+            }
             return this.length + "-" + this.time + "-" + this.dataType + "-" + this.data;
+
         }
     }
 }
