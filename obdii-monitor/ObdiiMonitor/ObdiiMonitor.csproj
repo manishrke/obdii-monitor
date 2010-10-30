@@ -53,6 +53,8 @@
     <Compile Include="AccelerometerConverter.cs" />
     <Compile Include="Controller.cs" />
     <Compile Include="ConvertSensorData.cs" />
+    <Compile Include="GPS.cs" />
+    <Compile Include="GPSCoordinate.cs" />
     <Compile Include="TCWindow.cs">
       <SubType>Form</SubType>
     </Compile>

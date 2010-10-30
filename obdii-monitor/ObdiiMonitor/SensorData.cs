@@ -25,7 +25,7 @@ namespace ObdiiMonitor
             get { return pollResponses; }
         }
 
-        public void parseData(string data, int time)
+        public void parseData(string data, uint time)
         {
             Console.WriteLine(data);
 
@@ -83,6 +83,8 @@ namespace ObdiiMonitor
             try
             {
                 PollResponse response = new PollResponse(controller, data);
+                if (response.DataType == "GP")
+                    controller.Gps.GpsList.Add(new GPSCoordinate(response));
                 pollResponses.Add(response);
                 controller.MainWindow.GraphQueue.Enqueue(response);
                 Console.WriteLine(response);

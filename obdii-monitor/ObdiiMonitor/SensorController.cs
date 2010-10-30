@@ -79,7 +79,7 @@ namespace ObdiiMonitor
                             if (buffer.Length > 0 && buffer[0] == '>')
                             {
                                 response = true;
-                                controller.SensorData.parseData(buffer, (int)stopWatch.ElapsedMilliseconds);
+                                controller.SensorData.parseData(buffer, (uint)stopWatch.ElapsedMilliseconds);
                             }
                         }
                         catch (Exception ex)

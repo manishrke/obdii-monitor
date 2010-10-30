@@ -44,14 +44,7 @@ namespace ObdiiMonitor
         /// <param name="fileName">Name of the file.</param>
         internal void LoadData(string fileName)
         {
-            // clear the pollResponses ArrayList member in SensorData to begin loading in new data
-            this.controller.SensorData.clearPollResponses();
-
-            // reset the calibration reading for the accelerometer as this is a new session.
-            this.controller.AccelerometerConverver.resetCalibrationReading();
-
-            // Clear the GraphQueue, not sure if the GraphQueue will stick around.
-            this.controller.MainWindow.GraphQueue.Clear();
+            this.controller.reset();
 
             // open the FileStream of the fileName
             FileStream fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);

@@ -59,6 +59,13 @@ namespace ObdiiMonitor
             get { return accelerometerConverver; }
         }
 
+        private GPS gps = new GPS();
+
+        internal GPS Gps
+        {
+            get { return gps; }
+        }
+
         public Controller()
         {
             sensorController.Controller = this;
@@ -67,6 +74,22 @@ namespace ObdiiMonitor
             serial.Controller = this;
             sensorData.Controller = this;
             accelerometerConverver.Controller = this;
+            gps.Controller = this;
+        }
+
+        public void reset()
+        {
+            // reset the calibration reading for the accelerometer as this is a new session.
+            accelerometerConverver.resetCalibrationReading();
+
+            // clear the pollResponses ArrayList member in SensorData to begin loading in new data
+            sensorData.clearPollResponses();
+
+            // Clear the GraphQueue, not sure if the GraphQueue will stick around.
+            mainWindow.GraphQueue.Clear();
+
+            // clear the gps linked list
+            gps.GpsList.Clear();
         }
 
         public void cancelAllThreads()

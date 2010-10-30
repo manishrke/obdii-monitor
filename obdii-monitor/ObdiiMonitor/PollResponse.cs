@@ -85,13 +85,13 @@ namespace ObdiiMonitor
         /// Time that the data was collected
         /// TODO: Specify format of time
         /// </summary>
-        private int time;
+        private uint time;
 
         /// <summary>
         /// Gets the time.
         /// </summary>
         /// <value>The time data was collected.</value>
-        public int Time
+        public uint Time
         {
             get { return this.time; }
         }
@@ -103,7 +103,7 @@ namespace ObdiiMonitor
         /// <param name="data">The data that was collected.</param>
         /// <param name="dataType">Type of the data.</param>
         /// <param name="length">The length of the data in bytes.</param>
-        public PollResponse(Controller controller, int time, string data, string dataType, int length)
+        public PollResponse(Controller controller, uint time, string data, string dataType, int length)
         {
             this.controller = controller;
             this.time = time;
@@ -137,7 +137,7 @@ namespace ObdiiMonitor
                 throw new Exception();
             }
 
-            this.time = System.BitConverter.ToInt32(bytes, 2);
+            this.time = System.BitConverter.ToUInt32(bytes, 2);
 
             ASCIIEncoding enc = new ASCIIEncoding();
 
@@ -154,6 +154,10 @@ namespace ObdiiMonitor
                     throw new Exception();
             }
             else if (this.dataType == "TC")
+            {
+                this.data = enc.GetString(bytes, ConstantStart, this.length - ConstantStart + StartTagLength);
+            }
+            else if (this.dataType == "GP")
             {
                 this.data = enc.GetString(bytes, ConstantStart, this.length - ConstantStart + StartTagLength);
             }
