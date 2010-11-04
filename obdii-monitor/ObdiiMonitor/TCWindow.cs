@@ -23,91 +23,91 @@ namespace ObdiiMonitor
         public TCWindow()
         {
             InitializeComponent();
-
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormIsClosing);
+            this.Resize += new System.EventHandler(this.Resizing);
+            Rsize();
         }
-        public void Set_Data(string data)
+        public void Set_Data(uint time, string data)
         {
-            bool added = false;
-            for(int j=0;j<Codes.Length;j=j+2)
+            string outdata = "";
+            for (int i = 0; i < data.Length; i = i + 2)
             {
-                if (data[0] == Codes[j] && data[1] == Codes[j + 1])
-                    added = true;
-            }
-            if (!added)
-            {
-                Codes += data;
-                string outdata = "";
-                for (int i = 0; i < data.Length; i = i + 2)
+                bool added = false;
+                for (int j = 0; j < Codes.Length; j = j + 2)
                 {
-                    if (data[i] != 0 || data[i] != 0)
+                    if (data[i] == Codes[j] && data[i + 1] == Codes[j + 1])
+                        added = true;
+                }
+                if (!added)
+                {
+                    Codes += data;
+                    switch (data[i])
                     {
-                        switch (data[i])
-                        {
-                            case '0':
-                                outdata = "P0";
-                                break;
-                            case '1':
-                                outdata = "P1";
-                                break;
-                            case '2':
-                                outdata = "P2";
-                                break;
-                            case '3':
-                                outdata = "P3";
-                                break;
-                            case '4':
-                                outdata = "C0";
-                                break;
-                            case '5':
-                                outdata = "C1";
-                                break;
-                            case '6':
-                                outdata = "C2";
-                                break;
-                            case '7':
-                                outdata = "C3";
-                                break;
-                            case '8':
-                                outdata = "B0";
-                                break;
-                            case '9':
-                                outdata = "B1";
-                                break;
-                            case 'A':
-                                outdata = "B2";
-                                break;
-                            case 'B':
-                                outdata = "B3";
-                                break;
-                            case 'C':
-                                outdata = "U0";
-                                break;
-                            case 'D':
-                                outdata = "U1";
-                                break;
-                            case 'E':
-                                outdata = "U2";
-                                break;
-                            case 'F':
-                                outdata = "U3";
-                                break;
-                        }
-                        outdata += data[i + 1].ToString();
-
-                        DataGridViewTextBoxCell dgvCell = new DataGridViewTextBoxCell();
-                        dgvCell.Value = outdata;
-                        dataGridView1.Rows.Add(dgvCell.Value);
-                        // outdata=data;
-
-
+                        case '0':
+                            outdata = "P0";
+                            break;
+                        case '1':
+                            outdata = "P1";
+                            break;
+                        case '2':
+                            outdata = "P2";
+                            break;
+                        case '3':
+                            outdata = "P3";
+                            break;
+                        case '4':
+                            outdata = "C0";
+                            break;
+                        case '5':
+                            outdata = "C1";
+                            break;
+                        case '6':
+                            outdata = "C2";
+                            break;
+                        case '7':
+                            outdata = "C3";
+                            break;
+                        case '8':
+                            outdata = "B0";
+                            break;
+                        case '9':
+                            outdata = "B1";
+                            break;
+                        case 'A':
+                            outdata = "B2";
+                            break;
+                        case 'B':
+                            outdata = "B3";
+                            break;
+                        case 'C':
+                            outdata = "U0";
+                            break;
+                        case 'D':
+                            outdata = "U1";
+                            break;
+                        case 'E':
+                            outdata = "U2";
+                            break;
+                        case 'F':
+                            outdata = "U3";
+                            break;
                     }
+                    outdata += data[i + 1].ToString();
+
+                    string[] data2 = new string[2];
+                    data2[0] = time.ToString();
+                    data2[1] = outdata;
+                    dataGridView1.Rows.Add(data2);
+                    //dataGridView1.Columns[1] = dgvCell.Value;
+
+                    // outdata=data;
                 }
             }
-
         }
         private void btnget_Click(object sender, EventArgs e)
         {
-            Set_Data("0605");
+            this.controller.Serial.sendCommand("tc");
+            //Set_Data("0605");
             /*    controller.SensorData.clearPollResponses();
                 Stopwatch stopWatch = new Stopwatch();
                 stopWatch.Start();
@@ -134,6 +134,32 @@ namespace ObdiiMonitor
                         }
                     }
                 }*/
+        }
+
+        private void btnreset_Click(object sender, EventArgs e)
+        {
+            if (DialogResult.Yes == MessageBox.Show("This will clear all codes and sensor data. Are you sure you want to Reset Trouble Codes?",
+                            "Reset Trouble Codes", MessageBoxButtons.YesNo, MessageBoxIcon.Question)) ;
+            {
+                this.controller.Serial.sendCommand("tr");
+            }
+        }
+        private void Resizing(object sender, EventArgs e)
+        {
+            Rsize();
+        }
+        private void Rsize()
+        {
+            pnl.Width = this.Width;
+            // btnget.Left = 0;
+            //  btnreset.Left = 0;
+            pnl.Height = btnreset.Top - (btnget.Top + btnget.Height + 15);
+            btnreset.Top = this.Height - (50 + btnreset.Height);
+        }
+        private void FormIsClosing(object sender, FormClosingEventArgs e)
+        {
+            e.Cancel = true;
+            this.Hide();
         }
     }
 }

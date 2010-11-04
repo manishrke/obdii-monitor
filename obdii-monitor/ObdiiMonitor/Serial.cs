@@ -45,7 +45,7 @@ namespace ObdiiMonitor
                 serialPort.Parity = (Parity)Enum.Parse(typeof(Parity), "0");
                 serialPort.ReadTimeout = 1000;
                 serialPort.Open();
-                // initialize the elm
+ /*               // initialize the elm
                 serialPort.WriteLine("ATZ\r");
                 while (serialPort.ReadChar() != '>')
                     ;
@@ -57,7 +57,7 @@ namespace ObdiiMonitor
                 while (serialPort.ReadChar() != '>')
                     ;
                 // turn line feeds on
-                serialPort.WriteLine("ATL1\r");
+                serialPort.WriteLine("ATL1\r");*/
                 initialized = true;
                 serialPort.ReadTimeout = 300;
             }

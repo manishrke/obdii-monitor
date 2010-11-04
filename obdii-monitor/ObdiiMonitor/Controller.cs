@@ -17,6 +17,13 @@ namespace ObdiiMonitor
             set { mainWindow = value; }
         }
 
+        private TCWindow tcWindow = new TCWindow();
+
+        public TCWindow TcWindow
+        {
+            get { return tcWindow; }
+        }
+
         private SensorController sensorController = new SensorController();
 
         public SensorController SensorController
@@ -75,6 +82,7 @@ namespace ObdiiMonitor
             sensorData.Controller = this;
             accelerometerConverver.Controller = this;
             gps.Controller = this;
+            tcWindow.Controller = this;
         }
 
         public void reset()

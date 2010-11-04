@@ -27,6 +27,8 @@ namespace ObdiiMonitor
     {
         public static int StartHeight = 4;
         public static int StartWidth = 4;
+        private static string COLLECT = "s";
+        private static string STOP = "g";
 
         Controller controller;
 
@@ -158,8 +160,9 @@ namespace ObdiiMonitor
                         numsSelected.Add(i);
                     }
                 }
-
-                this.controller.SensorController.initializeSelectedSensors(numsSelected);
+                
+ //               this.controller.SensorController.initializeSelectedSensors(numsSelected);
+                this.controller.Serial.sendCommand("r");
                 this.controller.SensorController.initializePollingReceivingThreads();
                 this.controller.SensorData.clearPollResponses();
                 this.PopulateGraphWindow(numsSelected);
@@ -328,8 +331,7 @@ namespace ObdiiMonitor
         }
         private void troubleCodesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            TCWindow tc = new TCWindow();
-            tc.Show();
+            this.controller.TcWindow.Show();
         }
 
         /// <summary>

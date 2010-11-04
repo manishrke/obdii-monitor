@@ -12,7 +12,7 @@ namespace ObdiiMonitor
         private static string SENSOR_RESPONSE = "41";
         private static string TC_RESPONSE = "43";
         private Controller controller;
-
+        private TCWindow tc;
         internal Controller Controller
         {
             set { controller = value; }
@@ -85,8 +85,13 @@ namespace ObdiiMonitor
                 PollResponse response = new PollResponse(controller, data);
                 if (response.DataType == "GP")
                     controller.Gps.GpsList.Add(new GPSCoordinate(response));
-                pollResponses.Add(response);
-                controller.MainWindow.GraphQueue.Enqueue(response);
+                if (response.DataType == "TC")
+                    controller.TcWindow.Set_Data(response.Time, response.Data);
+                else
+                {
+                    pollResponses.Add(response);
+                    controller.MainWindow.GraphQueue.Enqueue(response);
+                }
                 Console.WriteLine(response);
             }
             catch (Exception e)
