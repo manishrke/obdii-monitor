@@ -77,6 +77,7 @@
     <Compile Include="SensorController.cs" />
     <Compile Include="SensorData.cs" />
     <Compile Include="Serial.cs" />
+    <Compile Include="TimeOfDayConverter.cs" />
     <EmbeddedResource Include="MainWindow.resx">
       <DependentUpon>MainWindow.cs</DependentUpon>
     </EmbeddedResource>

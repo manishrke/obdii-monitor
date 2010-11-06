@@ -73,6 +73,13 @@ namespace ObdiiMonitor
             get { return accelerometerConverver; }
         }
 
+        private TimeOfDayConverter timeOfDayConverter = new TimeOfDayConverter();
+
+        internal TimeOfDayConverter TimeOfDayConverter
+        {
+            get { return timeOfDayConverter; }
+        }
+
         private GPS gps = new GPS();
 
         internal GPS Gps
@@ -91,6 +98,7 @@ namespace ObdiiMonitor
             gps.Controller = this;
             tcWindow.Controller = this;
             liveDataController.Controller = this;
+            timeOfDayConverter.Controller = this;
         }
 
         public void reset()

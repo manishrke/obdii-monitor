@@ -341,7 +341,7 @@ namespace ObdiiMonitor
         /// <param name="pt">The datapoint for which to set the ToolTip property.</param>
         private void CreateDataPointToolTip(DataPoint pt)
         {
-            pt.ToolTip = "Value:\t" + pt.YValues[0].ToString() + "\nTime:\t" + pt.XValue + "\nGPS:\t" + controller.Gps.get((uint)pt.XValue);
+            pt.ToolTip = "Value:\t" + pt.YValues[0].ToString() + "\nTime:\t" + controller.TimeOfDayConverter.get(pt.XValue) + " GMT" + "\nGPS:\t" + controller.Gps.get((uint)pt.XValue);
         }
 
         /// <summary>

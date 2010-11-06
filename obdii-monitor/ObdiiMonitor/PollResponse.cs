@@ -161,6 +161,10 @@ namespace ObdiiMonitor
             {
                 this.data = enc.GetString(bytes, ConstantStart, this.length - ConstantStart + StartTagLength);
             }
+            else if (this.dataType == "GT")
+            {
+                this.data = enc.GetString(bytes, ConstantStart, this.length - ConstantStart + StartTagLength);
+            }
         }
 
         /// <summary>

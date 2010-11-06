@@ -87,6 +87,8 @@ namespace ObdiiMonitor
                     controller.Gps.GpsList.Add(new GPSCoordinate(response));
                 if (response.DataType == "TC")
                     controller.TcWindow.Set_Data(response.Time, response.Data);
+                if (response.DataType == "GT")
+                    controller.TimeOfDayConverter.setBaseTime(response.Time, response.Data);
                 else
                 {
                     pollResponses.Add(response);
