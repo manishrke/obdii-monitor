@@ -13,7 +13,7 @@ namespace ObdiiMonitor
     public partial class TCWindow : Form
     {
         private Controller controller;
-        private string Codes = "00";
+        private string Codes = "\0\0";
         
         internal Controller Controller
         {
@@ -27,7 +27,7 @@ namespace ObdiiMonitor
             this.Resize += new System.EventHandler(this.Resizing);
             Rsize();
         }
-        public void Set_Data(uint time, string data)
+        public void Set_Data(uint time, byte[] data)
         {
             string outdata = "";
             for (int i = 0; i < data.Length; i = i + 2)
@@ -35,111 +35,33 @@ namespace ObdiiMonitor
                 bool added = false;
                 for (int j = 0; j < Codes.Length; j = j + 2)
                 {
-                    if (data[i] == Codes[j] && data[i + 1] == Codes[j + 1])
+                    if (((char)data[i] == Codes[j]) && ((char)data[i+1] == Codes[j+1]))
                         added = true;
                 }
                 if (!added)
                 {
-                    Codes += data;
-                    switch (data[i])
-                    {
-                        case '0':
-                            outdata = "P0";
-                            break;
-                        case '1':
-                            outdata = "P1";
-                            break;
-                        case '2':
-                            outdata = "P2";
-                            break;
-                        case '3':
-                            outdata = "P3";
-                            break;
-                        case '4':
-                            outdata = "C0";
-                            break;
-                        case '5':
-                            outdata = "C1";
-                            break;
-                        case '6':
-                            outdata = "C2";
-                            break;
-                        case '7':
-                            outdata = "C3";
-                            break;
-                        case '8':
-                            outdata = "B0";
-                            break;
-                        case '9':
-                            outdata = "B1";
-                            break;
-                        case 'A':
-                            outdata = "B2";
-                            break;
-                        case 'B':
-                            outdata = "B3";
-                            break;
-                        case 'C':
-                            outdata = "U0";
-                            break;
-                        case 'D':
-                            outdata = "U1";
-                            break;
-                        case 'E':
-                            outdata = "U2";
-                            break;
-                        case 'F':
-                            outdata = "U3";
-                            break;
-                    }
-                    outdata += data[i + 1].ToString();
+                    Codes += (char)data[i];
+                    Codes += (char)data[i+1];
+                    char[] values = { 'P', 'C', 'B', 'U' };
+                    outdata = values[(data[i] >> 4) / 4]+ ((data[i] >> 4) % 4).ToString()
+                    + (data[i] % 16).ToString() + (data[i+1] >> 4).ToString() + (data[i+1] % 16).ToString();
 
                     string[] data2 = new string[2];
                     data2[0] = time.ToString();
                     data2[1] = outdata;
                     dataGridView1.Rows.Add(data2);
-                    //dataGridView1.Columns[1] = dgvCell.Value;
-
-                    // outdata=data;
                 }
             }
         }
         private void btnget_Click(object sender, EventArgs e)
         {
             this.controller.Serial.sendCommand("tc");
-            //Set_Data("0605");
-            /*    controller.SensorData.clearPollResponses();
-                Stopwatch stopWatch = new Stopwatch();
-                stopWatch.Start();
-
-                controller.Serial.sendCommand("0101\r");
-                bool stopTrying = false, response = false;
-                DateTime time = DateTime.Now;
-                while (!stopTrying && !response)
-                {
-                    try
-                    {
-                        string buffer = controller.Serial.dataReceived();
-                        if (buffer.Length > 0 && buffer[0] == '>')
-                        {
-                            response = true;
-                            controller.SensorData.parseData(buffer, (int)stopWatch.ElapsedMilliseconds);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        if (DateTime.Now.Subtract(time) > new TimeSpan(12000000))
-                        {
-                            stopTrying = true;
-                        }
-                    }
-                }*/
         }
 
         private void btnreset_Click(object sender, EventArgs e)
         {
             if (DialogResult.Yes == MessageBox.Show("This will clear all codes and sensor data. Are you sure you want to Reset Trouble Codes?",
-                            "Reset Trouble Codes", MessageBoxButtons.YesNo, MessageBoxIcon.Question)) ;
+                            "Reset Trouble Codes", MessageBoxButtons.YesNo, MessageBoxIcon.Question))
             {
                 this.controller.Serial.sendCommand("tr");
             }
@@ -151,8 +73,6 @@ namespace ObdiiMonitor
         private void Rsize()
         {
             pnl.Width = this.Width;
-            // btnget.Left = 0;
-            //  btnreset.Left = 0;
             pnl.Height = btnreset.Top - (btnget.Top + btnget.Height + 15);
             btnreset.Top = this.Height - (50 + btnreset.Height);
         }

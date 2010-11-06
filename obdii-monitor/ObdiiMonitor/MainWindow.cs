@@ -27,9 +27,12 @@ namespace ObdiiMonitor
     {
         public static int StartHeight = 4;
         public static int StartWidth = 4;
+        public int height;
         private static string COLLECT = "s";
         private static string STOP = "g";
-
+        private ArrayList sensornames;
+        private ArrayList pids ;
+        private ArrayList configs;
         Controller controller;
 
         CheckBox[] checkboxesSensorSelection;
@@ -61,10 +64,15 @@ namespace ObdiiMonitor
             this.controller = new Controller();
             this.controller.MainWindow = this;
             InitializeComponent();
+            sensornames = new ArrayList();
+            pids = new ArrayList();
+            configs = new ArrayList();
             this.PopulateSelectionWindow();
             panelSensorGraphs.Visible = false;
             comboBoxBaudRate.SelectedIndex = 1;
             comboBoxComPort.SelectedIndex = 3;
+            this.Resize += new System.EventHandler(this.Resizing);
+            
         }
 
         /// <summary>
@@ -73,6 +81,25 @@ namespace ObdiiMonitor
         private void PopulateSelectionWindow()
         {
             this.panelSensorSelection.Controls.Clear();
+            height = StartHeight;
+            if (sensornames != null)
+            {
+                sensornames.Clear();
+                pids.Clear();
+            }
+            for (int i = 0; i<this.controller.SensorController.Sensors.Length; i++)
+            {
+                if (this.controller.SensorController.Sensors[i].Label2 == null)
+                    sensornames.Add(this.controller.SensorController.Sensors[i].Label);
+                else
+                    sensornames.Add(this.controller.SensorController.Sensors[i].Label + "," + 
+                                    this.controller.SensorController.Sensors[i].Label2.Substring(this.controller.SensorController.Sensors[i].Label2.LastIndexOf(':') + 1));
+                
+                pids.Add(this.controller.SensorController.Sensors[i].Pid);
+            }
+            
+            addConfig();
+/*            this.panelSensorSelection.Controls.Clear();
 
             this.labelsSensorSelection = new Label[this.controller.SensorController.Sensors.Length];
             this.checkboxesSensorSelection = new CheckBox[this.controller.SensorController.Sensors.Length];
@@ -92,6 +119,7 @@ namespace ObdiiMonitor
                 this.checkboxesSensorSelection[i].Checked = true;
                 this.panelSensorSelection.Controls.Add(this.checkboxesSensorSelection[i]);
             }
+ */
         }
 
         /// <summary>
@@ -496,6 +524,67 @@ namespace ObdiiMonitor
             else
             {
                 MessageBox.Show("No data exists to export", "Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            }
+        }
+        private void addConfig()
+        {
+
+            ConfigPanel config = new ConfigPanel();
+            string[] names = (string[]) sensornames.ToArray(typeof(string));
+            string[] pid = (string[]) pids.ToArray(typeof(string));
+            
+            config.Popcbo(names,pid);
+            config.Location = new Point(0, height);
+            config.Width = this.Width;
+            config.Click += new System.EventHandler(ConfigPanel_Click);
+            this.panelSensorSelection.Controls.Add(config);
+            this.configs.Add(config);
+            height += 25;
+            
+        }
+        private void ConfigPanel_Click(object sender, EventArgs e)
+        {
+            int index;
+            ConfigPanel current= (ConfigPanel)sender;
+            current.Add_Click();
+            if (current.Selected != "00" && !current.Remove)
+            {
+                index = pids.IndexOf((string)current.Selected);
+                pids.RemoveAt(index);
+                sensornames.RemoveAt(index);
+                addConfig();
+            }
+            else if (current.Remove)
+            {
+                pids.Add((string)current.Selected);
+                sensornames.Add((string)current.name1);
+                configs.Remove(current);
+                this.panelSensorSelection.Controls.Remove(current);
+                height = StartHeight;
+                ConfigPanel[] list = (ConfigPanel[]) configs.ToArray(typeof(ConfigPanel));
+                for(int i=0;i<list.Length;i++)
+                {
+                    list[i].Location = new Point(0, height);
+                    height += 25;
+                }
+                string[] pid = (string[])pids.ToArray(typeof(string));
+                list[list.Length-1].Popcbo(current.name1, pid);
+            }
+        }
+        private void Resizing(object sender, EventArgs e)
+        {
+            Rsize();
+        }
+        private void Rsize()
+        {
+            panelSensorSelection.Width = this.Width;
+            panelSensorSelection.Height = this.Height - (menuStrip.Height + comboBoxMeasurement.Height + labelSensorData.Height + 50);
+            height = StartHeight;
+            ConfigPanel[] list = (ConfigPanel[])configs.ToArray(typeof(ConfigPanel));
+            for (int i = 0; i < list.Length; i++)
+            {
+                list[i].Location = new Point(0, height);
+                height += 25;
             }
         }
     }

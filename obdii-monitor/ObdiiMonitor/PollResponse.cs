@@ -82,6 +82,20 @@ namespace ObdiiMonitor
         }
 
         /// <summary>
+        /// The data in the poll response
+        /// </summary>
+        private byte[] data2;
+
+        /// <summary>
+        /// Gets the data.
+        /// </summary>
+        /// <value>The collected data.</value>
+        public byte[] Data2
+        {
+            get { return this.data2; }
+        }
+
+        /// <summary>
         /// Time that the data was collected
         /// TODO: Specify format of time
         /// </summary>
@@ -156,6 +170,11 @@ namespace ObdiiMonitor
             else if (this.dataType == "TC")
             {
                 this.data = enc.GetString(bytes, ConstantStart, this.length - ConstantStart + StartTagLength);
+                data2 = new byte[this.length - ConstantStart + StartTagLength];
+                for (int i = ConstantStart; i < ConstantStart+data2.Length; i++)
+                {
+                    this.data2[i-ConstantStart] = bytes[i];
+                }
             }
             else if (this.dataType == "GP")
             {

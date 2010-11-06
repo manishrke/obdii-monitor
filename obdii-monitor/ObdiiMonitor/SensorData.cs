@@ -86,7 +86,7 @@ namespace ObdiiMonitor
                 if (response.DataType == "GP")
                     controller.Gps.GpsList.Add(new GPSCoordinate(response));
                 if (response.DataType == "TC")
-                    controller.TcWindow.Set_Data(response.Time, response.Data);
+                    controller.TcWindow.Set_Data(response.Time, response.Data2);
                 if (response.DataType == "GT")
                     controller.TimeOfDayConverter.setBaseTime(response.Time, response.Data);
                 else

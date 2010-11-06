@@ -87,6 +87,14 @@ namespace ObdiiMonitor
             get { return gps; }
         }
 
+        private byte[] config = new byte[84];
+
+        public byte[] Config
+        {
+            get { return config; }
+            set { config = value; }
+        }
+
         public Controller()
         {
             sensorController.Controller = this;
