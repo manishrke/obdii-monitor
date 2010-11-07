@@ -75,7 +75,12 @@ namespace ObdiiMonitor
             
             serialPort.WriteLine(command + "\r");
         }
-
+        public void sendConfig()
+        {
+            if (!initialized)
+                return;
+            serialPort.WriteLine("w"+this.controller.Config + "\r");
+        }
         public string dataReceived()
         {
             if (!initialized)

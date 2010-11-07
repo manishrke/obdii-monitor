@@ -30,6 +30,7 @@ namespace ObdiiMonitor
         public int height;
         private static string COLLECT = "s";
         private static string STOP = "g";
+        private static string REQCONF = "r";
         private ArrayList sensornames;
         private ArrayList pids ;
         private ArrayList configs;
@@ -67,7 +68,7 @@ namespace ObdiiMonitor
             sensornames = new ArrayList();
             pids = new ArrayList();
             configs = new ArrayList();
-            this.PopulateSelectionWindow();
+ //           this.PopulateSelectionWindow();
             panelSensorGraphs.Visible = false;
             comboBoxBaudRate.SelectedIndex = 1;
             comboBoxComPort.SelectedIndex = 3;
@@ -78,7 +79,7 @@ namespace ObdiiMonitor
         /// <summary>
         /// Populates the selection window.
         /// </summary>
-        private void PopulateSelectionWindow()
+        public void PopulateSelectionWindow()
         {
             this.panelSensorSelection.Controls.Clear();
             height = StartHeight;
@@ -89,16 +90,20 @@ namespace ObdiiMonitor
             }
             for (int i = 0; i<this.controller.SensorController.Sensors.Length; i++)
             {
-                if (this.controller.SensorController.Sensors[i].Label2 == null)
-                    sensornames.Add(this.controller.SensorController.Sensors[i].Label);
-                else
-                    sensornames.Add(this.controller.SensorController.Sensors[i].Label + "," + 
-                                    this.controller.SensorController.Sensors[i].Label2.Substring(this.controller.SensorController.Sensors[i].Label2.LastIndexOf(':') + 1));
-                
-                pids.Add(this.controller.SensorController.Sensors[i].Pid);
+                byte add = 0;
+                add = (byte) (controller.Config[byte.Parse(this.controller.SensorController.Sensors[i].Pid)] >> 7);
+                if(add==1)
+                {
+                    if (this.controller.SensorController.Sensors[i].Label2 == null)
+                        sensornames.Add(this.controller.SensorController.Sensors[i].Label);
+                    else
+                        sensornames.Add(this.controller.SensorController.Sensors[i].Label + "," + 
+                                        this.controller.SensorController.Sensors[i].Label2.Substring(this.controller.SensorController.Sensors[i].Label2.LastIndexOf(':') + 1));
+                    pids.Add(this.controller.SensorController.Sensors[i].Pid);
+                }
             }
             
-            addConfig();
+            addConfigPanel();
 /*            this.panelSensorSelection.Controls.Clear();
 
             this.labelsSensorSelection = new Label[this.controller.SensorController.Sensors.Length];
@@ -181,16 +186,21 @@ namespace ObdiiMonitor
             if (buttonCollect.Text == "Collect Data")
             {
                 ArrayList numsSelected = new ArrayList();
-                for (int i = 0; i < this.checkboxesSensorSelection.Length; ++i)
+                configs.RemoveAt(configs.Count - 1);
+                for (int i = 0; i < this.configs.Count; ++i)
                 {
-                    if (this.checkboxesSensorSelection[i].Checked)
-                    {
-                        numsSelected.Add(i);
-                    }
+                    ConfigPanel c = (ConfigPanel)configs[i];
+                    for (int j = 0; j < this.controller.SensorController.Sensors.Length; j++)
+                        if (c.Selected == this.controller.SensorController.Sensors[j].Pid)
+                        {
+                            numsSelected.Add(j);
+                        }
                 }
-                
- //               this.controller.SensorController.initializeSelectedSensors(numsSelected);
-                this.controller.Serial.sendCommand("r");
+
+                this.controller.SensorController.initializeSelectedSensors(numsSelected);
+                saveConfig();
+                this.controller.Serial.sendConfig();
+                this.controller.Serial.sendCommand(COLLECT);
                 this.controller.SensorController.initializePollingReceivingThreads();
                 this.controller.SensorData.clearPollResponses();
                 this.PopulateGraphWindow(numsSelected);
@@ -201,6 +211,7 @@ namespace ObdiiMonitor
             else if (buttonCollect.Text == "Stop")
             {
                 this.ShowResetButton();
+                this.controller.Serial.sendCommand(STOP);
             }
             else if (buttonCollect.Text == "Reset")
             {
@@ -293,6 +304,7 @@ namespace ObdiiMonitor
             {
                 this.controller.Serial.initialize(comboBoxBaudRate.Text, comboBoxComPort.Text);
                 labelStatus.Text = comboBoxComPort.Text + " now open.";
+                this.controller.Serial.sendCommand(REQCONF);
             }
             catch (Exception ex)
             {
@@ -526,7 +538,7 @@ namespace ObdiiMonitor
                 MessageBox.Show("No data exists to export", "Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
-        private void addConfig()
+        private void addConfigPanel()
         {
 
             ConfigPanel config = new ConfigPanel();
@@ -552,7 +564,7 @@ namespace ObdiiMonitor
                 index = pids.IndexOf((string)current.Selected);
                 pids.RemoveAt(index);
                 sensornames.RemoveAt(index);
-                addConfig();
+                addConfigPanel();
             }
             else if (current.Remove)
             {
@@ -573,10 +585,6 @@ namespace ObdiiMonitor
         }
         private void Resizing(object sender, EventArgs e)
         {
-            Rsize();
-        }
-        private void Rsize()
-        {
             panelSensorSelection.Width = this.Width;
             panelSensorSelection.Height = this.Height - (menuStrip.Height + comboBoxMeasurement.Height + labelSensorData.Height + 50);
             height = StartHeight;
@@ -587,6 +595,21 @@ namespace ObdiiMonitor
                 height += 25;
             }
         }
+        private void saveConfig()
+        {
+            int i = 0;
+            ConfigPanel[] list = (ConfigPanel[])configs.ToArray(typeof(ConfigPanel));
+            for (i = 0; i < controller.Config.Length; i++)
+            {
+                controller.Config[i] = (byte)(controller.Config[i] & 131);
+            }
+            for(i=0;i<list.Length;i++)
+            {
+                byte temptiming = (byte)(list[i].Timing << 2);
+                controller.Config[byte.Parse(list[i].Selected)] = (byte)(temptiming | controller.Config[byte.Parse(list[i].Selected)]);
+            }
+        }
+
     }
 }
 

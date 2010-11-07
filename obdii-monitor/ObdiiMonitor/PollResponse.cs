@@ -157,32 +157,21 @@ namespace ObdiiMonitor
 
             this.dataType = enc.GetString(bytes, 6, 2);
 
-            if (this.dataType == "OB")
+            if (this.dataType == "OB" || this.dataType == "GP" || this.dataType == "GT" || this.dataType == "AC" || this.dataType == "TC" || this.dataType == "CF")
             {
                 this.data = enc.GetString(bytes, ConstantStart, this.length - ConstantStart + StartTagLength);
-            }
-            else if (this.dataType == "AC")
-            {
-                this.data = enc.GetString(bytes, ConstantStart, this.length - ConstantStart + StartTagLength);
-                if (data.Length != 3)
+                if (data.Length != 3 && this.dataType == "AC")
                     throw new Exception();
-            }
-            else if (this.dataType == "TC")
-            {
-                this.data = enc.GetString(bytes, ConstantStart, this.length - ConstantStart + StartTagLength);
-                data2 = new byte[this.length - ConstantStart + StartTagLength];
-                for (int i = ConstantStart; i < ConstantStart+data2.Length; i++)
+                else if (this.dataType == "TC" || this.dataType == "CF")
                 {
-                    this.data2[i-ConstantStart] = bytes[i];
+                    data2 = new byte[this.length - ConstantStart + StartTagLength];
+                    for (int i = ConstantStart; i < ConstantStart + data2.Length; i++)
+                    {
+                        this.data2[i - ConstantStart] = bytes[i];
+                    }
+                    if (this.dataType == "CF")
+                        controller.MainWindow.PopulateSelectionWindow();
                 }
-            }
-            else if (this.dataType == "GP")
-            {
-                this.data = enc.GetString(bytes, ConstantStart, this.length - ConstantStart + StartTagLength);
-            }
-            else if (this.dataType == "GT")
-            {
-                this.data = enc.GetString(bytes, ConstantStart, this.length - ConstantStart + StartTagLength);
             }
         }
 
