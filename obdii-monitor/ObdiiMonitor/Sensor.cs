@@ -31,28 +31,20 @@ namespace ObdiiMonitor
             set { bytes = value; }
         }
 
-        double max;
-
-        public double Max
-        {
-            get { return max; }
-            set { max = value; }
-        }
-
-        double min;
-
-        public double Min
-        {
-            get { return min; }
-            set { min = value; }
-        }
-
         string units;
 
         public string Units
         {
             get { return units; }
             set { units = value; }
+        }
+
+        string unitsMet;
+
+        public string UnitsMet
+        {
+            get { return unitsMet; }
+            set { unitsMet = value; }
         }
 
         string label2;
@@ -63,23 +55,6 @@ namespace ObdiiMonitor
             set { label2 = value; }
         }
 
-
-        double max2;
-
-        public double Max2
-        {
-            get { return max2; }
-            set { max2 = value; }
-        }
-
-        double min2;
-
-        public double Min2
-        {
-            get { return min2; }
-            set { min2 = value; }
-        }
-
         string units2;
 
         public string Units2
@@ -88,29 +63,44 @@ namespace ObdiiMonitor
             set { units2 = value; }
         }
 
-        public Sensor(string label, string pid, int bytes, double min, double max, string units)
+        string unitsMet2;
+
+        public string UnitsMet2
+        {
+            get { return unitsMet2; }
+            set { unitsMet2 = value; }
+        }
+
+        public Sensor(string label, string pid, int bytes, string units)
         {
             this.label = label;
             this.pid = pid;
             this.bytes = bytes;
-            this.min = min;
-            this.max = max;
             this.units = units;
             this.label2 = null;
             this.units2 = null;
+            this.unitsMet = units;
         }
-        public Sensor(string label, string pid, int bytes, double min, double max, string units, string label2, double min2, double max2, string units2)
+        public Sensor(string label, string pid, int bytes, string units, string label2, string units2)
         {
             this.label = label;
             this.pid = pid;
             this.bytes = bytes;
-            this.min = min;
-            this.max = max;
             this.units = units;
+            this.unitsMet = units;
             this.label2 = label2;
-            this.min2 = min2;
-            this.max2 = max2;
             this.units2 = units2;
+            this.unitsMet2 = units2;
+        }
+        public Sensor(string label, string pid, int bytes, string units, string unitsMet)
+        {
+            this.label = label;
+            this.pid = pid;
+            this.bytes = bytes;
+            this.units = units;
+            this.label2 = null;
+            this.units2 = null;
+            this.unitsMet = unitsMet;
         }
     }
 }

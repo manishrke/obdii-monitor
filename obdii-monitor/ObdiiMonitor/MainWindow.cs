@@ -72,8 +72,8 @@ namespace ObdiiMonitor
             panelSensorGraphs.Visible = false;
             comboBoxBaudRate.SelectedIndex = 1;
             comboBoxComPort.SelectedIndex = 3;
+            comboBoxMeasurement.SelectedIndex = 1;
             this.Resize += new System.EventHandler(this.Resizing);
-            
         }
 
         /// <summary>
@@ -305,6 +305,10 @@ namespace ObdiiMonitor
                 this.controller.Serial.initialize(comboBoxBaudRate.Text, comboBoxComPort.Text);
                 labelStatus.Text = comboBoxComPort.Text + " now open.";
                 this.controller.Serial.sendCommand(REQCONF);
+                if (comboBoxMeasurement.SelectedIndex == 1)
+                {
+                    controller.US = true;
+                }
             }
             catch (Exception ex)
             {
@@ -359,7 +363,8 @@ namespace ObdiiMonitor
             }
 
             this.controller.cancelAllThreads();
-
+            if(comboBoxMeasurement.SelectedIndex==1)
+                controller.US = true;
             try
             {
                 this.controller.LoadController.LoadData(openFileDialog.FileName);

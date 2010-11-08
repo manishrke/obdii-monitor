@@ -48,7 +48,6 @@ namespace ObdiiMonitor
 
             // open the FileStream of the fileName
             FileStream fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
-
             // while more to read
             while (fileStream.Position < fileStream.Length)
             {

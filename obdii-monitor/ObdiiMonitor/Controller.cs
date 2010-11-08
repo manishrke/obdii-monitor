@@ -58,6 +58,14 @@ namespace ObdiiMonitor
         {
             get { return serial; }
         }
+        
+        private bool us = false;
+
+        public bool US
+        {
+            get { return us; }
+            set { us = value; }
+        }
 
         private SensorData sensorData = new SensorData();
 
