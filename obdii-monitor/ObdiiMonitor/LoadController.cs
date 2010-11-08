@@ -89,6 +89,9 @@ namespace ObdiiMonitor
             // load the data into the graphs just created
             this.controller.MainWindow.LoadDataIntoSensorGraphs();
 
+            // ensure that the size of all graphs are the same so they line up
+            this.controller.MainWindow.AlignAllGraphs();
+
             // now that the data has all been loaded, show the panel
             this.controller.MainWindow.ShowSensorDataPanel();
 
