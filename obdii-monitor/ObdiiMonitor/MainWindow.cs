@@ -465,26 +465,34 @@ namespace ObdiiMonitor
                 // If the file name is not an empty string open it for saving.
                 if (saveTextFileDiag.FileName != string.Empty)
                 {
-                    StreamWriter sw = new StreamWriter(saveTextFileDiag.OpenFile());
-
-                    sw.WriteLine("Sensor, Time, Value");
-
-                    for (int i = 0; i < this.controller.SensorController.SelectedSensors.Length; ++i)
+                    try
                     {
-                        foreach (Series series in this.chartsSensorGraphs[i].Series)
+                        StreamWriter sw = new StreamWriter(saveTextFileDiag.OpenFile());
+
+                        sw.WriteLine("Sensor, Time, Value, Coordinate");
+
+                        for (int i = 0; i < this.controller.SensorController.SelectedSensors.Length; ++i)
                         {
-                            if (series.ChartType.ToString() == "Point")
+                            foreach (Series series in this.chartsSensorGraphs[i].Series)
                             {
-                                foreach (DataPoint point in series.Points)
+                                if (series.ChartType.ToString() == "Point")
                                 {
-                                    sw.WriteLine(this.controller.SensorController.SelectedSensors[i].Label + "," +
-                                        point.XValue + "," + point.YValues[0]);
+                                    foreach (DataPoint point in series.Points)
+                                    {
+                                        sw.WriteLine(this.controller.SensorController.SelectedSensors[i].Label + "," +
+                                            controller.TimeOfDayConverter.get(point.XValue) + "," + point.YValues[0] + "," + controller.Gps.get((uint)point.XValue));
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    sw.Close();
+                        sw.Close();
+                    }
+                    catch (Exception ex)
+                    {
+                        // Expected for file access exceptions
+                        MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             }
             else
@@ -511,31 +519,50 @@ namespace ObdiiMonitor
                 // If the file name is not an empty string open it for saving.
                 if (saveTextFileDiag.FileName != string.Empty)
                 {
-                    StreamWriter sw = new StreamWriter(saveTextFileDiag.OpenFile());
-                    string separatorAsterisk = "********************************************************************************";
-                    string separatorDash = "--------------------------------------------------------------------------------";
-
-                    for (int i = 0; i < this.controller.SensorController.SelectedSensors.Length; ++i)
+                    try
                     {
-                        sw.WriteLine(separatorAsterisk);
-                        sw.WriteLine(this.controller.SensorController.SelectedSensors[i].Label);
-                        sw.WriteLine(separatorDash);
-                        sw.WriteLine("Time\t\tValue");
-                        sw.WriteLine(separatorDash);
+                        StreamWriter sw = new StreamWriter(saveTextFileDiag.OpenFile());
+                        string separatorAsterisk = "********************************************************************************";
+                        string separatorDash = "--------------------------------------------------------------------------------";
 
-                        foreach (Series series in this.chartsSensorGraphs[i].Series)
+                        for (int i = 0; i < this.controller.SensorController.SelectedSensors.Length; ++i)
                         {
-                            if (series.ChartType.ToString() == "Point")
+                            sw.WriteLine(separatorAsterisk);
+                            sw.WriteLine(this.controller.SensorController.SelectedSensors[i].Label);
+                            sw.WriteLine(separatorDash);
+                            sw.WriteLine("Time\t\tValue");
+                            sw.WriteLine(separatorDash);
+
+                            foreach (Series series in this.chartsSensorGraphs[i].Series)
                             {
-                                foreach (DataPoint point in series.Points)
+                                if (series.ChartType.ToString() == "Point")
                                 {
-                                    sw.WriteLine(point.XValue + "\t\t" + point.YValues[0]);
+                                    foreach (DataPoint point in series.Points)
+                                    {
+                                        sw.WriteLine(controller.TimeOfDayConverter.get(point.XValue) + "\t\t" + point.YValues[0]);
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    sw.Close();
+                        // Add GPS coordinate data
+                        sw.WriteLine(separatorAsterisk);
+                        sw.WriteLine("GPS Coordinates");
+                        sw.WriteLine(separatorDash);
+                        sw.WriteLine("Time\t\tValue");
+                        sw.WriteLine(separatorDash);
+                        foreach (GPSCoordinate coordinate in controller.Gps.GpsList)
+                        {
+                            sw.WriteLine(controller.TimeOfDayConverter.get(coordinate.Time) + "\t\t" + coordinate);
+                        }
+
+                        sw.Close();
+                    }
+                    catch (Exception ex)
+                    {
+                        // Expected for file access exceptions
+                        MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             }
             else

@@ -16,7 +16,7 @@ namespace ObdiiMonitor
         private Controller controller;
 
         Sensor[] sensors = {
-                               new Sensor("Accelleration:", "AC", 3, "m/ss"),
+                               new Sensor("Acceleration:", "AC", 3, "m/ss"),
                             /*   new Sensor( "Absolute Throttle Position:", "11", 4),
                                new Sensor( "Engine RPM:", "0C", 6),
                                new Sensor( "Vehicle Speed:", "0D", 4),
