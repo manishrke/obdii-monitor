@@ -158,16 +158,33 @@ namespace ObdiiMonitor
             {
                         try
                         {
-                            string buffer = controller.Serial.dataReceived();
+                            byte[] buffer = controller.Serial.dataReceived();
 
-                            while (buffer.Contains(PollResponse.StartTag))
+                            if (buffer == null)
+                                continue;
+
+                            while (buffer.Contains((byte)PollResponse.StartTag))
                             {
-                                byte[] length = BitConverter.GetBytes(buffer[buffer.IndexOf(PollResponse.StartTag) + 1]);
-                                byte[] bufferBytes = encoding.GetBytes(buffer.ToCharArray(), buffer.IndexOf(PollResponse.StartTag), length[0]);
+                                if (buffer.Length < 2)
+                                    break;
 
-                                controller.MainWindow.GraphQueue.Enqueue(new PollResponse(controller, bufferBytes));
+                                int index = Array.IndexOf(buffer, PollResponse.StartTag);
 
-                                buffer = buffer.Substring(buffer.IndexOf(PollResponse.StartTag) + length[0] + PollResponse.StartTagLength);
+                                byte length = buffer[index+1];
+
+                                if (buffer.Length < length + 2)
+                                    break;
+
+
+
+                                byte[] data = new byte[length + 2];
+                                Array.Copy(buffer, index, data, 0, length + 2);
+                                PollResponse response = new PollResponse(controller, data);
+                                controller.SensorData.PollResponses.Add(response);
+                                controller.MainWindow.GraphQueue.Enqueue(response);
+                                data = new byte[buffer.Length - length - 2];
+                                Array.Copy(buffer, index + length + 2, data, 0, buffer.Length - length - 2 - index);
+                                buffer = data;
                             }
                         }
                         catch (Exception ex)

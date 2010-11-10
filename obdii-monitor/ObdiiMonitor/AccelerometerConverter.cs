@@ -38,15 +38,11 @@ namespace ObdiiMonitor
         /// <summary>
         /// converts the three calibration integers into one acceleration value
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="data2"></param>
         /// <returns></returns>
-        public double convert(string data)
+        public double convert(byte[] data)
         {
-            ASCIIEncoding enc = new ASCIIEncoding();
-
-            byte[] bytes = enc.GetBytes(data);
-
-            if (bytes.Length != 3)
+            if (data.Length != 3)
             {
                 return -1;
             }

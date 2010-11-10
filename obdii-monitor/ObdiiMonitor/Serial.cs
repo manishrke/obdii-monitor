@@ -17,13 +17,6 @@ namespace ObdiiMonitor
 
         private SerialPort serialPort = new SerialPort();
 
-        bool initialized = false;
-
-        public bool Initialized
-        {
-            get { return initialized; }
-        }
-
         public Serial()
         {
         }
@@ -33,7 +26,6 @@ namespace ObdiiMonitor
             if (serialPort.IsOpen)
             {
                 serialPort.Close();
-                initialized = false;
             }
 
             try
@@ -45,8 +37,6 @@ namespace ObdiiMonitor
                 serialPort.Parity = (Parity)Enum.Parse(typeof(Parity), "0");
                 serialPort.ReadTimeout = 1000;
                 serialPort.ReadBufferSize = 256;
-
-                serialPort.Encoding = Encoding.ASCII;
                 serialPort.Open();
  /*               // initialize the elm
                 serialPort.WriteLine("ATZ\r");
@@ -61,38 +51,39 @@ namespace ObdiiMonitor
                     ;
                 // turn line feeds on
                 serialPort.WriteLine("ATL1\r");*/
-                initialized = true;
                 serialPort.ReadTimeout = 300;
             }
             catch (Exception ex)
             {
-                initialized = false;
                 throw ex;
             }
         }
 
         public void sendCommand(string command)
-        {
-            if (!initialized)
-                return;
-            
+        {   
             serialPort.WriteLine(command);
         }
         public void sendConfig()
         {
-            if (!initialized)
-                return;
             serialPort.WriteLine("w"+this.controller.Config);
         }
-        public string dataReceived()
+        public byte[] dataReceived()
         {
             try
             {
-                return serialPort.ReadExisting();
+                if (serialPort.BytesToRead > 0)
+                {
+                    byte[] bytes = new byte[serialPort.BytesToRead];
+
+                    serialPort.Read(bytes, 0, serialPort.BytesToRead);
+
+                    return bytes;
+                }
+                    return null;
             }
             catch
             {
-                return "";
+                return null;
             }
         }
 

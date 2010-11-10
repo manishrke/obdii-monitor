@@ -314,19 +314,12 @@ namespace ObdiiMonitor
                 this.controller.Serial.sendCommand(REQCONF);
                 Thread.Sleep(300);
 
-                string str = controller.Serial.dataReceived();
-                while (!str.Contains(PollResponse.ConfigTag))
-                    str = controller.Serial.dataReceived();
+                byte[] response = controller.Serial.dataReceived();
 
-                System.Text.ASCIIEncoding encoding = new System.Text.ASCIIEncoding();
+                while (response == null)
+                    response = controller.Serial.dataReceived();
 
-                byte[] response = encoding.GetBytes(str);
-                
-                byte length = response[1];
-
-                byte[] bytes = encoding.GetBytes(str.ToCharArray(), 0, length + 2);
-
-                controller.SensorData.loadData(bytes);
+                controller.SensorData.loadData(response);
 
                 if (comboBoxMeasurement.SelectedIndex == 1)
                 {

@@ -159,21 +159,17 @@ namespace ObdiiMonitor
 
             this.dataType = enc.GetString(bytes, 6, 2);
 
-            if (this.dataType == "OB" || this.dataType == "GP" || this.dataType == "GT" || this.dataType == "AC" || this.dataType == "TC" || this.dataType == "CF")
+            if (this.dataType == "OB" || this.dataType == "GP" || this.dataType == "GT")
             {
                 this.data = enc.GetString(bytes, ConstantStart, this.length - ConstantStart + StartTagLength);
-                if (data.Length != 3 && this.dataType == "AC")
+            }
+            else if ((this.dataType == "TC")||(this.dataType == "AC")||(this.dataType == "CF"))
+            {
+                data2 = new byte[this.length - ConstantStart + StartTagLength];
+                Array.Copy(bytes, ConstantStart, data2, 0, this.length - ConstantStart + StartTagLength);
+
+                if (data2.Length != 3 && this.dataType == "AC")
                     throw new Exception();
-                else if (this.dataType == "TC" || this.dataType == "CF")
-                {
-                    data2 = new byte[this.length - ConstantStart + StartTagLength];
-                    for (int i = ConstantStart; i < ConstantStart + data2.Length; i++)
-                    {
-                        this.data2[i - ConstantStart] = bytes[i];
-                    }
-                    if (this.dataType == "CF")
-                        controller.MainWindow.PopulateSelectionWindow();
-                }
             }
         }
 
@@ -183,14 +179,14 @@ namespace ObdiiMonitor
         /// <returns>Converted data.</returns>
         public string ConvertData()
         {
-            if ((this.data.Length > 2) && (this.dataType == "OB"))
+            if ((this.data != null)&&(this.data.Length > 2) && (this.dataType == "OB"))
             {
                 return ConvertSensorData.convert(this.data.Substring(0, 2), this.data.Substring(2), controller.US);
             }
 
             if (this.dataType == "AC")
             {
-                return controller.AccelerometerConverver.convert(data).ToString();
+                return controller.AccelerometerConverver.convert(data2).ToString();
             }
 
             if (this.dataType == "GP")
@@ -241,7 +237,7 @@ namespace ObdiiMonitor
             if (dataType == "AC")
             {
                 ASCIIEncoding enc = new ASCIIEncoding();
-                byte[] nums = enc.GetBytes(this.data);
+                byte[] nums = data2;
                 return this.length + "-" + this.time + "-" + this.dataType + "-" + nums[0] + "." + nums[1] + "." + nums[2];
             }
             return this.length + "-" + this.time + "-" + this.dataType + "-" + this.data;
