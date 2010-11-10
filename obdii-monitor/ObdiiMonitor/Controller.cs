@@ -130,15 +130,15 @@ namespace ObdiiMonitor
 
             // clear the gps linked list
             gps.GpsList.Clear();
+
+            // cancel all the threads
+            cancelAllThreads();
         }
 
         public void cancelAllThreads()
         {
             if (MainWindow.UpdateGraphPlots != null)
                 MainWindow.UpdateGraphPlots.Abort();
-
-            if (sensorController.polling != null)
-                sensorController.polling.Abort();
 
             if (sensorController.receiving != null)
                 sensorController.receiving.Abort();

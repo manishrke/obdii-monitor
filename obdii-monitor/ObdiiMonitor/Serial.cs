@@ -44,6 +44,9 @@ namespace ObdiiMonitor
                 serialPort.StopBits = (StopBits)Enum.Parse(typeof(StopBits), "1");
                 serialPort.Parity = (Parity)Enum.Parse(typeof(Parity), "0");
                 serialPort.ReadTimeout = 1000;
+                serialPort.ReadBufferSize = 256;
+
+                serialPort.Encoding = Encoding.ASCII;
                 serialPort.Open();
  /*               // initialize the elm
                 serialPort.WriteLine("ATZ\r");
@@ -73,20 +76,29 @@ namespace ObdiiMonitor
             if (!initialized)
                 return;
             
-            serialPort.WriteLine(command + "\r");
+            serialPort.WriteLine(command);
         }
         public void sendConfig()
         {
             if (!initialized)
                 return;
-            serialPort.WriteLine("w"+this.controller.Config + "\r");
+            serialPort.WriteLine("w"+this.controller.Config);
         }
         public string dataReceived()
         {
-            if (!initialized)
+            try
+            {
+                return serialPort.ReadExisting();
+            }
+            catch
+            {
                 return "";
+            }
+        }
 
-            return serialPort.ReadLine();
+        public void flush()
+        {
+            serialPort.ReadExisting();
         }
     }
 }

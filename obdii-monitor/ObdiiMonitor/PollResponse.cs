@@ -29,6 +29,8 @@ namespace ObdiiMonitor
         /// </summary>
         public static char StartTag = '\x00EE';
 
+        public static string ConfigTag = "CF";
+
         /// <summary>
         /// Length of the above start tagn, in bytes.
         /// </summary>

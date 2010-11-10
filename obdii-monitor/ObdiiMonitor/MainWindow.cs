@@ -28,8 +28,8 @@ namespace ObdiiMonitor
         public static int StartHeight = 4;
         public static int StartWidth = 4;
         public int height;
-        private static string COLLECT = "s";
-        private static string STOP = "g";
+        private static string COLLECT = "g";
+        private static string STOP = "s";
         private static string REQCONF = "r";
         private ArrayList sensornames;
         private ArrayList pids ;
@@ -185,6 +185,8 @@ namespace ObdiiMonitor
         {
             if (buttonCollect.Text == "Collect Data")
             {
+                controller.reset();
+
                 ArrayList numsSelected = new ArrayList();
                 configs.RemoveAt(configs.Count - 1);
                 for (int i = 0; i < this.configs.Count; ++i)
@@ -200,9 +202,8 @@ namespace ObdiiMonitor
                 this.controller.SensorController.initializeSelectedSensors(numsSelected);
                 saveConfig();
                 this.controller.Serial.sendConfig();
+                this.controller.SensorController.initializeReceivingThreads();
                 this.controller.Serial.sendCommand(COLLECT);
-                this.controller.SensorController.initializePollingReceivingThreads();
-                this.controller.SensorData.clearPollResponses();
                 this.PopulateGraphWindow(numsSelected);
                 this.ShowSensorDataPanel();
                 buttonCollect.Text = "Stop";
@@ -212,6 +213,7 @@ namespace ObdiiMonitor
             {
                 this.ShowResetButton();
                 this.controller.Serial.sendCommand(STOP);
+                this.controller.cancelAllThreads();
             }
             else if (buttonCollect.Text == "Reset")
             {
@@ -303,13 +305,35 @@ namespace ObdiiMonitor
         {
             try
             {
+
                 this.controller.Serial.initialize(comboBoxBaudRate.Text, comboBoxComPort.Text);
                 labelStatus.Text = comboBoxComPort.Text + " now open.";
+                this.controller.Serial.sendCommand(STOP);
+                Thread.Sleep(300);
+                controller.Serial.flush();
                 this.controller.Serial.sendCommand(REQCONF);
+                Thread.Sleep(300);
+
+                string str = controller.Serial.dataReceived();
+                while (!str.Contains(PollResponse.ConfigTag))
+                    str = controller.Serial.dataReceived();
+
+                System.Text.ASCIIEncoding encoding = new System.Text.ASCIIEncoding();
+
+                byte[] response = encoding.GetBytes(str);
+                
+                byte length = response[1];
+
+                byte[] bytes = encoding.GetBytes(str.ToCharArray(), 0, length + 2);
+
+                controller.SensorData.loadData(bytes);
+
                 if (comboBoxMeasurement.SelectedIndex == 1)
                 {
                     controller.US = true;
                 }
+
+                
             }
             catch (Exception ex)
             {

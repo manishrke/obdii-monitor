@@ -90,7 +90,10 @@ namespace ObdiiMonitor
                 else if (response.DataType == "GT")
                     controller.TimeOfDayConverter.setBaseTime(response.Time, response.Data);
                 else if (response.DataType == "CF")
+                {
                     this.controller.Config = response.Data2;
+                    this.controller.MainWindow.PopulateSelectionWindow();
+                }
                 else
                 {
                     pollResponses.Add(response);
