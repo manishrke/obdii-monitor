@@ -70,7 +70,6 @@ namespace ObdiiMonitor
             configs = new ArrayList();
  //           this.PopulateSelectionWindow();
             panelSensorGraphs.Visible = false;
-            comboBoxBaudRate.SelectedIndex = 1;
             comboBoxComPort.SelectedIndex = 3;
             comboBoxMeasurement.SelectedIndex = 1;
             this.Resize += new System.EventHandler(this.Resizing);
@@ -306,7 +305,7 @@ namespace ObdiiMonitor
             try
             {
 
-                this.controller.Serial.initialize(comboBoxBaudRate.Text, comboBoxComPort.Text);
+                this.controller.Serial.initialize(comboBoxComPort.Text);
                 labelStatus.Text = comboBoxComPort.Text + " now open.";
                 this.controller.Serial.sendCommand(STOP);
                 Thread.Sleep(300);

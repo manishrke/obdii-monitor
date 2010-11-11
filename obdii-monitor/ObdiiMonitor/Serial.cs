@@ -21,7 +21,7 @@ namespace ObdiiMonitor
         {
         }
 
-        public void initialize(string baudRate, string portName)
+        public void initialize(string portName)
         {
             if (serialPort.IsOpen)
             {
@@ -30,7 +30,7 @@ namespace ObdiiMonitor
 
             try
             {
-                serialPort.BaudRate = int.Parse(baudRate);
+                serialPort.BaudRate = 38400;
                 serialPort.PortName = portName;
                 serialPort.DataBits = 8;
                 serialPort.StopBits = (StopBits)Enum.Parse(typeof(StopBits), "1");

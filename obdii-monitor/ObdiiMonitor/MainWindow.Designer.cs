@@ -36,12 +36,11 @@
             this.textFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.spreadsheetToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.sensorDataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.MarksToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.troubleCodesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.panelSensorSelection = new System.Windows.Forms.Panel();
             this.buttonCollect = new System.Windows.Forms.Button();
             this.labelSensorData = new System.Windows.Forms.Label();
-            this.comboBoxBaudRate = new System.Windows.Forms.ComboBox();
             this.labelStatus = new System.Windows.Forms.Label();
             this.buttonInitialize = new System.Windows.Forms.Button();
             this.comboBoxComPort = new System.Windows.Forms.ComboBox();
@@ -50,6 +49,12 @@
             this.panelSensorGraphs = new System.Windows.Forms.Panel();
             this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
             this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
+            this.textBoxStartTime = new System.Windows.Forms.TextBox();
+            this.textBoxEndTime = new System.Windows.Forms.TextBox();
+            this.button1 = new System.Windows.Forms.Button();
+            this.labelStart = new System.Windows.Forms.Label();
+            this.labelEnd = new System.Windows.Forms.Label();
+            this.labelTotalMs = new System.Windows.Forms.Label();
             this.menuStrip.SuspendLayout();
             this.panelCollectData.SuspendLayout();
             this.SuspendLayout();
@@ -78,14 +83,14 @@
             // saveToolStripMenuItem
             // 
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
             this.saveToolStripMenuItem.Text = "Save";
             this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
             // 
             // loadToolStripMenuItem
             // 
             this.loadToolStripMenuItem.Name = "loadToolStripMenuItem";
-            this.loadToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.loadToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
             this.loadToolStripMenuItem.Text = "Load";
             this.loadToolStripMenuItem.Click += new System.EventHandler(this.loadToolStripMenuItem_Click);
             // 
@@ -95,7 +100,7 @@
             this.textFileToolStripMenuItem,
             this.spreadsheetToolStripMenuItem});
             this.exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-            this.exportToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.exportToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
             this.exportToolStripMenuItem.Text = "Export";
             // 
             // textFileToolStripMenuItem
@@ -115,21 +120,20 @@
             // viewToolStripMenuItem
             // 
             this.viewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.sensorDataToolStripMenuItem,
+            this.MarksToolStripMenuItem,
             this.troubleCodesToolStripMenuItem});
             this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
             this.viewToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.viewToolStripMenuItem.Text = "View";
             // 
-            // sensorDataToolStripMenuItem
+            // MarksToolStripMenuItem
             // 
-            this.sensorDataToolStripMenuItem.Name = "sensorDataToolStripMenuItem";
-            this.sensorDataToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.sensorDataToolStripMenuItem.Text = "Sensor Data";
+            this.MarksToolStripMenuItem.Name = "MarksToolStripMenuItem";
+            this.MarksToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.MarksToolStripMenuItem.Text = "Marks";
             // 
             // troubleCodesToolStripMenuItem
             // 
-//            this.troubleCodesToolStripMenuItem.Enabled = false;
             this.troubleCodesToolStripMenuItem.Name = "troubleCodesToolStripMenuItem";
             this.troubleCodesToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.troubleCodesToolStripMenuItem.Text = "Trouble Codes";
@@ -163,21 +167,10 @@
             this.labelSensorData.TabIndex = 0;
             this.labelSensorData.Text = "Sensor Data";
             // 
-            // comboBoxBaudRate
-            // 
-            this.comboBoxBaudRate.FormattingEnabled = true;
-            this.comboBoxBaudRate.Items.AddRange(new object[] {
-            "9600",
-            "38400"});
-            this.comboBoxBaudRate.Location = new System.Drawing.Point(261, 29);
-            this.comboBoxBaudRate.Name = "comboBoxBaudRate";
-            this.comboBoxBaudRate.Size = new System.Drawing.Size(121, 21);
-            this.comboBoxBaudRate.TabIndex = 13;
-            // 
             // labelStatus
             // 
             this.labelStatus.AutoSize = true;
-            this.labelStatus.Location = new System.Drawing.Point(497, 36);
+            this.labelStatus.Location = new System.Drawing.Point(164, 34);
             this.labelStatus.Name = "labelStatus";
             this.labelStatus.Size = new System.Drawing.Size(76, 13);
             this.labelStatus.TabIndex = 12;
@@ -185,9 +178,9 @@
             // 
             // buttonInitialize
             // 
-            this.buttonInitialize.Location = new System.Drawing.Point(388, 27);
+            this.buttonInitialize.Location = new System.Drawing.Point(92, 26);
             this.buttonInitialize.Name = "buttonInitialize";
-            this.buttonInitialize.Size = new System.Drawing.Size(86, 23);
+            this.buttonInitialize.Size = new System.Drawing.Size(66, 23);
             this.buttonInitialize.TabIndex = 11;
             this.buttonInitialize.Text = "Initialize";
             this.buttonInitialize.UseVisualStyleBackColor = true;
@@ -195,6 +188,7 @@
             // 
             // comboBoxComPort
             // 
+            this.comboBoxComPort.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBoxComPort.FormattingEnabled = true;
             this.comboBoxComPort.Items.AddRange(new object[] {
             "COM1",
@@ -205,20 +199,21 @@
             "COM6",
             "COM7",
             "COM8"});
-            this.comboBoxComPort.Location = new System.Drawing.Point(134, 29);
+            this.comboBoxComPort.Location = new System.Drawing.Point(9, 27);
             this.comboBoxComPort.Name = "comboBoxComPort";
-            this.comboBoxComPort.Size = new System.Drawing.Size(121, 21);
+            this.comboBoxComPort.Size = new System.Drawing.Size(77, 21);
             this.comboBoxComPort.TabIndex = 10;
             // 
             // comboBoxMeasurement
             // 
+            this.comboBoxMeasurement.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBoxMeasurement.FormattingEnabled = true;
             this.comboBoxMeasurement.Items.AddRange(new object[] {
             "Metric",
             "US"});
-            this.comboBoxMeasurement.Location = new System.Drawing.Point(7, 29);
+            this.comboBoxMeasurement.Location = new System.Drawing.Point(778, 28);
             this.comboBoxMeasurement.Name = "comboBoxMeasurement";
-            this.comboBoxMeasurement.Size = new System.Drawing.Size(121, 21);
+            this.comboBoxMeasurement.Size = new System.Drawing.Size(94, 21);
             this.comboBoxMeasurement.TabIndex = 9;
             // 
             // panelCollectData
@@ -241,14 +236,69 @@
             this.panelSensorGraphs.Size = new System.Drawing.Size(884, 455);
             this.panelSensorGraphs.TabIndex = 0;
             // 
+            // textBoxStartTime
+            // 
+            this.textBoxStartTime.Location = new System.Drawing.Point(400, 27);
+            this.textBoxStartTime.Name = "textBoxStartTime";
+            this.textBoxStartTime.Size = new System.Drawing.Size(65, 20);
+            this.textBoxStartTime.TabIndex = 15;
+            // 
+            // textBoxEndTime
+            // 
+            this.textBoxEndTime.Location = new System.Drawing.Point(506, 27);
+            this.textBoxEndTime.Name = "textBoxEndTime";
+            this.textBoxEndTime.Size = new System.Drawing.Size(65, 20);
+            this.textBoxEndTime.TabIndex = 16;
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(577, 25);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(42, 23);
+            this.button1.TabIndex = 17;
+            this.button1.Text = "Get";
+            this.button1.UseVisualStyleBackColor = true;
+            // 
+            // labelStart
+            // 
+            this.labelStart.AutoSize = true;
+            this.labelStart.Location = new System.Drawing.Point(362, 31);
+            this.labelStart.Name = "labelStart";
+            this.labelStart.Size = new System.Drawing.Size(32, 13);
+            this.labelStart.TabIndex = 18;
+            this.labelStart.Text = "Start:";
+            // 
+            // labelEnd
+            // 
+            this.labelEnd.AutoSize = true;
+            this.labelEnd.Location = new System.Drawing.Point(471, 31);
+            this.labelEnd.Name = "labelEnd";
+            this.labelEnd.Size = new System.Drawing.Size(29, 13);
+            this.labelEnd.TabIndex = 19;
+            this.labelEnd.Text = "End:";
+            // 
+            // labelTotalMs
+            // 
+            this.labelTotalMs.AutoSize = true;
+            this.labelTotalMs.Location = new System.Drawing.Point(626, 33);
+            this.labelTotalMs.Name = "labelTotalMs";
+            this.labelTotalMs.Size = new System.Drawing.Size(56, 13);
+            this.labelTotalMs.TabIndex = 20;
+            this.labelTotalMs.Text = "Total (ms):";
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(884, 542);
+            this.Controls.Add(this.labelTotalMs);
+            this.Controls.Add(this.labelEnd);
+            this.Controls.Add(this.labelStart);
+            this.Controls.Add(this.button1);
+            this.Controls.Add(this.textBoxEndTime);
+            this.Controls.Add(this.textBoxStartTime);
             this.Controls.Add(this.panelSensorGraphs);
             this.Controls.Add(this.panelCollectData);
-            this.Controls.Add(this.comboBoxBaudRate);
             this.Controls.Add(this.panelSensorSelection);
             this.Controls.Add(this.menuStrip);
             this.Controls.Add(this.labelStatus);
@@ -277,11 +327,10 @@
         private System.Windows.Forms.ToolStripMenuItem textFileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem spreadsheetToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem viewToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem sensorDataToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem MarksToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem troubleCodesToolStripMenuItem;
         private System.Windows.Forms.Panel panelSensorSelection;
         private System.Windows.Forms.Label labelSensorData;
-        private System.Windows.Forms.ComboBox comboBoxBaudRate;
         private System.Windows.Forms.Label labelStatus;
         private System.Windows.Forms.Button buttonInitialize;
         private System.Windows.Forms.ComboBox comboBoxComPort;
@@ -291,5 +340,11 @@
         private System.Windows.Forms.Panel panelSensorGraphs;
         private System.Windows.Forms.SaveFileDialog saveFileDialog;
         private System.Windows.Forms.OpenFileDialog openFileDialog;
+        private System.Windows.Forms.TextBox textBoxStartTime;
+        private System.Windows.Forms.TextBox textBoxEndTime;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Label labelStart;
+        private System.Windows.Forms.Label labelEnd;
+        private System.Windows.Forms.Label labelTotalMs;
     }
 }
