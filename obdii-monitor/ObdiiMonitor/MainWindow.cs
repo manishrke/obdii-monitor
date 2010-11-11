@@ -31,6 +31,7 @@ namespace ObdiiMonitor
         private static string COLLECT = "g";
         private static string STOP = "s";
         private static string REQCONF = "r";
+        private byte acGraphCount=0;
         private ArrayList sensornames;
         private ArrayList pids ;
         private ArrayList configs;
@@ -441,26 +442,30 @@ namespace ObdiiMonitor
                 }
                 else if (response.DataType == "AC")
                 {
-                    for (int i = 0; i < this.controller.SensorController.SelectedSensors.Length; ++i)
+                    if (++acGraphCount == 6)
                     {
-                        if (this.controller.SensorController.SelectedSensors[i].Pid == response.DataType)
+                        acGraphCount = 0;
+                        for (int i = 0; i < this.controller.SensorController.SelectedSensors.Length; ++i)
                         {
-                            this.chartsSensorGraphs[i].Width += 10;
-                            foreach (Series series in this.chartsSensorGraphs[i].Series)
+                            if (this.controller.SensorController.SelectedSensors[i].Pid == response.DataType)
                             {
-                                try
+                                this.chartsSensorGraphs[i].Width += 10;
+                                foreach (Series series in this.chartsSensorGraphs[i].Series)
                                 {
-                                    series.Points.Add(new DataPoint(response.Time, response.ConvertData()));
-                                    this.CreateDataPointToolTip(series.Points[series.Points.Count - 1]);
-                                    this.chartsSensorGraphs[i].ChartAreas[0].AxisX.Maximum = response.Time;
+                                    try
+                                    {
+                                        series.Points.Add(new DataPoint(response.Time, response.ConvertData()));
+                                        this.CreateDataPointToolTip(series.Points[series.Points.Count - 1]);
+                                        this.chartsSensorGraphs[i].ChartAreas[0].AxisX.Maximum = response.Time;
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Console.WriteLine(e.Message);
+                                    }
                                 }
-                                catch (Exception e)
-                                {
-                                    Console.WriteLine(e.Message);
-                                }
-                            }
 
-                            break;
+                                break;
+                            }
                         }
                     }
                 }
