@@ -163,7 +163,7 @@ namespace ObdiiMonitor
             {
                 this.data = enc.GetString(bytes, ConstantStart, this.length - ConstantStart + StartTagLength);
             }
-            else if ((this.dataType == "TC")||(this.dataType == "AC")||(this.dataType == "CF"))
+            else
             {
                 data2 = new byte[this.length - ConstantStart + StartTagLength];
                 Array.Copy(bytes, ConstantStart, data2, 0, this.length - ConstantStart + StartTagLength);
@@ -171,6 +171,7 @@ namespace ObdiiMonitor
                 if (data2.Length != 3 && this.dataType == "AC")
                     throw new Exception();
             }
+
         }
 
         /// <summary>
@@ -209,13 +210,21 @@ namespace ObdiiMonitor
 
             stream.Write(System.BitConverter.GetBytes(StartTag), 0, 1);
 
-            stream.Write(System.BitConverter.GetBytes(this.data.Length + ConstantStart - StartTag), 0, 1);
+            if (this.dataType == "OB" || this.dataType == "GP" || this.dataType == "GT")
+                stream.Write(System.BitConverter.GetBytes(this.data.Length + ConstantStart - StartTagLength), 0, 1);
+            else
+                stream.Write(System.BitConverter.GetBytes(this.data2.Length + ConstantStart - StartTagLength), 0, 1);
+
 
             stream.Write(System.BitConverter.GetBytes(this.time), 0, System.BitConverter.GetBytes(this.time).Length);
 
             stream.Write(encoding.GetBytes(this.dataType), 0, encoding.GetBytes(this.dataType).Length);
 
-            stream.Write(encoding.GetBytes(this.data), 0, encoding.GetBytes(this.data).Length);
+            if (this.dataType == "OB" || this.dataType == "GP" || this.dataType == "GT")
+                stream.Write(encoding.GetBytes(this.data), 0, encoding.GetBytes(this.data).Length);
+            else
+                stream.Write(this.data2, 0, this.data2.Length);
+                
 
             stream.Position = 0;
 
@@ -240,7 +249,10 @@ namespace ObdiiMonitor
                 byte[] nums = data2;
                 return this.length + "-" + this.time + "-" + this.dataType + "-" + nums[0] + "." + nums[1] + "." + nums[2];
             }
-            return this.length + "-" + this.time + "-" + this.dataType + "-" + this.data;
+            else if (dataType == "OB" || dataType == "GP")
+                return this.length + "-" + this.time + "-" + this.dataType + "-" + this.data;
+            else
+                return this.length + "-" + this.time + "-" + this.dataType;
 
         }
     }
