@@ -19,6 +19,8 @@ namespace ObdiiMonitor
     /// </summary>
     public class LoadController
     {
+        public static uint DefaultEndTime = 600000;
+
         /// <summary>
         /// See Controller.cs
         /// TODO: Possibly explain what this actually does.
@@ -82,15 +84,25 @@ namespace ObdiiMonitor
                 this.controller.SensorData.loadData(data);
             }
 
+            uint startTime = 0, endTime = 0, totalMs = ((PollResponse)controller.SensorData.PollResponses[controller.SensorData.PollResponses.Count - 1]).Time;
+
+            if (totalMs < DefaultEndTime)
+                endTime = totalMs;
+            else
+                endTime = DefaultEndTime;
+
+            controller.MainWindow.setTotalMsLabel(totalMs);
+            controller.MainWindow.setStartTimeEndTime(startTime, endTime);
+
             // now that the data has been loaded into the software
             // create a series of graphs to represent the data
             this.CreateGraphs(this.controller.SensorData.PollResponses);
 
             // load the data into the graphs just created
-            this.controller.MainWindow.LoadDataIntoSensorGraphs();
+            this.controller.MainWindow.LoadDataIntoSensorGraphs(startTime, endTime);
 
             // ensure that the size of all graphs are the same so they line up
-            this.controller.MainWindow.AlignAllGraphs();
+            this.controller.MainWindow.AlignAllGraphs(startTime);
 
             // now that the data has all been loaded, show the panel
             this.controller.MainWindow.ShowSensorDataPanel();

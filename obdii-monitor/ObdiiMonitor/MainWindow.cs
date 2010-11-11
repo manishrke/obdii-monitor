@@ -142,7 +142,6 @@ namespace ObdiiMonitor
                 chartAreas[i] = new ChartArea();
                 chartAreas[i].AlignmentStyle = AreaAlignmentStyles.All;
                 chartAreas[i].AxisX.IsReversed = true;
-                chartAreas[i].AxisX.Minimum = 0;
                 seriesLines[i] = new Series();
 
                 seriesPoints[i] = new Series();
@@ -166,6 +165,13 @@ namespace ObdiiMonitor
                 controller.reset();
 
                 ArrayList numsSelected = new ArrayList();
+
+                if (configs.Count == 0)
+                {
+                    MessageBox.Show("Please configure the sensors you want polled.");
+                    return;
+                }
+
                 configs.RemoveAt(configs.Count - 1);
                 for (int i = 0; i < this.configs.Count; ++i)
                 {
@@ -374,6 +380,7 @@ namespace ObdiiMonitor
         {
             this.controller.TcWindow.Show();
         }
+
         private void ConfigToolStripMenuItem_Click(object sender, EventArgs e)
         {
             this.controller.ConfigSave.Show();
@@ -394,43 +401,19 @@ namespace ObdiiMonitor
         /// this function will load the data in SensorData.PollResponses into the corresponding graphs
         /// that have already been created 
         /// </summary>
-        internal void LoadDataIntoSensorGraphs()
+        internal void LoadDataIntoSensorGraphs(uint startTime, uint endTime)
         {
+            resetGraphs();
+
             foreach (PollResponse response in this.controller.SensorData.PollResponses)
             {
-                if (response.DataType == "OB")
+                if ((response.Time >= startTime) && (response.Time <= endTime))
                 {
-                    for (int i = 0; i < this.controller.SensorController.SelectedSensors.Length; ++i)
+                    if (response.DataType == "OB")
                     {
-                        if ((response.Data.Length > 2) && (this.controller.SensorController.SelectedSensors[i].Pid == response.Data.Substring(0, 2)))
-                        {
-                            this.chartsSensorGraphs[i].Width += 10;
-                            foreach (Series series in this.chartsSensorGraphs[i].Series)
-                            {
-                                try
-                                {
-                                    series.Points.Add(new DataPoint(response.Time, response.ConvertData()));
-                                    this.CreateDataPointToolTip(series.Points[series.Points.Count - 1]);
-                                    this.chartsSensorGraphs[i].ChartAreas[0].AxisX.Maximum = response.Time;
-                                }
-                                catch (Exception e)
-                                {
-                                    Console.WriteLine(e.Message);
-                                }
-                            }
-
-                            break;
-                        }
-                    }
-                }
-                else if (response.DataType == "AC")
-                {
-                    if (++acGraphCount == 6)
-                    {
-                        acGraphCount = 0;
                         for (int i = 0; i < this.controller.SensorController.SelectedSensors.Length; ++i)
                         {
-                            if (this.controller.SensorController.SelectedSensors[i].Pid == response.DataType)
+                            if ((response.Data.Length > 2) && (this.controller.SensorController.SelectedSensors[i].Pid == response.Data.Substring(0, 2)))
                             {
                                 this.chartsSensorGraphs[i].Width += 10;
                                 foreach (Series series in this.chartsSensorGraphs[i].Series)
@@ -451,6 +434,35 @@ namespace ObdiiMonitor
                             }
                         }
                     }
+                    else if (response.DataType == "AC")
+                    {
+                        if (++acGraphCount == 6)
+                        {
+                            acGraphCount = 0;
+                            for (int i = 0; i < this.controller.SensorController.SelectedSensors.Length; ++i)
+                            {
+                                if (this.controller.SensorController.SelectedSensors[i].Pid == response.DataType)
+                                {
+                                    this.chartsSensorGraphs[i].Width += 10;
+                                    foreach (Series series in this.chartsSensorGraphs[i].Series)
+                                    {
+                                        try
+                                        {
+                                            series.Points.Add(new DataPoint(response.Time, response.ConvertData()));
+                                            this.CreateDataPointToolTip(series.Points[series.Points.Count - 1]);
+                                            this.chartsSensorGraphs[i].ChartAreas[0].AxisX.Maximum = response.Time;
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            Console.WriteLine(e.Message);
+                                        }
+                                    }
+
+                                    break;
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -458,7 +470,7 @@ namespace ObdiiMonitor
         /// <summary>
         /// Aligns all graphs by time, by making all graphs the same size and setting same min/max values
         /// </summary>
-        internal void AlignAllGraphs()
+        internal void AlignAllGraphs(uint minX)
         {
             int maxWidth = 0;
             double maxX = 0.0;
@@ -476,6 +488,7 @@ namespace ObdiiMonitor
             {
                 this.chartsSensorGraphs[i].Width = maxWidth;
                 this.chartsSensorGraphs[i].ChartAreas[0].AxisX.Maximum = maxX;
+                this.chartsSensorGraphs[i].ChartAreas[0].AxisX.Minimum = minX;
             }
         }
 
@@ -673,6 +686,50 @@ namespace ObdiiMonitor
             }
         }
 
+
+        internal void setTotalMsLabel(uint p)
+        {
+            labelTotalMs.Text = "Total (ms): " + p;
+        }
+
+        internal void setStartTimeEndTime(uint startTime, uint endTime)
+        {
+            textBoxStartTime.Text = "" + startTime;
+            textBoxEndTime.Text = "" + endTime;
+        }
+
+        private void buttonGet_Click(object sender, EventArgs e)
+        {
+            try 
+            {
+                uint startTime = uint.Parse(textBoxStartTime.Text), endTime = uint.Parse(textBoxEndTime.Text);
+
+                if (endTime <= startTime)
+                {
+                    MessageBox.Show("The start time must be less than the end time.");
+                    return;
+                }
+
+                LoadDataIntoSensorGraphs(startTime, endTime);
+                AlignAllGraphs(startTime);
+            }
+            catch 
+            {
+                MessageBox.Show("Please enter integers values between 0 and the maximum (ms) time.");
+            }
+        }
+
+        private void resetGraphs() 
+        {
+            foreach (Chart chart in chartsSensorGraphs)
+            {
+                chart.Size = new System.Drawing.Size(170, 170);
+                foreach (Series series in chart.Series)
+                {
+                    series.Points.Clear();
+                }
+            }
+        }
     }
 }
 

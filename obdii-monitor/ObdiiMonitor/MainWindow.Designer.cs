@@ -32,12 +32,12 @@
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.loadToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ConfigToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.textFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.spreadsheetToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.MarksToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.ConfigToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.troubleCodesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.panelSensorSelection = new System.Windows.Forms.Panel();
             this.buttonCollect = new System.Windows.Forms.Button();
@@ -52,7 +52,7 @@
             this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.textBoxStartTime = new System.Windows.Forms.TextBox();
             this.textBoxEndTime = new System.Windows.Forms.TextBox();
-            this.button1 = new System.Windows.Forms.Button();
+            this.buttonGet = new System.Windows.Forms.Button();
             this.labelStart = new System.Windows.Forms.Label();
             this.labelEnd = new System.Windows.Forms.Label();
             this.labelTotalMs = new System.Windows.Forms.Label();
@@ -76,6 +76,7 @@
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.saveToolStripMenuItem,
             this.loadToolStripMenuItem,
+            this.ConfigToolStripMenuItem,
             this.exportToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
@@ -84,16 +85,23 @@
             // saveToolStripMenuItem
             // 
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(323, 22);
             this.saveToolStripMenuItem.Text = "Save";
             this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
             // 
             // loadToolStripMenuItem
             // 
             this.loadToolStripMenuItem.Name = "loadToolStripMenuItem";
-            this.loadToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
+            this.loadToolStripMenuItem.Size = new System.Drawing.Size(323, 22);
             this.loadToolStripMenuItem.Text = "Load";
             this.loadToolStripMenuItem.Click += new System.EventHandler(this.loadToolStripMenuItem_Click);
+            // 
+            // ConfigToolStripMenuItem
+            // 
+            this.ConfigToolStripMenuItem.Name = "ConfigToolStripMenuItem";
+            this.ConfigToolStripMenuItem.Size = new System.Drawing.Size(249, 22);
+            this.ConfigToolStripMenuItem.Text = "Export/Load config from SD Card";
+            this.ConfigToolStripMenuItem.Click += new System.EventHandler(this.ConfigToolStripMenuItem_Click);
             // 
             // exportToolStripMenuItem
             // 
@@ -101,7 +109,7 @@
             this.textFileToolStripMenuItem,
             this.spreadsheetToolStripMenuItem});
             this.exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-            this.exportToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
+            this.exportToolStripMenuItem.Size = new System.Drawing.Size(323, 22);
             this.exportToolStripMenuItem.Text = "Export";
             // 
             // textFileToolStripMenuItem
@@ -122,7 +130,6 @@
             // 
             this.viewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.MarksToolStripMenuItem,
-            this.ConfigToolStripMenuItem,
             this.troubleCodesToolStripMenuItem});
             this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
             this.viewToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
@@ -131,20 +138,13 @@
             // MarksToolStripMenuItem
             // 
             this.MarksToolStripMenuItem.Name = "MarksToolStripMenuItem";
-            this.MarksToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.MarksToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
             this.MarksToolStripMenuItem.Text = "Marks";
-            // 
-            // ConfigToolStripMenuItem
-            // 
-            this.ConfigToolStripMenuItem.Name = "ConfigToolStripMenuItem";
-            this.ConfigToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.ConfigToolStripMenuItem.Text = "Load/Save a config file(for use with an SD card)";
-            this.ConfigToolStripMenuItem.Click += new System.EventHandler(this.ConfigToolStripMenuItem_Click);
             // 
             // troubleCodesToolStripMenuItem
             // 
             this.troubleCodesToolStripMenuItem.Name = "troubleCodesToolStripMenuItem";
-            this.troubleCodesToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.troubleCodesToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
             this.troubleCodesToolStripMenuItem.Text = "Trouble Codes";
             this.troubleCodesToolStripMenuItem.Click += new System.EventHandler(this.troubleCodesToolStripMenuItem_Click);
             // 
@@ -259,14 +259,15 @@
             this.textBoxEndTime.Size = new System.Drawing.Size(65, 20);
             this.textBoxEndTime.TabIndex = 16;
             // 
-            // button1
+            // buttonGet
             // 
-            this.button1.Location = new System.Drawing.Point(577, 25);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(42, 23);
-            this.button1.TabIndex = 17;
-            this.button1.Text = "Get";
-            this.button1.UseVisualStyleBackColor = true;
+            this.buttonGet.Location = new System.Drawing.Point(577, 25);
+            this.buttonGet.Name = "buttonGet";
+            this.buttonGet.Size = new System.Drawing.Size(42, 23);
+            this.buttonGet.TabIndex = 17;
+            this.buttonGet.Text = "Get";
+            this.buttonGet.UseVisualStyleBackColor = true;
+            this.buttonGet.Click += new System.EventHandler(this.buttonGet_Click);
             // 
             // labelStart
             // 
@@ -303,7 +304,7 @@
             this.Controls.Add(this.labelTotalMs);
             this.Controls.Add(this.labelEnd);
             this.Controls.Add(this.labelStart);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.buttonGet);
             this.Controls.Add(this.textBoxEndTime);
             this.Controls.Add(this.textBoxStartTime);
             this.Controls.Add(this.panelSensorGraphs);
@@ -337,7 +338,6 @@
         private System.Windows.Forms.ToolStripMenuItem spreadsheetToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem viewToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem MarksToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem ConfigToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem troubleCodesToolStripMenuItem;
         private System.Windows.Forms.Panel panelSensorSelection;
         private System.Windows.Forms.Label labelSensorData;
@@ -352,9 +352,10 @@
         private System.Windows.Forms.OpenFileDialog openFileDialog;
         private System.Windows.Forms.TextBox textBoxStartTime;
         private System.Windows.Forms.TextBox textBoxEndTime;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button buttonGet;
         private System.Windows.Forms.Label labelStart;
         private System.Windows.Forms.Label labelEnd;
         private System.Windows.Forms.Label labelTotalMs;
+        private System.Windows.Forms.ToolStripMenuItem ConfigToolStripMenuItem;
     }
 }
