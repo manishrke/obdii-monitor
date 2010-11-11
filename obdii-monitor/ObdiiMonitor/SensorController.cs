@@ -168,7 +168,7 @@ namespace ObdiiMonitor
                                 if (buffer.Length < 2)
                                     break;
 
-                                int index = Array.IndexOf(buffer, PollResponse.StartTag);
+                                int index = Array.IndexOf(buffer, (byte)PollResponse.StartTag);
 
                                 byte length = buffer[index+1];
 

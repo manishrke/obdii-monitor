@@ -182,7 +182,14 @@ namespace ObdiiMonitor
         {
             if ((this.data != null)&&(this.data.Length > 2) && (this.dataType == "OB"))
             {
-                return ConvertSensorData.convert(this.data.Substring(0, 2), this.data.Substring(2), controller.US);
+                try
+                {
+                    return ConvertSensorData.convert(this.data.Substring(0, 2), this.data.Substring(2), controller.US);
+                }
+                catch
+                {
+                    return null;
+                }
             }
 
             if (this.dataType == "AC")

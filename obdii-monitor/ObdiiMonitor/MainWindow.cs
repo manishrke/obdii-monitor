@@ -183,6 +183,9 @@ namespace ObdiiMonitor
                         }
                 }
 
+                // add a default AC graph
+                numsSelected.Add(0);
+
                 this.controller.SensorController.initializeSelectedSensors(numsSelected);
                 saveConfig();
                 this.controller.Serial.sendConfig();
@@ -198,6 +201,14 @@ namespace ObdiiMonitor
                 this.ShowResetButton();
                 this.controller.Serial.sendCommand(STOP);
                 this.controller.cancelAllThreads();
+                resetGraphs();
+                uint endTime = ((PollResponse)controller.SensorData.PollResponses[controller.SensorData.PollResponses.Count - 1]).Time;
+                setTotalMsLabel(endTime);
+                if (endTime > LoadController.DefaultEndTime)
+                    endTime = LoadController.DefaultEndTime;
+                LoadDataIntoSensorGraphs(0, endTime);
+                setStartTimeEndTime(0, endTime);
+                AlignAllGraphs(0);
             }
             else if (buttonCollect.Text == "Reset")
             {
@@ -255,6 +266,27 @@ namespace ObdiiMonitor
                             }
                         }
                     }
+                    else if (response.DataType == "AC")
+                    {
+                        if (++acGraphCount > 6)
+                        {
+                            acGraphCount = 0;
+                            for (int i = 0; i < this.controller.SensorController.SelectedSensors.Length; ++i)
+                            {
+                                try
+                                {
+                                    if (response.DataType == this.controller.SensorController.SelectedSensors[i].Pid)
+                                    {
+                                        this.SetGraphPoint(i, response);
+                                        break;
+                                    }
+                                }
+                                catch (Exception e)
+                                {
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -273,15 +305,18 @@ namespace ObdiiMonitor
             }
             else
             {
-                foreach (Series series in this.chartsSensorGraphs[i].Series)
+                if (response.ConvertData() != null)
                 {
-                    series.Points.Add(new DataPoint((double)response.Time, response.ConvertData()));
-                    this.CreateDataPointToolTip(series.Points[series.Points.Count - 1]);
-                    this.chartsSensorGraphs[i].ChartAreas[0].AxisX.Maximum = response.Time;
-                }
+                    foreach (Series series in this.chartsSensorGraphs[i].Series)
+                    {
+                        series.Points.Add(new DataPoint((double)response.Time, response.ConvertData()));
+                        this.CreateDataPointToolTip(series.Points[series.Points.Count - 1]);
+                        this.chartsSensorGraphs[i].ChartAreas[0].AxisX.Maximum = response.Time;
+                    }
 
-                this.chartsSensorGraphs[i].Width += 10;
-                this.labelsSensorGraphsValues[i].Text = "Value: " + response.ConvertData();
+                    this.chartsSensorGraphs[i].Width += 10;
+                    this.labelsSensorGraphsValues[i].Text = "Value: " + response.ConvertData();
+                }
             }
         }
 
@@ -436,7 +471,7 @@ namespace ObdiiMonitor
                     }
                     else if (response.DataType == "AC")
                     {
-                        if (++acGraphCount == 6)
+                        if (++acGraphCount > 6)
                         {
                             acGraphCount = 0;
                             for (int i = 0; i < this.controller.SensorController.SelectedSensors.Length; ++i)
@@ -682,7 +717,7 @@ namespace ObdiiMonitor
             for(i=0;i<list.Length;i++)
             {
                 byte temptiming = (byte)(list[i].Timing << 2);
-                controller.Config[byte.Parse(list[i].Selected)] = (byte)(temptiming | controller.Config[byte.Parse(list[i].Selected)]);
+                controller.Config[byte.Parse(list[i].Selected, System.Globalization.NumberStyles.HexNumber)] = (byte)(temptiming | controller.Config[byte.Parse(list[i].Selected, System.Globalization.NumberStyles.HexNumber)]);
             }
         }
 

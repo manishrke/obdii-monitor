@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO.Ports;
+using System.Threading;
 
 namespace ObdiiMonitor
 {
@@ -65,17 +66,24 @@ namespace ObdiiMonitor
         }
         public void sendConfig()
         {
-            serialPort.WriteLine("w"+this.controller.Config);
+            serialPort.Write("w");
+            Thread.Sleep(5);
+            for (int i=0; i < controller.Config.Length; ++i)
+            {
+                serialPort.Write(controller.Config, i, 1);
+                Thread.Sleep(5);
+            }
         }
         public byte[] dataReceived()
         {
+            int num = 0;
             try
             {
-                if (serialPort.BytesToRead > 0)
+                if ((num = serialPort.BytesToRead) > 0)
                 {
-                    byte[] bytes = new byte[serialPort.BytesToRead];
+                    byte[] bytes = new byte[num];
 
-                    serialPort.Read(bytes, 0, serialPort.BytesToRead);
+                    serialPort.Read(bytes, 0, num);
 
                     return bytes;
                 }
