@@ -54,6 +54,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AccelerometerConverter.cs" />
+    <Compile Include="ConfigSave.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ConfigSave.Designer.cs">
+      <DependentUpon>ConfigSave.cs</DependentUpon>
+    </Compile>
     <Compile Include="Controller.cs" />
     <Compile Include="ConvertSensorData.cs" />
     <Compile Include="GPS.cs" />
@@ -87,6 +93,9 @@
       <DependentUpon>ConfigPanel.cs</DependentUpon>
     </Compile>
     <Compile Include="TimeOfDayConverter.cs" />
+    <EmbeddedResource Include="ConfigSave.resx">
+      <DependentUpon>ConfigSave.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MainWindow.resx">
       <DependentUpon>MainWindow.cs</DependentUpon>
     </EmbeddedResource>

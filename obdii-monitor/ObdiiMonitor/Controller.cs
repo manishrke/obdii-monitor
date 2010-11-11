@@ -24,6 +24,14 @@ namespace ObdiiMonitor
             get { return tcWindow; }
         }
 
+        private ConfigSave configSave = new ConfigSave();
+
+        public ConfigSave ConfigSave
+        {
+            get { return configSave; }
+        }
+
+
         private SensorController sensorController = new SensorController();
 
         public SensorController SensorController
@@ -115,6 +123,8 @@ namespace ObdiiMonitor
             tcWindow.Controller = this;
             liveDataController.Controller = this;
             timeOfDayConverter.Controller = this;
+            configSave.Controller = this;
+            
         }
 
         public void reset()

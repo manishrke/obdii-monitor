@@ -37,10 +37,6 @@ namespace ObdiiMonitor
         private ArrayList configs;
         Controller controller;
 
-        CheckBox[] checkboxesSensorSelection;
-
-        Label[] labelsSensorSelection;
-
         Label[] labelsSensorGraphs;
 
         Label[] labelsSensorGraphsValues;
@@ -91,40 +87,22 @@ namespace ObdiiMonitor
             for (int i = 0; i<this.controller.SensorController.Sensors.Length; i++)
             {
                 byte add = 0;
-                add = (byte) (controller.Config[byte.Parse(this.controller.SensorController.Sensors[i].Pid)] >> 7);
-                if(add==1)
+                if (this.controller.SensorController.Sensors[i].Pid != "AC")
                 {
-                    if (this.controller.SensorController.Sensors[i].Label2 == null)
-                        sensornames.Add(this.controller.SensorController.Sensors[i].Label);
-                    else
-                        sensornames.Add(this.controller.SensorController.Sensors[i].Label + "," + 
-                                        this.controller.SensorController.Sensors[i].Label2.Substring(this.controller.SensorController.Sensors[i].Label2.LastIndexOf(':') + 1));
-                    pids.Add(this.controller.SensorController.Sensors[i].Pid);
+                    add = (byte)(controller.Config[byte.Parse(this.controller.SensorController.Sensors[i].Pid, System.Globalization.NumberStyles.HexNumber)] >> 7);
+                    if (add == 1)
+                    {
+                        if (this.controller.SensorController.Sensors[i].Label2 == null)
+                            sensornames.Add(this.controller.SensorController.Sensors[i].Label);
+                        else
+                            sensornames.Add(this.controller.SensorController.Sensors[i].Label + "," +
+                                            this.controller.SensorController.Sensors[i].Label2.Substring(this.controller.SensorController.Sensors[i].Label2.LastIndexOf(':') + 1));
+                        pids.Add(this.controller.SensorController.Sensors[i].Pid);
+                    }
                 }
             }
             
             addConfigPanel();
-/*            this.panelSensorSelection.Controls.Clear();
-
-            this.labelsSensorSelection = new Label[this.controller.SensorController.Sensors.Length];
-            this.checkboxesSensorSelection = new CheckBox[this.controller.SensorController.Sensors.Length];
-
-            int height = StartHeight;
-            int width = StartWidth;
-
-            for (int i = 0; i < this.controller.SensorController.Sensors.Length; ++i)
-            {
-                this.labelsSensorSelection[i] = new Label();
-                this.labelsSensorSelection[i].Text = this.controller.SensorController.Sensors[i].Label;
-                this.labelsSensorSelection[i].Location = new Point(width + 20, height + (25 * i) + 5);
-                this.panelSensorSelection.Controls.Add(this.labelsSensorSelection[i]);
-
-                this.checkboxesSensorSelection[i] = new CheckBox();
-                this.checkboxesSensorSelection[i].Location = new Point(width, height + (25 * i));
-                this.checkboxesSensorSelection[i].Checked = true;
-                this.panelSensorSelection.Controls.Add(this.checkboxesSensorSelection[i]);
-            }
- */
         }
 
         /// <summary>
@@ -396,6 +374,11 @@ namespace ObdiiMonitor
         {
             this.controller.TcWindow.Show();
         }
+        private void ConfigToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.controller.ConfigSave.Show();
+        }
+
 
         /// <summary>
         /// Implemented in response to Issue 12.

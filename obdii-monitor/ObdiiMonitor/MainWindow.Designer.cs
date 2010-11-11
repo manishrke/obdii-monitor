@@ -37,6 +37,7 @@
             this.spreadsheetToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.MarksToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ConfigToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.troubleCodesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.panelSensorSelection = new System.Windows.Forms.Panel();
             this.buttonCollect = new System.Windows.Forms.Button();
@@ -121,6 +122,7 @@
             // 
             this.viewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.MarksToolStripMenuItem,
+            this.ConfigToolStripMenuItem,
             this.troubleCodesToolStripMenuItem});
             this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
             this.viewToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
@@ -131,6 +133,13 @@
             this.MarksToolStripMenuItem.Name = "MarksToolStripMenuItem";
             this.MarksToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.MarksToolStripMenuItem.Text = "Marks";
+            // 
+            // ConfigToolStripMenuItem
+            // 
+            this.ConfigToolStripMenuItem.Name = "ConfigToolStripMenuItem";
+            this.ConfigToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.ConfigToolStripMenuItem.Text = "Load/Save a config file(for use with an SD card)";
+            this.ConfigToolStripMenuItem.Click += new System.EventHandler(this.ConfigToolStripMenuItem_Click);
             // 
             // troubleCodesToolStripMenuItem
             // 
@@ -328,6 +337,7 @@
         private System.Windows.Forms.ToolStripMenuItem spreadsheetToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem viewToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem MarksToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ConfigToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem troubleCodesToolStripMenuItem;
         private System.Windows.Forms.Panel panelSensorSelection;
         private System.Windows.Forms.Label labelSensorData;

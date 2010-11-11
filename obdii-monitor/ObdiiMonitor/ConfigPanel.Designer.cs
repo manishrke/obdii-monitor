@@ -109,11 +109,11 @@
 
         #endregion
 
-        private System.Windows.Forms.ComboBox cbobxName;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.TextBox txttimes;
         private System.Windows.Forms.Label lbloption;
+        public System.Windows.Forms.ComboBox cbobxName;
+        public System.Windows.Forms.TextBox txttimes;
     }
 }
