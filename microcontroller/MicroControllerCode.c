@@ -8,7 +8,7 @@
 #include "spi.h"
 
 char   ELM_Prompt = 0;
-char   UART1SaveString[COMBUFF+2];
+char   UART1SaveString[COMBUFF+9];
 char   UART1Accept = 1;
 char * UART1RecvBuffer;
 char * UART1RecvPtr;
@@ -285,6 +285,10 @@ int ELM_Enumerate(void){
 
 
 void ELM_Init(void){
+	UART1SaveString[0] = 0xEE;
+	UART1SaveString[6] = 'O';
+	UART1SaveString[7] = 'B';
+
 	int connected = 0;
 	while(!connected){
 		PORTA = 0x0001;
@@ -300,12 +304,14 @@ void ELM_Init(void){
 		PORTA|= 0x003F;
 		connected = 1;
 	}   
+
+
+
 }
 
 
-
 void UART_Init(void){
-	UART1RecvBuffer = UART1SaveString + 2;
+	UART1RecvBuffer = UART1SaveString + 8;
 	UART1RecvPtr = UART1RecvBuffer;
 
 	ConfigIntUART1(UART_RX_INT_EN & UART_RX_INT_PR6 & 
@@ -360,12 +366,9 @@ int main(void){
 	
 
 	logFile = FSfopen ("Sensors.log", "a");
-	if (logFile == NULL) while(1);
-    if (FSfwrite(&time_ms, 4, 1, logFile) != 1) while(1);	
-    if (FSfwrite("NEW_SESSION\0", 1, 12, logFile) != 12) while(1);	
+	if (logFile == NULL) while(1);	
+    if (FSfwrite("\xFE\x06\0\0\0\0NS", 1, 8, logFile) != 8) while(1);	
 
-	UART1SaveString[0] = 'O';
-	UART1SaveString[1] = 'B';
 	int pid = 1;
 	int doScanning = 1;
 	unsigned int pass = 0;
@@ -392,11 +395,11 @@ int main(void){
 		time_ms = Timer_GetTimeMS();
 		*((long int *)(accelSaveString+2)) = time_ms;
 		Accel_WaitUpdated();
-
 		if (FSfwrite (accelSaveString, 1, ACCEL_PACKET_LENGTH, logFile) != ACCEL_PACKET_LENGTH) while(1);			
 
-		if (FSfwrite (&time_ms, 4, 1, logFile) != 1) while(1);	
-		if (FSfwrite (UART1SaveString, 1, UART1RecvBytes+3, logFile) != UART1RecvBytes+3) while(1);	
+		UART1SaveString[1] = UART1RecvBytes+6;
+		*((long int *)(UART1SaveString+2)) = time_ms;
+		if (FSfwrite (UART1SaveString, 1, UART1RecvBytes+8, logFile) != UART1RecvBytes+8) while(1);	
 	
 
 		pid += 1;
