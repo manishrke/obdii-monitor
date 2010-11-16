@@ -9,13 +9,12 @@
 #include "spi.h"
 
 char   ELM_Prompt = 0;
-char   UART1SaveString[COMBUFF+9];
+char __attribute__((aligned(16))) UART1SaveString[COMBUFF+9];
 char   UART1Accept = 1;
 char * UART1RecvBuffer;
 char * UART1RecvPtr;
 char   UART1RecvBytes = 0;
 char   UART1CRCount = 0;
-
 
 
 FSFILE *logFile, *sensors;
@@ -37,6 +36,47 @@ char charToASCIIHexMS(char val){
 char ASCIIHexToChar(char hex){
 	if(hex >= 0x41) return hex - 55;
 	return hex - 0x30;
+}
+
+
+
+///////////////////////////////////////////////////////////////////
+// Circular Buffer Code
+///////////////////////////////////////////////////////////////////
+
+#define CIRCULAR_BUFF_SIZE 20
+
+typedef struct {
+	unsigned char buffer[CIRCULAR_BUFF_SIZE];
+	char wpos;
+	char rpos;
+	char full;
+} CircularBuffer;
+
+void initCircularBuffer(CircularBuffer *buf){
+	buf->wpos = 0;
+	buf->rpos = 0;
+	buf->full = 0;
+}
+unsigned char hasChar(CircularBuffer *buf){
+	if(buf->full) return 1;
+	if(buf->rpos == buf->wpos) return 0;
+	return 1;
+}
+unsigned char getChar(CircularBuffer *buf){
+	unsigned char ch = buf->buffer[buf->rpos];
+	buf->rpos += 1;
+	if(buf->rpos == CIRCULAR_BUFF_SIZE) buf->rpos = 0;
+	if(buf->full) buf->full = 0;
+	return ch;
+}
+unsigned char putChar(CircularBuffer *buf, unsigned char ch){
+	if(buf->full) return 0;
+	buf->buffer[buf->wpos] = ch;
+	buf->wpos += 1;
+	if(buf->wpos == CIRCULAR_BUFF_SIZE) buf->wpos = 0;
+	if(buf->wpos == buf->rpos) buf->full = 1;
+	return 1;
 }
 
 
@@ -78,56 +118,112 @@ void Timer_WaitMS(long int ms){
 }
 ///////////////////////////////////////////////////////////////////
 
-	//IPC13bits.INT4IP = 0x03;
-	//IFS3bits.INT4IF = 0;
-	//IEC3bits.INT4IE = 1;  
 
 ///////////////////////////////////////////////////////////////////
 // Accelerometer / SPI UART Main Code
 ///////////////////////////////////////////////////////////////////
 #define ACCEL_PACKET_LENGTH 11
+#define SPI_CS_ACCEL 0x0002
+#define SPI_CS_UART  0x0200
+#define SPI_CS_OFF   0x0202
 
-char SPI2Mode = 0;   //0 for Accelerometer mode, 1 for UART mode
+CircularBuffer SPIUART_BufIn;
+CircularBuffer SPIUART_BufOut;
+
+short unsigned int SPI2_CS = SPI_CS_OFF;  
+char SPIUART_WantsAttention = 0;
+char SPIUART_LastWasWrite   = 0;
+char SPIUART_HasAttention   = 0;
 char accelAxisReady = 0;
 char accelAxisPoll = 0;
-char accelSaveString[ACCEL_PACKET_LENGTH];
+char __attribute__((aligned(16))) accelSaveString[ACCEL_PACKET_LENGTH];
 
 void __attribute__((__interrupt__)) _INT4Interrupt(void){  
+
+	PORTA = PORTA ^ 0x0040;
+	if(!SPIUART_HasAttention) SPIUART_Attention();
     IFS3bits.INT4IF = 0;
-	//This interrupt happens whenever we have data from the UART3, we should switch the spi2mode to 
+	
+	//This interrupt happens whenever we have data from the UART3, we should switch the spi2cs to 
     //UART and om nom nom blargle blargle from the UART3 before switching back to accelerometer
 	// maybe use 0x0002;  (rg1) for the UART chip?  rg9 is being used for accelo.
 	// trnamission works in this way: write whilenotready; write whilenotready;
+	//PORTG   = 0x0200;
+	//for(i=0; i<1; i+=1);
+	//SPI2BUF = 0x0000;
+
+	//PORTG   = 0x0200;
+	//for(i=0; i<1; i+=1);
+	//SPI2BUF = 0x1000 | databyte;
+
+	// R is data availablt
+    // T is transmit buffer empty   R and T are the first 2 bits of any operation wewt wewt
+
 } 
 
 void __attribute__((__interrupt__)) _SPI2Interrupt(void){  
 	int data, i;
 	for(i=0; i<5; i+=1);
 	
-	PORTG = 0x0202;
+	PORTG = SPI_CS_OFF;
 	PORTA = PORTA ^ 0x0080;
 
 	data = SPI2BUF;
 
-	if(accelAxisPoll > 0){
-		*(accelSaveString + 7 + accelAxisPoll) = (char)(data & 0x00FF);
-		if(accelAxisPoll >= 3){
-			accelAxisPoll = 0;
-			accelAxisReady = 1;
+	if(SPI2_CS == SPI_CS_ACCEL){
+		if(accelAxisPoll > 0){
+			*(accelSaveString + 7 + accelAxisPoll) = (char)(data & 0x00FF);
+			if(accelAxisPoll >= 3){
+				accelAxisPoll = 0;
+				accelAxisReady = 1;
+    			SPI2_CS = SPI_CS_OFF; //Release the SPI
+			}else{
+				for(i=0; i<4; i+=1);
+				accelAxisPoll += 1;
+				PORTG   = SPI2_CS;
+				for(i=0; i<1; i+=1);
+				SPI2BUF = (0x03 + accelAxisPoll*2) << 10;
+    			IFS2bits.SPI2IF = 0;
+				return;
+			}
+		}
+	}else if(SPI2_CS == SPI_CS_UART){
+		for(i=0; i<2; i+=1); 
+		if(data & 0x8000) putChar(&SPIUART_BufIn, (unsigned char)(data & 0x00FF));
+		if(data & 0x4000 && hasChar(&SPIUART_BufOut)){
+			PORTG   = SPI2_CS;
+			if(SPIUART_LastWasWrite){
+				SPIUART_LastWasWrite = 0;
+				SPI2BUF = 0x0000;  
+			}else{
+				SPIUART_LastWasWrite = 1;
+				SPI2BUF = 0x8000 | (getChar(&SPIUART_BufOut) & 0x00FF);
+			}	
+		}else if(data & 0x8000){
+			PORTG   = SPI2_CS;
+			SPI2BUF = 0x0000;  
 		}else{
-			for(i=0; i<4; i+=1);
-			accelAxisPoll += 1;
-			PORTG   = 0x0002;
-			for(i=0; i<1; i+=1);
-			SPI2BUF = (0x03 + accelAxisPoll*2) << 10;
+			SPI2_CS = SPI_CS_OFF;
 		}
 	}
+
+	/*
+	if(SPIUART_WantsAttention){
+		SPIUART_WantsAttention = 0;
+		if(SPI2_CS != SPI_CS_UART){
+			SPI2_CS = SPI_CS_UART;
+			PORTG   = SPI2_CS;
+			SPI2BUF = 0x0000; 		
+		}
+	}
+	*/
+
     IFS2bits.SPI2IF = 0;
 
 } 
 
 void SPI_Init(void){
-	ConfigIntSPI2(SPI_INT_EN & SPI_INT_PRI_5); 
+	ConfigIntSPI2(SPI_INT_EN & SPI_INT_PRI_2); 
 	SPI2CON1 = 0x0536;    // 16bit, master SPI, 1.333MHz clocking
 	SPI2STATbits.SPIROV = 0;
 	SPI2STATbits.SPIEN  = 1;
@@ -143,9 +239,11 @@ void Accel_Init(void){
 
 void Accel_BeginUpdateSaveString(void){
 	int i;
+	while(SPI2_CS != SPI_CS_OFF); // Wait until SPI UART has released the interface, if it is being held
 	accelAxisReady = 0;
 	accelAxisPoll = 1;
-	PORTG   = 0x0002;
+	SPI2_CS = SPI_CS_ACCEL;
+	PORTG   = SPI2_CS;
 	for(i=0; i<1; i+=1);
 	SPI2BUF = (0x03 + accelAxisPoll*2) << 10;
 }
@@ -155,11 +253,42 @@ void Accel_WaitUpdated(void){
 }
 ///////////////////////////////////////////////////////////////////
 
-
 void SPIUART_Init(void){
-	PORTG   = 0x0200;
-	for(i=0; i<1; i+=1);
-	SPI2BUF = 0xC409;
+
+	initCircularBuffer(&SPIUART_BufIn);
+	initCircularBuffer(&SPIUART_BufOut);
+
+	PORTG   = SPI_CS_UART;
+	SPI2BUF = 0xCC09;     //1100 1100 0000 1001  with both transmit and receive interrups
+
+	INTCON2bits.INT4EP = 1;
+	IPC13bits.INT4IP = 0x03;
+	IFS3bits.INT4IF = 0;
+	IEC3bits.INT4IE = 1;  
+
+}
+
+void SPIUART_Send(const unsigned char *buffer, char bytes){
+	char i=0;
+	SPIUART_HasAttention = 1;
+
+	while(i<bytes){
+		if(putChar(&SPIUART_BufOut, buffer[i])) i += 1;
+        SPIUART_Attention();
+	}
+
+	SPIUART_HasAttention = 0;
+}
+
+void SPIUART_Attention(void){
+	if(SPI2_CS == SPI_CS_OFF){
+		SPIUART_LastWasWrite = 0;
+		SPI2_CS = SPI_CS_UART;
+		PORTG   = SPI2_CS;
+		SPI2BUF = 0x0000;  	//We don't know if we are clear to send data
+	}else if(SPI2_CS == SPI_CS_ACCEL){
+		SPIUART_WantsAttention = 1;
+	}
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -169,7 +298,16 @@ void SPIUART_Init(void){
 // 16bit mode over summa them thar SPIs dudebrah
 //
 //  configuratoin to write: 0b1100 0100 0000 1001
+//                            0101 0100 0000 1001
 //                             C409
+//  write data 0b1000 0000 dddd dddd
+//  read  data 0b0000 0000 0000 0000
+//
+//	
+//  on interrupt, set flag that we have stuff from SPI UART, 
+//  if not in use by accelerometer polling -> immediately write 0x0000 to read the incoming byte
+//	
+//  
 //
 ///////////////////////////////////////////////////////////////////
 
@@ -179,7 +317,7 @@ void SPIUART_Init(void){
 // GPS Code
 ///////////////////////////////////////////////////////////////////
 char GPSRecvBytes;
-char  GPSSaveString[50];
+char __attribute__((aligned(16))) GPSSaveString[50];
 char *GPSRecvBuffer;
 char *GPSRecvPtr;
 char GPSHasSatLock;
@@ -191,6 +329,7 @@ char GPSChecksum = 0;
 
 void __attribute__((__interrupt__)) _U2TXInterrupt(void){  
     IFS1bits.U2TXIF = 0;
+	
 } 
 
 //IMPL Implement protection against duplicates  by using timestamps
@@ -298,9 +437,9 @@ void GPS_Init(void){
 	putsUART2((unsigned int *)"$PSRF103,03,00,00,01*27\r\n\0");	Timer_WaitMS(50);
 	putsUART2((unsigned int *)"$PSRF103,04,00,00,01*20\r\n\0");	Timer_WaitMS(50);
 	putsUART2((unsigned int *)"$PSRF103,05,00,00,01*21\r\n\0");	Timer_WaitMS(50);
-//	putsUART2((unsigned int *)"$PTNLSRT,C*3C\r\n\0"); Timer_WaitMS(100);	
+	//putsUART2((unsigned int *)"$PTNLSRT,C*3C\r\n\0"); Timer_WaitMS(100);	
 	putsUART2((unsigned int *)"$PTNLSRT,W*28\r\n\0"); Timer_WaitMS(100);
-//	putsUART2((unsigned int *)"$PTNLSRT,H*37\r\n\0"); Timer_WaitMS(100);
+	//putsUART2((unsigned int *)"$PTNLSRT,H*37\r\n\0"); Timer_WaitMS(100);
 	
 }
 
@@ -330,7 +469,7 @@ void __attribute__((__interrupt__)) _U1RXInterrupt(void){
         if(!UART1Accept) continue;
 		if(UART1RecvBytes-1 > COMBUFF) continue; //IMPL - raise error flag or something like that - overflow
         ch = ReadUART1();
-        WriteUART2(ch);
+        //WriteUART2(ch);
 		 
         if(ch=='>') 
 			ELM_Prompt = 1;	
@@ -498,7 +637,7 @@ void UART_Init(void){
 
 
 void IO_Init(void){
-    TRISA = 0x0000;
+    TRISA = 0x8000;
 	PORTA = 0x0000;
 
 	TRISD = 0xFFFF;
@@ -515,9 +654,40 @@ int main(void){
 	IO_Init();
 	UART_Init();
 	Timer_Init(); 
+	Timer_WaitMS(100);
 	Accel_Init();
+	SPIUART_Init();
 	ELM_Init();
 	GPS_Init();
+	
+	/*
+	PORTA = 0x0000;
+	Timer_WaitMS(100);
+	while(1){
+		GPSCare = 0;
+		GPSRequest();
+		Timer_WaitMS(1000);		
+		if(GPSCare == 5){
+			PORTA = PORTA ^ 0x0010; 
+		}
+	}*/
+
+	/*
+	unsigned char cur;
+	while(1){
+		//Timer_WaitMS(500);
+		SPIUART_Send("Why Hallo There!\r\n", 16);
+		if(hasChar(&SPIUART_BufIn)){
+			cur = getChar(&SPIUART_BufIn);
+			SPIUART_Send(&cur, 1);
+		}
+		//PORTG   = 0x0200;
+		//SPI2BUF = 0x8058;   //  
+		//SPI2BUF = 0x4000;
+		//PORTA = (PORTA & 0xFF00) | (PORTA >> 15);
+	}
+	*/
+	char has_media = 0x00;
 
 	PORTA = 0x00FF;
 	while (!MDD_MediaDetect());  //Wait for SD
@@ -539,12 +709,22 @@ int main(void){
 	logFile = FSfopen ("Sensors.log", "a");
 	if (logFile == NULL) while(1);	
     if (FSfwrite("\xEE\x06\0\0\0\0NS", 1, 8, logFile) != 8) while(1);	
+	SPIUART_Send("\xEE\x06\0\0\0\0NS", 8);
 
+
+	int  pid_write = 0;
+	char pid_dowrite = 0;
 	int pid = 1;
 	int doScanning = 1;
 	unsigned int pass = 0;
+	unsigned char ch;
 	long int lastGPSRequestTime = 0;
 	while(doScanning){
+
+		if(!has_media && MDD_MediaDetect()){
+			
+		}		
+
 		if(pid >= SENSORS){
 		    pid = 1;
             pass += 1;
@@ -559,16 +739,22 @@ int main(void){
 		}else{
 			ELM_SensorRead(pid);
 		}
-		if(!ELM_Wait(2000)) break;
+		if(!ELM_Wait(2000)){
 		
-		if(!(PORTD & 0x0040)) doScanning = 0;
+		}else{
+			Accel_BeginUpdateSaveString();  
+			time_ms = Timer_GetTimeMS();
+			*((long int *)(accelSaveString+2)) = time_ms;
+			Accel_WaitUpdated(); //IMPL if MSB start with 011 , data overflow in +
+								 //IMPL if MSB start with 100 , data overflow in -
+			if (FSfwrite (accelSaveString, 1, ACCEL_PACKET_LENGTH, logFile) != ACCEL_PACKET_LENGTH) while(1);			
+			SPIUART_Send(accelSaveString, ACCEL_PACKET_LENGTH);
+		}
+		
+		if(!(PORTD & 0x0040)) has_media |= 0x02;
 
-		Accel_BeginUpdateSaveString();        
-		time_ms = Timer_GetTimeMS();
-		*((long int *)(accelSaveString+2)) = time_ms;
-		Accel_WaitUpdated(); //IMPL if MSB start with 011 , data overflow in +
-							 //IMPL if MSB start with 100 , data overflow in -
-		if (FSfwrite (accelSaveString, 1, ACCEL_PACKET_LENGTH, logFile) != ACCEL_PACKET_LENGTH) while(1);			
+		
+		
 
 		if((time_ms - lastGPSRequestTime) > 1000){
 			lastGPSRequestTime = time_ms;
@@ -576,9 +762,11 @@ int main(void){
 			GPSRequest();
 		}
 		if(GPSCare == 5){
+			PORTA = PORTA ^ 0x0008;
 			GPSSaveString[1] = GPSRecvBytes+6;
 			*((long int *)(GPSSaveString+2)) = time_ms;
 			if (FSfwrite (GPSSaveString, 1, GPSRecvBytes+8, logFile) != GPSRecvBytes+8) while(1);	
+			SPIUART_Send(GPSSaveString, GPSRecvBytes+8);
 			if(!GPSLoggedFirstDatetime){
 				GPSLoggedFirstDatetime = 1;
 				GPSSaveString[7] = 'P';
@@ -586,11 +774,37 @@ int main(void){
 			GPSCare = 0;
 		}
 		
+		/*
 		UART1SaveString[1] = UART1RecvBytes+6;
 		*((long int *)(UART1SaveString+2)) = time_ms;
 		if (FSfwrite (UART1SaveString, 1, UART1RecvBytes+8, logFile) != UART1RecvBytes+8) while(1);	
-	
+		SPIUART_Send(UART1SaveString, UART1RecvBytes+8);
+		*/
 
+		UART1SaveString[1] = UART1RecvBytes+4;
+		*((long int *)(UART1SaveString+2)) = time_ms;
+		if (FSfwrite (UART1SaveString, 1, 8, logFile) != 8) while(1);	
+		if (FSfwrite ((UART1SaveString+10), 1, UART1RecvBytes-2, logFile) != UART1RecvBytes-2) while(1);	
+		SPIUART_Send(UART1SaveString, 8);
+		SPIUART_Send(UART1SaveString+10, UART1RecvBytes-2);
+
+		while(hasChar(&SPIUART_BufIn)){
+			PORTA = PORTA ^ 0x0002;
+			ch = getChar(&SPIUART_BufIn);
+			if(pid_dowrite){
+				ELM_Sensors[pid_write] = ch;
+				pid_write += 1;
+				if(pid_write == SENSORS){
+					pid_dowrite = 0;
+				}
+			}else if(ch == 'r'){
+				SPIUART_Send("\xEE\x47\0\0\0\0CF", 8);
+				SPIUART_Send(ELM_Sensors, SENSORS);
+			}else if(ch == 'w' && pid_dowrite == 0){
+				pid_dowrite = 1;
+				pid_write   = 0;
+			}
+		}
 
 		pid += 1;
 	}
