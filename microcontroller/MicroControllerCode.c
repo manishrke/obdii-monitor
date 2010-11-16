@@ -5,6 +5,7 @@
 #include "FSIO.h"
 #include "uart.h"
 #include "string.h"
+#include "spi.h"
 
 char   ELM_Prompt = 0;
 char   UART1SaveString[COMBUFF+2];
@@ -41,7 +42,7 @@ void Timer_Init(void){
 	PR3    = 0x0727;  
 	PR2    = 0x0E00;
 	
-	IPC2bits.T3IP = 0x01; // T3IP<2:0> bits (IPC2<2:0>) are priority
+	IPC2bits.T3IP = 0x07; // T3IP<2:0> bits (IPC2<2:0>) are priority
 	IFS0bits.T3IF = 0;  //T3IF   (EFS0<8>) is used as status flag for inter
 	IEC0bits.T3IE = 1;  //T3IE   (IEC0<8>) is used to enable 32 bit timer int
 	T2CONbits.TON = 1;
@@ -49,6 +50,83 @@ void Timer_Init(void){
 
 long int Timer_GetTimeMS(void){
 	return timerMS + ((((((long int)TMR3) << 16)|TMR2) / timerTicksPerMS));
+}
+
+void Timer_WaitMS(long int ms){
+	long int old_ms = Timer_GetTimeMS();
+	while((Timer_GetTimeMS() - old_ms) < ms);
+}
+///////////////////////////////////////////////////////////////////
+
+	//IPC13bits.INT4IP = 0x03;
+	//IFS3bits.INT4IF = 0;
+	//IEC3bits.INT4IE = 1;  
+
+///////////////////////////////////////////////////////////////////
+// Accelerometer Code
+///////////////////////////////////////////////////////////////////
+char accelAxisReady = 0;
+char accelAxisPoll = 0;
+char accelSaveString[12];
+
+void __attribute__((__interrupt__)) _INT4Interrupt(void){  
+    IFS3bits.INT4IF = 0;
+} 
+
+void __attribute__((__interrupt__)) _SPI2Interrupt(void){  
+	int data, i;
+	for(i=0; i<5; i+=1);
+	
+	PORTG = 0x0200;
+    IFS2bits.SPI2IF = 0;
+	//PORTA = PORTA ^ 0x0040;
+
+	data = SPI2BUF;
+	//PORTA   = 0x00FF & data;
+
+	if(accelAxisPoll > 0){
+		*(accelSaveString + 8 + accelAxisPoll) = (char)(data & 0x00FF);
+		if(accelAxisPoll >= 3){
+			accelAxisPoll = 0;
+			accelAxisReady = 1;
+		}else{
+			for(i=0; i<4; i+=1);
+			accelAxisPoll += 1;
+			PORTG   = 0x0000;
+			for(i=0; i<1; i+=1);
+			SPI2BUF = (0x03 + accelAxisPoll*2) << 10;
+		}
+	}
+} 
+
+void SPI_Init(void){
+	ConfigIntSPI2(SPI_INT_EN & SPI_INT_PRI_5); 
+	SPI2CON1 = 0x0536;   
+	SPI2STATbits.SPIROV = 0;
+	SPI2STATbits.SPIEN  = 1;
+}
+
+void Accel_Init(void){
+	accelSaveString[0] = 'Z';
+	accelSaveString[1] = 'Z';
+	accelSaveString[2] = 0x09;
+	accelSaveString[7] = 'A';
+	accelSaveString[8] = 'C';
+
+	SPI_Init();
+}
+
+void Accel_BeginUpdateSaveString(void){
+	int i;
+	accelAxisReady = 0;
+	accelAxisPoll = 1;
+	PORTG   = 0x0000;
+	for(i=0; i<1; i+=1);
+	SPI2BUF = (0x03 + accelAxisPoll*2) << 10;
+}
+
+void Accel_WaitUpdated(void){
+	while(!accelAxisReady);
 }
 ///////////////////////////////////////////////////////////////////
 
@@ -88,7 +166,7 @@ void __attribute__((__interrupt__)) _U2RXInterrupt(void){
     IFS1bits.U2RXIF = 0;
     while( DataRdyUART2()){
         ch = ReadUART2();
-        PORTA = ch;
+        //PORTA = ch;
         WriteUART1(ch);
     } 
 }  
@@ -242,10 +320,16 @@ void UART_Init(void){
 	
 }
 
+
+
 void IO_Init(void){
     TRISA = 0x0000;
 	PORTA = 0x0000;
+
 	TRISD = 0xFFFF;
+	
+	TRISG = 0xF1CF;
+	PORTG = 0x0200;
 }
 
 
@@ -255,7 +339,9 @@ int main(void){
 	IO_Init();
 	UART_Init();
 	Timer_Init(); 
+	Accel_Init();
 	ELM_Init();
+
 
 	PORTA = 0x00FF;
 	while (!MDD_MediaDetect());  //Wait for SD
@@ -283,7 +369,7 @@ int main(void){
 	UART1SaveString[1] = 'B';
 	int pid = 1;
 	int doScanning = 1;
-    long int pass = 0;
+	unsigned int pass = 0;
 	while(doScanning){
 		if(pid >= SENSORS){
 		    pid = 1;
@@ -304,10 +390,14 @@ int main(void){
         
 		time_ms = Timer_GetTimeMS();
 
-		//PORTA = (short int)(0x000000FF & (time_ms>>10));     
-		PORTA = pass;
+		//PORTA = (short int)(0x000000FF & (timems>>10));     
+		PORTA = PORTA ^ 0x0001;
 		if (FSfwrite (&time_ms, 4, 1, logFile) != 1) while(1);	
 		if (FSfwrite (UART1SaveString, 1, UART1RecvBytes+3, logFile) != UART1RecvBytes+3) while(1);	
+	
+		Accel_BeginUpdateSaveString();
+		Accel_WaitUpdated();
+		if (FSfwrite (accelSaveString, 1, 12, logFile) != 12) while(1);			
 
 		pid += 1;
 	}
