@@ -1,23 +1,57 @@
 #define FCY 4000000UL
+#define COMBUFF 32
+#define SENSORS 65
 
 #include "FSIO.h"
 #include "uart.h"
+#include "string.h"
 
-int  runs = 0;
-char prompt = 0;
-char   UART1RecvBuffer[32];
-char * UART1RecvPtr = UART1RecvBuffer;
+char   ELM_Prompt = 0;
+char   UART1SaveString[COMBUFF+2];
+char   UART1Accept = 1;
+char * UART1RecvBuffer;
+char * UART1RecvPtr;
 char   UART1RecvBytes = 0;
-FSFILE *logFile;
+char   UART1CRCount = 0;
 
-const char ELM_RESET_STR[] = "ATZ\r\0";
-const char ELM_ECHO_OFF[] = "ATE0\r\0";
-const char ELM_SPACES_OFF[] = "ATS0\r\0";
-const char ELM_RETURN_OFF[] = "ATL0\r\0";
-const char ELM_SENSOR_RPM[] = "010C1\r\\0";
+FSFILE *logFile, *sensors;
 
 _CONFIG2(IESO_OFF & FNOSC_PRIPLL & FCKSM_CSDCMD & OSCIOFNC_OFF & POSCMOD_HS)
 _CONFIG1(JTAGEN_OFF & GCP_OFF & GWRP_OFF & COE_OFF & ICS_PGx2 & FWDTEN_OFF & BKBUG_ON)
+
+///////////////////////////////////////////////////////////////////
+// Timer Code
+///////////////////////////////////////////////////////////////////
+const short int timerTicksPerMS = 2000;
+long int timerTicksRaw = 0;
+long int timerMS = 0;
+
+void __attribute__((__interrupt__, __shadow__)) _T3Interrupt(void){
+	IFS0bits.T3IF = 0;
+    timerMS += 60000; //real MS is timerMS + timerTicksRaw/timerTicksPerMS
+}
+
+void Timer_Init(void){
+	T3CON  = 0x0000;
+	T2CON  = 0x0018;
+	
+	TMR3   = 0;
+	TMR2   = 0;
+	
+	PR3    = 0x0727;  
+	PR2    = 0x0E00;
+	
+	IPC2bits.T3IP = 0x01; // T3IP<2:0> bits (IPC2<2:0>) are priority
+	IFS0bits.T3IF = 0;  //T3IF   (EFS0<8>) is used as status flag for inter
+	IEC0bits.T3IE = 1;  //T3IE   (IEC0<8>) is used to enable 32 bit timer int
+	T2CONbits.TON = 1;
+}
+
+long int Timer_GetTimeMS(void){
+	return timerMS + ((((((long int)TMR3) << 16)|TMR2) / timerTicksPerMS));
+}
+///////////////////////////////////////////////////////////////////
+
 
 
 void __attribute__((__interrupt__)) _U1TXInterrupt(void){  
@@ -28,12 +62,20 @@ void __attribute__((__interrupt__)) _U1RXInterrupt(void){
     char ch;
     IFS0bits.U1RXIF = 0;
     while( DataRdyUART1()){
+        if(!UART1Accept) continue;
+		if(UART1RecvBytes-1 > COMBUFF) continue; //IMPL - raise error flag or something like that - overflow
         ch = ReadUART1();
         WriteUART2(ch);
- 
-        if(ch=='>') prompt = 1;
-        ( *(UART1RecvPtr)++) = ch;
-		UART1RecvBytes += 1;
+		 
+        if(ch=='>') 
+			ELM_Prompt = 1;	
+		else if(ch==0x0D){
+			UART1CRCount += 1;
+			continue;
+		}else{
+	        ( *(UART1RecvPtr)++) = ch;
+			UART1RecvBytes += 1;
+		}		
     } 
 } 
  
@@ -51,102 +93,232 @@ void __attribute__((__interrupt__)) _U2RXInterrupt(void){
     } 
 }  
 
-void delay(void){
-	int i = 0, j = 0;
-   	while(i<2000){
-   	    j = 0;
-   	    while(j<2000){
-   	        j += 1;
-   	    }
-   	    i += 1;
-   	}
+void ELM_UART_Write(unsigned int *string){
+	UART1RecvBytes = 0;
+	UART1CRCount   = 0;
+	UART1RecvPtr   = UART1RecvBuffer;
+	putsUART1(string);
 }
 
-int main (void){
-   TRISA = 0x0000;
-   PORTA = 0x0000;
-   TRISD = 0xFFFF;
 
-   ConfigIntUART1(UART_RX_INT_EN & UART_RX_INT_PR6 & 
-                  UART_TX_INT_DIS & UART_TX_INT_PR2);
-   OpenUART1(0x8008, 0x8400, 104);     //Without loopback
+int ELM_Wait(short int mstimeout){
+	long int time_start = Timer_GetTimeMS();
+    while(!ELM_Prompt){
+		if((short int)(Timer_GetTimeMS() - time_start) > mstimeout) return 0;
+    }
+    ELM_Prompt = 0;
+	UART1RecvBuffer[(int)UART1RecvBytes] = 0;  //Make a terminator for the string
+	return 1;  
+};
+
+const char ELM_RESET_STR[] = "ATZ\r\0";
+
+int ELM_Reset(void){
+	ELM_UART_Write((unsigned int *)ELM_RESET_STR); 
+	if(!ELM_Wait(1000)) return 0;
+	if(!strstr(UART1RecvBuffer, "ELM327")) return 0;
+	return 1;
+}
 
 
-   ConfigIntUART2(UART_RX_INT_EN & UART_RX_INT_PR6 & 
-                  UART_TX_INT_DIS & UART_TX_INT_PR2);
-   OpenUART2(0x8008, 0x8400, 104);     //Without loopback
+const char ELM_ECHO_OFF[] = "ATE0\r\0";
 
-   short int xk = 0;
+int ELM_EchoOff(void){
+	ELM_UART_Write((unsigned int *)ELM_ECHO_OFF); 
+	if(!ELM_Wait(1000)) return 0;
+	if(!strstr(UART1RecvBuffer, "OK")) return 0;
+	return 1;
+}
 
-   PORTA = 0x00AA;
-   while(xk<6){
-      PORTA = xk;
-      UART1RecvBytes = 0;
-      UART1RecvPtr   = UART1RecvBuffer;
+const char ELM_SPACES_OFF[] = "ATS0\r\0";
 
-      putsUART1((unsigned int *)ELM_RESET_STR);
-      delay();
-      xk += 1;
-   }
-   
+int ELM_SpacesOff(void){
+	ELM_UART_Write((unsigned int *)ELM_SPACES_OFF);
+	if(!ELM_Wait(1000)) return 0;
+	if(!strstr(UART1RecvBuffer, "OK")) return 0;
+	return 1;
+}
 
-   putsUART1((unsigned int *)ELM_ECHO_OFF);
-   delay();
-   UART1RecvBytes = 0;
-   UART1RecvPtr   = UART1RecvBuffer;
-   putsUART1((unsigned int *)ELM_SPACES_OFF);
-   delay();
-   UART1RecvBytes = 0;
-   UART1RecvPtr   = UART1RecvBuffer;
-   putsUART1((unsigned int *)ELM_RETURN_OFF);
-   delay();
-   UART1RecvBytes = 0;
-   UART1RecvPtr   = UART1RecvBuffer;
+const char ELM_RETURN_OFF[] = "ATL0\r\0";
 
-   PORTA = 0x00FF;
-   while (!MDD_MediaDetect());
+int ELM_ReturnOff(void){
+	ELM_UART_Write((unsigned int *)ELM_RETURN_OFF); 
+	if(!ELM_Wait(1000)) return 0;
+	if(!strstr(UART1RecvBuffer, "OK")) return 0;
+	return 1;
+}
 
-   UART1RecvBytes = 0;
-   UART1RecvPtr   = UART1RecvBuffer;
+char charToASCIIHex(char val){
+    val = 0x0F & val;
+    if(val < 10) return val + 0x30;
+	return val + 0x41 - 10;
+}
 
-   // Initialize the library
-   while (!FSInit());
+char charToASCIIHexMS(char val){
+	return charToASCIIHex(val >> 4);
+}
 
-   logFile = FSfopen ("RPM.TXT", "w");
-   if (logFile == NULL) while(1);
+char ELM_SENSOR_READ[] = "01xx\r\0";
 
-	delay();
+int ELM_SensorRead(char pid){
+    ELM_SENSOR_READ[2] = charToASCIIHexMS(pid);
+    ELM_SENSOR_READ[3] = charToASCIIHex(pid);
+	ELM_UART_Write((unsigned int *)ELM_SENSOR_READ);    
+	//check for happy reply, 01 0C should be 01 4C
+	return 1;  
+}
 
-   while(1){
-       while(!prompt){
-           if(!(PORTD & 0x0040)){
-			   if (FSfwrite (UART1RecvBuffer, 1, UART1RecvBytes, logFile) != UART1RecvBytes) while(1);
-		       UART1RecvBytes = 0;
-			   UART1RecvPtr   = UART1RecvBuffer;
-               goto exitdesu;
-           }
-       }
-       prompt = 0;
+char ELM_SENSOR_READ_FAST[] = "01xxx\r\0";
 
-	   if (FSfwrite (UART1RecvBuffer, 1, UART1RecvBytes, logFile) != UART1RecvBytes) while(1);
-       UART1RecvBytes = 0;
-	   UART1RecvPtr   = UART1RecvBuffer;
-	   PORTA = UART1RecvBytes;
-       
-	   if(!(PORTD & 0x0040)) break;
-	   putsUART1((unsigned int *)ELM_SENSOR_RPM);
+int ELM_SensorReadFast(char pid, char replies){
+    ELM_SENSOR_READ_FAST[2] = charToASCIIHexMS(pid);
+    ELM_SENSOR_READ_FAST[3] = charToASCIIHex(pid);
+    ELM_SENSOR_READ_FAST[4] = charToASCIIHex(replies);
+	ELM_UART_Write((unsigned int *)ELM_SENSOR_READ_FAST);    
+	//check for happy reply, 01 0C should be 01 4C
+	return 1;  
+}
+
+int ELM_DetectOBD(void){
+	ELM_SensorRead(0x0C);  //For now we just force ELM->OBD negotiation by reading the RPM sensor
+	if(!ELM_Wait(6000)) return 0;
+	return 1;
+}
+
+char ELM_Sensors[SENSORS];
+int ELM_Enumerate(void){
+	int has_data = 0;
+	int pid = 0;
+	while(pid < SENSORS){
+		PORTA = pid;
+		has_data = 1;
+		ELM_SensorRead(pid);
+		if(!ELM_Wait(1000)) continue;
+
+	    if(UART1RecvBuffer[0] != '4' || strstr(UART1RecvBuffer, "NO DATA")) has_data = 0;
+		UART1CRCount = UART1CRCount >> 1;
+		if(!has_data) UART1CRCount = 0;
+
+		ELM_Sensors[pid] = has_data << 7 | (0x04 * has_data) | UART1CRCount;
+		pid += 1;
+	}
+	return 1;
+}
+
+
+
+void ELM_Init(void){
+	int connected = 0;
+	while(!connected){
+		PORTA = 0x0001;
+		while(!ELM_Reset());
+		PORTA = 0x0003;
+		if(!ELM_EchoOff()) continue;
+		PORTA|= 0x0007;
+	    if(!ELM_SpacesOff()) continue;
+		PORTA|= 0x000F;
+		if(!ELM_ReturnOff()) continue;
+		PORTA|= 0x001F;
+		if(!ELM_DetectOBD()) continue;
+		PORTA|= 0x003F;
+		connected = 1;
+	}   
+}
+
+
+
+void UART_Init(void){
+	UART1RecvBuffer = UART1SaveString + 2;
+	UART1RecvPtr = UART1RecvBuffer;
+
+	ConfigIntUART1(UART_RX_INT_EN & UART_RX_INT_PR6 & 
+                   UART_TX_INT_DIS & UART_TX_INT_PR2);
+	OpenUART1(0x8008, 0x8400, 104);     //Without loopback
+
+
+	ConfigIntUART2(UART_RX_INT_EN & UART_RX_INT_PR6 & 
+                   UART_TX_INT_DIS & UART_TX_INT_PR2);
+	OpenUART2(0x8008, 0x8400, 104);     //Without loopback
 	
-	   runs += 1;
+}
 
-   }
-exitdesu:
-   PORTA = 0x00FF;
+void IO_Init(void){
+    TRISA = 0x0000;
+	PORTA = 0x0000;
+	TRISD = 0xFFFF;
+}
 
-   if (FSfclose (logFile)) while(1);
-   PORTA = 0x00AA;
-   while(1);
 
-   CloseUART1();   
+int main(void){
+	long int time_ms = 0;
+
+	IO_Init();
+	UART_Init();
+	Timer_Init(); 
+	ELM_Init();
+
+	PORTA = 0x00FF;
+	while (!MDD_MediaDetect());  //Wait for SD
+	while (!FSInit());		     //Init file system
+	PORTA = 0x0000;
+
+	sensors = FSfopen("Sensors.ini", "r");
+    if(sensors == NULL){
+		ELM_Enumerate();
+		sensors = FSfopen("Sensors.ini", "w");
+		if(sensors == NULL) while(1);
+		if(FSfwrite(ELM_Sensors, 1, SENSORS, sensors) != SENSORS) while(1);	
+	}else{
+		if(FSfread(ELM_Sensors, 1, SENSORS, sensors) != SENSORS) while(1);	
+	}
+    if(FSfclose(sensors)) while(1);	
+	
+
+	logFile = FSfopen ("Sensors.log", "a");
+	if (logFile == NULL) while(1);
+    if (FSfwrite(&time_ms, 4, 1, logFile) != 1) while(1);	
+    if (FSfwrite("NEW_SESSION\0", 1, 12, logFile) != 12) while(1);	
+
+	UART1SaveString[0] = 'O';
+	UART1SaveString[1] = 'B';
+	int pid = 1;
+	int doScanning = 1;
+    long int pass = 0;
+	while(doScanning){
+		if(pid >= SENSORS){
+		    pid = 1;
+            pass += 1;
+ 		}      
+		if(!(ELM_Sensors[pid] & 0x80) || (ELM_Sensors[pid] & 0x7C) == 0 || pass%((ELM_Sensors[pid] & 0x7C)>>2) != 0 ){
+			pid += 1;
+			continue;
+		}
+		if((ELM_Sensors[pid]&0x03) > 0){
+			ELM_SensorReadFast(pid, ELM_Sensors[pid]&0x03);
+		}else{
+			ELM_SensorRead(pid);
+		}
+		if(!ELM_Wait(2000)) break;
+		
+		if(!(PORTD & 0x0040)) doScanning = 0;
+        
+		time_ms = Timer_GetTimeMS();
+
+		//PORTA = (short int)(0x000000FF & (time_ms>>10));     
+		PORTA = pass;
+		if (FSfwrite (&time_ms, 4, 1, logFile) != 1) while(1);	
+		if (FSfwrite (UART1SaveString, 1, UART1RecvBytes+3, logFile) != UART1RecvBytes+3) while(1);	
+
+		pid += 1;
+	}
+    
+	PORTA = 0x00FF;
+	if (FSfclose (logFile)) while(1);
+	PORTA = 0x00AA;
+	while(1);
+
+	CloseUART1();   
+	CloseUART2();
 }
 
 
