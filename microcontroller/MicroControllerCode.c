@@ -1,19 +1,26 @@
 #define FCY 4000000UL
 #define COMBUFF 32
+#define GPSBUFF 100
 #define SENSORS 65
 
 #include "FSIO.h"
 #include "uart.h"
 #include "string.h"
-#include "spi.h"
 
 char   ELM_Prompt = 0;
-char   UART1SaveString[COMBUFF+9];
+char   UART1SaveString[2+4+2+1+COMBUFF+1];
 char   UART1Accept = 1;
 char * UART1RecvBuffer;
 char * UART1RecvPtr;
 char   UART1RecvBytes = 0;
 char   UART1CRCount = 0;
+
+char   UART2Listen = 0;
+char   UART2SaveString[2+4+2+1+GPSBUFF+1];
+char * UART2RecvBuffer;
+char * UART2RecvPtr;
+char   UART2RecvBytes = 0;
+char   UART2HasGPS = 0;
 
 FSFILE *logFile, *sensors;
 
@@ -21,7 +28,7 @@ _CONFIG2(IESO_OFF & FNOSC_PRIPLL & FCKSM_CSDCMD & OSCIOFNC_OFF & POSCMOD_HS)
 _CONFIG1(JTAGEN_OFF & GCP_OFF & GWRP_OFF & COE_OFF & ICS_PGx2 & FWDTEN_OFF & BKBUG_ON)
 
 ///////////////////////////////////////////////////////////////////
-// Timer Code
+// MS Timer Code
 ///////////////////////////////////////////////////////////////////
 const short int timerTicksPerMS = 2000;
 long int timerTicksRaw = 0;
@@ -42,7 +49,7 @@ void Timer_Init(void){
 	PR3    = 0x0727;  
 	PR2    = 0x0E00;
 	
-	IPC2bits.T3IP = 0x07; // T3IP<2:0> bits (IPC2<2:0>) are priority
+	IPC2bits.T3IP = 0x01; // T3IP<2:0> bits (IPC2<2:0>) are priority
 	IFS0bits.T3IF = 0;  //T3IF   (EFS0<8>) is used as status flag for inter
 	IEC0bits.T3IE = 1;  //T3IE   (IEC0<8>) is used to enable 32 bit timer int
 	T2CONbits.TON = 1;
@@ -50,82 +57,6 @@ void Timer_Init(void){
 
 long int Timer_GetTimeMS(void){
 	return timerMS + ((((((long int)TMR3) << 16)|TMR2) / timerTicksPerMS));
-}
-
-void Timer_WaitMS(long int ms){
-	long int old_ms = Timer_GetTimeMS();
-	while((Timer_GetTimeMS() - old_ms) < ms);
-}
-///////////////////////////////////////////////////////////////////
-
-	//IPC13bits.INT4IP = 0x03;
-	//IFS3bits.INT4IF = 0;
-	//IEC3bits.INT4IE = 1;  
-
-///////////////////////////////////////////////////////////////////
-// Accelerometer Code
-///////////////////////////////////////////////////////////////////
-#define ACCEL_PACKET_LENGTH 11
-
-char accelAxisReady = 0;
-char accelAxisPoll = 0;
-char accelSaveString[ACCEL_PACKET_LENGTH];
-
-void __attribute__((__interrupt__)) _INT4Interrupt(void){  
-    IFS3bits.INT4IF = 0;
-} 
-
-void __attribute__((__interrupt__)) _SPI2Interrupt(void){  
-	int data, i;
-	for(i=0; i<5; i+=1);
-	
-	PORTG = 0x0200;
-    IFS2bits.SPI2IF = 0;
-	PORTA = PORTA ^ 0x0080;
-
-	data = SPI2BUF;
-
-	if(accelAxisPoll > 0){
-		*(accelSaveString + 7 + accelAxisPoll) = (char)(data & 0x00FF);
-		if(accelAxisPoll >= 3){
-			accelAxisPoll = 0;
-			accelAxisReady = 1;
-		}else{
-			for(i=0; i<4; i+=1);
-			accelAxisPoll += 1;
-			PORTG   = 0x0000;
-			for(i=0; i<1; i+=1);
-			SPI2BUF = (0x03 + accelAxisPoll*2) << 10;
-		}
-	}
-} 
-
-void SPI_Init(void){
-	ConfigIntSPI2(SPI_INT_EN & SPI_INT_PRI_5); 
-	SPI2CON1 = 0x0536;   
-	SPI2STATbits.SPIROV = 0;
-	SPI2STATbits.SPIEN  = 1;
-}
-
-void Accel_Init(void){
-	accelSaveString[0] = 0xEE;
-	accelSaveString[1] = 0x09;
-	accelSaveString[6] = 'A';
-	accelSaveString[7] = 'C';
-	SPI_Init();
-}
-
-void Accel_BeginUpdateSaveString(void){
-	int i;
-	accelAxisReady = 0;
-	accelAxisPoll = 1;
-	PORTG   = 0x0000;
-	for(i=0; i<1; i+=1);
-	SPI2BUF = (0x03 + accelAxisPoll*2) << 10;
-}
-
-void Accel_WaitUpdated(void){
-	while(!accelAxisReady);
 }
 ///////////////////////////////////////////////////////////////////
 
@@ -140,9 +71,9 @@ void __attribute__((__interrupt__)) _U1RXInterrupt(void){
     IFS0bits.U1RXIF = 0;
     while( DataRdyUART1()){
         if(!UART1Accept) continue;
-		if(UART1RecvBytes-1 > COMBUFF) continue; //IMPL - raise error flag or something like that - overflow
+		if(UART1RecvBytes >= COMBUFF) continue; //IMPL - raise error flag or something like that - overflow
         ch = ReadUART1();
-        WriteUART2(ch);
+        //WriteUART2(ch);
 		 
         if(ch=='>') 
 			ELM_Prompt = 1;	
@@ -161,12 +92,23 @@ void __attribute__((__interrupt__)) _U2TXInterrupt(void){
 } 
 
 void __attribute__((__interrupt__)) _U2RXInterrupt(void){
+	PORTA = 0x0055;
     char ch;
     IFS1bits.U2RXIF = 0;
     while( DataRdyUART2()){
         ch = ReadUART2();
-        //PORTA = ch;
-        WriteUART1(ch);
+		if(!UART2Listen || UART2HasGPS || UART2RecvBytes >= GPSBUFF) continue;
+        if(ch=='\r' || ch=='\n'){
+			UART2HasGPS = 1;
+			UART2Listen = 0;
+			continue;
+		}else{
+			( *(UART2RecvPtr)++) = ch;
+			UART2RecvBytes += 1;
+			PORTA = 0x00FF & UART2RecvBytes;
+		}
+		
+        //WriteUART1(ch);
     } 
 }  
 
@@ -184,7 +126,6 @@ int ELM_Wait(short int mstimeout){
 		if((short int)(Timer_GetTimeMS() - time_start) > mstimeout) return 0;
     }
     ELM_Prompt = 0;
-	UART1RecvBuffer[(int)UART1RecvBytes] = 0;  //Make a terminator for the string
 	return 1;  
 };
 
@@ -285,10 +226,6 @@ int ELM_Enumerate(void){
 
 
 void ELM_Init(void){
-	UART1SaveString[0] = 0xEE;
-	UART1SaveString[6] = 'O';
-	UART1SaveString[7] = 'B';
-
 	int connected = 0;
 	while(!connected){
 		PORTA = 0x0001;
@@ -304,15 +241,24 @@ void ELM_Init(void){
 		PORTA|= 0x003F;
 		connected = 1;
 	}   
-
-
-
 }
 
 
+
 void UART_Init(void){
-	UART1RecvBuffer = UART1SaveString + 8;
-	UART1RecvPtr = UART1RecvBuffer;
+	UART1RecvBuffer = UART1SaveString + 9;
+	UART1RecvPtr    = UART1RecvBuffer;
+	UART1SaveString[0] = 'Z';
+	UART1SaveString[1] = 'Z';
+	UART1SaveString[6] = 'O';
+	UART1SaveString[7] = 'B';
+	
+    UART2RecvBuffer = UART2SaveString + 9;
+	UART2RecvPtr    = UART2RecvBuffer;
+	UART2SaveString[0] = 'Z';
+	UART2SaveString[1] = 'Z';
+	UART2SaveString[6] = 'G';
+	UART2SaveString[7] = 'P';
 
 	ConfigIntUART1(UART_RX_INT_EN & UART_RX_INT_PR6 & 
                    UART_TX_INT_DIS & UART_TX_INT_PR2);
@@ -321,20 +267,29 @@ void UART_Init(void){
 
 	ConfigIntUART2(UART_RX_INT_EN & UART_RX_INT_PR6 & 
                    UART_TX_INT_DIS & UART_TX_INT_PR2);
-	OpenUART2(0x8008, 0x8400, 104);     //Without loopback
-	
+	//OpenUART2(0x8008, 0x8400, 104);     //Without loopback
+	OpenUART2(0x8008, 0x8400, 833);  
+	putsUART2((unsigned int *)"$PSRF100,1,38400,8,1,0*3D\r\n\0");  // GPS Defaults to 4800 baud, increase it
+	CloseUART2();
+
+	ConfigIntUART2(UART_RX_INT_EN & UART_RX_INT_PR6 & 
+                   UART_TX_INT_DIS & UART_TX_INT_PR2);	
+    OpenUART2(0x8008, 0x8400, 104);
+	putsUART2((unsigned int *)"$PSRF103,00,00,00,01*24\r\n\0");
+	putsUART2((unsigned int *)"$PSRF103,01,00,00,01*25\r\n\0");
+	putsUART2((unsigned int *)"$PSRF103,02,00,00,01*26\r\n\0");
+	putsUART2((unsigned int *)"$PSRF103,03,00,00,01*27\r\n\0");
+	putsUART2((unsigned int *)"$PSRF103,04,00,00,01*20\r\n\0");
+	putsUART2((unsigned int *)"$PSRF103,05,00,00,01*21\r\n\0");
+	//putsUART2((unsigned int *)"$PTNLSRT,C*3C\r\n\0");
+	//putsUART2((unsigned int *)"$PTNLSRT,W*28\r\n\0");
+	//putsUART2((unsigned int *)"$PTNLSRT,H*37\r\n\0");
 }
-
-
 
 void IO_Init(void){
     TRISA = 0x0000;
 	PORTA = 0x0000;
-
 	TRISD = 0xFFFF;
-	
-	TRISG = 0xF1CF;
-	PORTG = 0x0200;
 }
 
 
@@ -344,9 +299,7 @@ int main(void){
 	IO_Init();
 	UART_Init();
 	Timer_Init(); 
-	Accel_Init();
 	ELM_Init();
-
 
 	PORTA = 0x00FF;
 	while (!MDD_MediaDetect());  //Wait for SD
@@ -366,17 +319,18 @@ int main(void){
 	
 
 	logFile = FSfopen ("Sensors.log", "a");
-	if (logFile == NULL) while(1);	
-    if (FSfwrite("\xFE\x06\0\0\0\0NS", 1, 8, logFile) != 8) while(1);	
+	if (logFile == NULL) while(1);
+    if (FSfwrite("ZZ\0\0\0\0NS", 1, 8, logFile) != 8) while(1);	
 
 	int pid = 1;
 	int doScanning = 1;
-	unsigned int pass = 0;
+    long int pass = 0;
+	long int lastGPS = 0;
+	char DOGPS = 0;
 	while(doScanning){
 		if(pid >= SENSORS){
 		    pid = 1;
             pass += 1;
-			PORTA = PORTA ^ 0x0001;
  		}      
 		if(!(ELM_Sensors[pid] & 0x80) || (ELM_Sensors[pid] & 0x7C) == 0 || pass%((ELM_Sensors[pid] & 0x7C)>>2) != 0 ){
 			pid += 1;
@@ -390,17 +344,34 @@ int main(void){
 		if(!ELM_Wait(2000)) break;
 		
 		if(!(PORTD & 0x0040)) doScanning = 0;
-
-		Accel_BeginUpdateSaveString();        
+        
 		time_ms = Timer_GetTimeMS();
-		*((long int *)(accelSaveString+2)) = time_ms;
-		Accel_WaitUpdated();
-		if (FSfwrite (accelSaveString, 1, ACCEL_PACKET_LENGTH, logFile) != ACCEL_PACKET_LENGTH) while(1);			
 
-		UART1SaveString[1] = UART1RecvBytes+6;
+		if(time_ms - lastGPS > 1000 && UART2Listen == 0 && UART2HasGPS == 0 && DOGPS == 1){
+			UART2Listen = 1;
+			UART2HasGPS = 0;
+			UART2RecvBytes = 0;
+			UART2RecvPtr = UART2RecvBuffer;
+			putsUART2((unsigned int *)"$PSRF103,00,01,00,01*25\r\n\0");
+		}
+		if(UART2HasGPS){
+			lastGPS = time_ms;
+			UART2Listen = 0;
+			UART2HasGPS = 0;
+			*((long int *)(UART2SaveString+2)) = time_ms;
+			UART2SaveString[8] = UART2RecvBytes + 1;
+			*UART2RecvPtr = 0; //Add the null at the end of string
+			if(FSfwrite(UART2SaveString, 1, UART2RecvBytes + 10, logFile) != UART2RecvBytes + 10) while(1);	
+		}
+
+		//PORTA = (short int)(0x000000FF & (time_ms>>10));     
+		//PORTA = pass;
+		
 		*((long int *)(UART1SaveString+2)) = time_ms;
-		if (FSfwrite (UART1SaveString, 1, UART1RecvBytes+8, logFile) != UART1RecvBytes+8) while(1);	
-	
+		UART1SaveString[8] = UART1RecvBytes + 1;
+		*UART1RecvPtr = 0;  //	UART1RecvBuffer[(int)UART1RecvBytes] = 0;  //Make a terminator for the string
+
+		if (FSfwrite (UART1SaveString, 1, UART1RecvBytes+10, logFile) != UART1RecvBytes+10) while(1);	
 
 		pid += 1;
 	}
