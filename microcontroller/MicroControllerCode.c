@@ -65,9 +65,11 @@ void Timer_WaitMS(long int ms){
 ///////////////////////////////////////////////////////////////////
 // Accelerometer Code
 ///////////////////////////////////////////////////////////////////
+#define ACCEL_PACKET_LENGTH 11
+
 char accelAxisReady = 0;
 char accelAxisPoll = 0;
-char accelSaveString[12];
+char accelSaveString[ACCEL_PACKET_LENGTH];
 
 void __attribute__((__interrupt__)) _INT4Interrupt(void){  
     IFS3bits.INT4IF = 0;
@@ -79,13 +81,12 @@ void __attribute__((__interrupt__)) _SPI2Interrupt(void){
 	
 	PORTG = 0x0200;
     IFS2bits.SPI2IF = 0;
-	//PORTA = PORTA ^ 0x0040;
+	PORTA = PORTA ^ 0x0080;
 
 	data = SPI2BUF;
-	//PORTA   = 0x00FF & data;
 
 	if(accelAxisPoll > 0){
-		*(accelSaveString + 8 + accelAxisPoll) = (char)(data & 0x00FF);
+		*(accelSaveString + 7 + accelAxisPoll) = (char)(data & 0x00FF);
 		if(accelAxisPoll >= 3){
 			accelAxisPoll = 0;
 			accelAxisReady = 1;
@@ -107,12 +108,10 @@ void SPI_Init(void){
 }
 
 void Accel_Init(void){
-	accelSaveString[0] = 'Z';
-	accelSaveString[1] = 'Z';
-	accelSaveString[2] = 0x09;
-	accelSaveString[7] = 'A';
-	accelSaveString[8] = 'C';
-
+	accelSaveString[0] = 0xEE;
+	accelSaveString[1] = 0x09;
+	accelSaveString[6] = 'A';
+	accelSaveString[7] = 'C';
 	SPI_Init();
 }
 
@@ -374,6 +373,7 @@ int main(void){
 		if(pid >= SENSORS){
 		    pid = 1;
             pass += 1;
+			PORTA = PORTA ^ 0x0001;
  		}      
 		if(!(ELM_Sensors[pid] & 0x80) || (ELM_Sensors[pid] & 0x7C) == 0 || pass%((ELM_Sensors[pid] & 0x7C)>>2) != 0 ){
 			pid += 1;
@@ -387,17 +387,17 @@ int main(void){
 		if(!ELM_Wait(2000)) break;
 		
 		if(!(PORTD & 0x0040)) doScanning = 0;
-        
-		time_ms = Timer_GetTimeMS();
 
-		//PORTA = (short int)(0x000000FF & (timems>>10));     
-		PORTA = PORTA ^ 0x0001;
+		Accel_BeginUpdateSaveString();        
+		time_ms = Timer_GetTimeMS();
+		*((long int *)(accelSaveString+2)) = time_ms;
+		Accel_WaitUpdated();
+
+		if (FSfwrite (accelSaveString, 1, ACCEL_PACKET_LENGTH, logFile) != ACCEL_PACKET_LENGTH) while(1);			
+
 		if (FSfwrite (&time_ms, 4, 1, logFile) != 1) while(1);	
 		if (FSfwrite (UART1SaveString, 1, UART1RecvBytes+3, logFile) != UART1RecvBytes+3) while(1);	
 	
-		Accel_BeginUpdateSaveString();
-		Accel_WaitUpdated();
-		if (FSfwrite (accelSaveString, 1, 12, logFile) != 12) while(1);			
 
 		pid += 1;
 	}
