@@ -37,12 +37,15 @@ namespace ObdiiMonitor
         {
             for (int i = 0; i < this.controller.SensorController.Sensors.Length; i++)
             {
+                if (this.controller.SensorController.Sensors[i].Pid != "AC")
+                {
                     if (this.controller.SensorController.Sensors[i].Label2 == null)
                         sensornames.Add(this.controller.SensorController.Sensors[i].Label);
                     else
                         sensornames.Add(this.controller.SensorController.Sensors[i].Label + "," +
                                         this.controller.SensorController.Sensors[i].Label2.Substring(this.controller.SensorController.Sensors[i].Label2.LastIndexOf(':') + 1));
                     pids.Add(this.controller.SensorController.Sensors[i].Pid);
+                }
             }
             this.Width = this.controller.MainWindow.Width;
             addConfigPanel();
@@ -178,9 +181,10 @@ namespace ObdiiMonitor
         {
             int i = 0;
             ConfigPanel[] list = (ConfigPanel[])configs.ToArray(typeof(ConfigPanel));
-            for (i = 0; i < data.Length; i++)
+            data[0] = (byte)(data[0] & 0);
+            for (i = 1; i < data.Length; i++)
             {
-                data[i] = (byte)(data[i] & 131);
+                data[i] = (byte)((data[i] & 131) | 128 );
             }
             for (i = 0; i < list.Length; i++)
             {

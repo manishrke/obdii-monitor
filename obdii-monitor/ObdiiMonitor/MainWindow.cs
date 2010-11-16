@@ -162,6 +162,12 @@ namespace ObdiiMonitor
         {
             if (buttonCollect.Text == "Collect Data")
             {
+                if (comboBoxMeasurement.SelectedIndex == 1)
+                {
+                    controller.US = true;
+                }
+                else
+                    controller.US = false;
                 controller.reset();
 
                 ArrayList numsSelected = new ArrayList();
@@ -222,6 +228,15 @@ namespace ObdiiMonitor
             }
             else if (buttonCollect.Text == "Reset")
             {
+                this.controller.Serial.sendCommand(REQCONF);
+                Thread.Sleep(300);
+                configs.Clear();
+                if (comboBoxMeasurement.SelectedIndex == 1)
+                {
+                    controller.US = true;
+                }
+                else
+                    controller.US = false;
                 this.PopulateSelectionWindow();
                 buttonCollect.Text = "Collect Data";
                 this.panelSensorSelection.Visible = true;
@@ -358,7 +373,6 @@ namespace ObdiiMonitor
                 {
                     controller.US = true;
                 }
-
                 
             }
             catch (Exception ex)
@@ -414,8 +428,12 @@ namespace ObdiiMonitor
             }
 
             this.controller.cancelAllThreads();
-            if(comboBoxMeasurement.SelectedIndex==1)
+            if (comboBoxMeasurement.SelectedIndex == 1)
+            {
                 controller.US = true;
+            }
+            else
+                controller.US = false;
             try
             {
                 this.controller.LoadController.LoadData(openFileDialog.FileName);
