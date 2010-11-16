@@ -13,6 +13,7 @@ namespace ObdiiMonitor
     using System.IO;
     using System.Linq;
     using System.Text;
+    using System.Windows.Forms;
 
     /// <summary>
     /// Contains functions for loading log data from a file and displaying this data to a graph
@@ -84,6 +85,44 @@ namespace ObdiiMonitor
                 this.controller.SensorData.loadData(data);
             }
 
+            ArrayList nsIndex = new ArrayList();
+            // scan through entire list of sensors looking for multiple NS tags
+            for (int i = 0; i < controller.SensorData.PollResponses.Count; ++i)
+            {
+                if (((PollResponse)controller.SensorData.PollResponses[i]).DataType == "NS")
+                    nsIndex.Add(i);
+            }
+
+            // if nsIndex has a count of more than one, separate into separate files.
+            if (nsIndex.Count > 1)
+            {
+                string directoryName = controller.MainWindow.getSplitDirectoryName();
+
+                if (directoryName == "")
+                    return;
+
+                int start = (int)nsIndex[0];
+                int fileNme = 0;
+                for (int i = 0; i < nsIndex.Count; ++i)
+                {
+                    while (File.Exists(directoryName + "/" + fileNme))
+                        ++fileNme;
+
+                    if (i < nsIndex.Count - 1)
+                    {
+                        controller.SaveController.saveData(directoryName + "/" + fileNme, start, (int)nsIndex[i+1]);
+                        start = (int)nsIndex[i+1];
+                    }
+                    else
+                        controller.SaveController.saveData(directoryName + "/" + fileNme, start, controller.SensorData.PollResponses.Count);
+                }
+
+                MessageBox.Show("Data file successfully split up to the path " + directoryName);
+
+                return;
+            }
+
+
             uint startTime = 0, endTime = 0, totalMs = ((PollResponse)controller.SensorData.PollResponses[controller.SensorData.PollResponses.Count - 1]).Time;
 
             if (totalMs < DefaultEndTime)
@@ -124,7 +163,7 @@ namespace ObdiiMonitor
             foreach (PollResponse response in pollResponses)
             {
                 // if the data type is a sensor response from the elm327
-                if (response.DataType == "OB") 
+                if (response.DataType == "OB")
                 {
                     // Add the first two characters of data that should represent the sensor type to a set of types
                     // to generate a graph, one for each sensor type

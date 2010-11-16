@@ -393,7 +393,7 @@ namespace ObdiiMonitor
                 return;
             }
 
-            this.controller.SaveController.saveData(saveFileDialog.FileName);
+            this.controller.SaveController.saveData(saveFileDialog.FileName, 0, controller.SensorData.PollResponses.Count);
         }
 
         private void loadToolStripMenuItem_Click(object sender, EventArgs e)
@@ -778,6 +778,14 @@ namespace ObdiiMonitor
                     series.Points.Clear();
                 }
             }
+        }
+
+        internal string getSplitDirectoryName()
+        {
+            MessageBox.Show("Multiple sessions exist, press ok to split up the file.");
+            folderBrowserDialog.ShowDialog();
+
+            return folderBrowserDialog.SelectedPath;
         }
     }
 }
