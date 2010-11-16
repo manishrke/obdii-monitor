@@ -1,7 +1,7 @@
 #define FCY 4000000UL
 #define COMBUFF 32
 
-#define SENSORS 65
+#define SENSORS 84
 
 #include "FSIO.h"
 #include "uart.h"
@@ -86,13 +86,14 @@ unsigned char putChar(CircularBuffer *buf, unsigned char ch){
 const short int timerTicksPerMS = 2000;
 long int timerTicksRaw = 0;
 long int timerMS = 0;
-
+long int timerSubtract = 0;
 void __attribute__((__interrupt__, __shadow__)) _T3Interrupt(void){
     timerMS += 60000; //real MS is timerMS + timerTicksRaw/timerTicksPerMS
 	IFS0bits.T3IF = 0;
 }
 
 void Timer_Init(void){
+	timerSubtract = 0;
 	T3CON  = 0x0000;
 	T2CON  = 0x0018;
 	
@@ -109,12 +110,20 @@ void Timer_Init(void){
 }
 
 long int Timer_GetTimeMS(void){
-	return timerMS + ((((((long int)TMR3) << 16)|TMR2) / timerTicksPerMS));
+	return (timerMS + ((((((long int)TMR3) << 16)|TMR2) / timerTicksPerMS))) - timerSubtract;
 }
 
 void Timer_WaitMS(long int ms){
 	long int old_ms = Timer_GetTimeMS();
 	while((Timer_GetTimeMS() - old_ms) < ms);
+}
+
+void Timer_Reset(){
+	TMR3 = 0;
+	TMR2 = 0;
+	timerMS = 0;
+	timerSubtract = ((((((long int)TMR3) << 16)|TMR2) / timerTicksPerMS));
+	
 }
 ///////////////////////////////////////////////////////////////////
 
@@ -492,6 +501,7 @@ void ELM_UART_Write(unsigned int *string){
 	UART1RecvBytes = 0;
 	UART1CRCount   = 0;
 	UART1RecvPtr   = UART1RecvBuffer;
+	ELM_Prompt     = 0;
 	putsUART1(string);
 }
 
@@ -565,6 +575,26 @@ int ELM_SensorReadFast(char pid, char replies){
 	return 1;  
 }
 
+
+char ELM_TROUBLE_RESET[] = "04\r\0";
+int ELM_TroubleCodeReset(){
+	ELM_UART_Write((unsigned int *)ELM_TROUBLE_RESET);    
+	return 1;
+}
+
+
+char ELM_TROUBLE_GET[] = "03\r\0";
+int ELM_TroubleCodeGet(){
+	ELM_UART_Write((unsigned int *)ELM_TROUBLE_GET);   
+	if(ELM_Wait(1000)){
+		return 1;
+	}else{
+		return 0;
+	} 
+}
+
+
+
 int ELM_DetectOBD(void){
 	ELM_SensorRead(0x0C);  //For now we just force ELM->OBD negotiation by reading the RPM sensor
 	if(!ELM_Wait(6000)) return 0;
@@ -586,6 +616,11 @@ int ELM_Enumerate(void){
 		if(!has_data) UART1CRCount = 0;
 
 		ELM_Sensors[pid] = has_data << 7 | (0x04 * has_data) | UART1CRCount;
+		if(pid == 0x00 || pid == 0x01 || pid == 0x02 || pid == 0x13 ||
+           pid == 0x1C || pid == 0x1D || pid == 0x20 || pid == 0x21 ||
+		   pid == 0x40 || pid == 0x4D || pid == 0x4E || pid == 0x51){
+			ELM_Sensors[pid] = (ELM_Sensors[pid] & 0x80) | (ELM_Sensors[pid] & 0x03);
+		}
 		pid += 1;
 	}
 	return 1;
@@ -634,7 +669,11 @@ void UART_Init(void){
 	*/
 }
 
-
+void SensorsSave(void){
+	sensors = FSfopen("Sensors.ini", "w");
+	FSfwrite(ELM_Sensors, 1, SENSORS, sensors);
+	FSfclose(sensors);
+}
 
 void IO_Init(void){
     TRISA = 0x8000;
@@ -648,8 +687,17 @@ void IO_Init(void){
 }
 
 
+
+
+char __attribute__((aligned(16))) MarkSaveString[8];
+
 int main(void){
 	long int time_ms = 0;
+
+	MarkSaveString[0] = 0xEE;
+	MarkSaveString[1] = 6;
+	MarkSaveString[6] = 'M';
+	MarkSaveString[7] = 'K';
 
 	IO_Init();
 	UART_Init();
@@ -688,30 +736,13 @@ int main(void){
 	}
 	*/
 	char has_media = 0x00;
-
-	PORTA = 0x00FF;
-	while (!MDD_MediaDetect());  //Wait for SD
-	while (!FSInit());		     //Init file system
 	PORTA = 0x0000;
 
-	sensors = FSfopen("Sensors.ini", "r");
-    if(sensors == NULL){
-		ELM_Enumerate();
-		sensors = FSfopen("Sensors.ini", "w");
-		if(sensors == NULL) while(1);
-		if(FSfwrite(ELM_Sensors, 1, SENSORS, sensors) != SENSORS) while(1);	
-	}else{
-		if(FSfread(ELM_Sensors, 1, SENSORS, sensors) != SENSORS) while(1);	
-	}
-    if(FSfclose(sensors)) while(1);	
-	
-
-	logFile = FSfopen ("Sensors.log", "a");
-	if (logFile == NULL) while(1);	
-    if (FSfwrite("\xEE\x06\0\0\0\0NS", 1, 8, logFile) != 8) while(1);	
-	SPIUART_Send("\xEE\x06\0\0\0\0NS", 8);
-
-
+ 	char running = 1;
+	char has_t_command = 0;
+	char has_sensors = 0;
+	char has_mark = 0;	
+	char has_session = 0;
 	int  pid_write = 0;
 	char pid_dowrite = 0;
 	int pid = 1;
@@ -721,72 +752,130 @@ int main(void){
 	long int lastGPSRequestTime = 0;
 	while(doScanning){
 
-		if(!has_media && MDD_MediaDetect()){
-			
-		}		
+		if(running){
 
-		if(pid >= SENSORS){
-		    pid = 1;
-            pass += 1;
-			PORTA = PORTA ^ 0x0001;
- 		}      
-		if(!(ELM_Sensors[pid] & 0x80) || (ELM_Sensors[pid] & 0x7C) == 0 || pass%((ELM_Sensors[pid] & 0x7C)>>2) != 0 ){
-			pid += 1;
-			continue;
-		}
-		if((ELM_Sensors[pid]&0x03) > 0){
-			ELM_SensorReadFast(pid, ELM_Sensors[pid]&0x03);
-		}else{
-			ELM_SensorRead(pid);
-		}
-		if(!ELM_Wait(2000)){
-		
-		}else{
-			Accel_BeginUpdateSaveString();  
-			time_ms = Timer_GetTimeMS();
-			*((long int *)(accelSaveString+2)) = time_ms;
-			Accel_WaitUpdated(); //IMPL if MSB start with 011 , data overflow in +
-								 //IMPL if MSB start with 100 , data overflow in -
-			if (FSfwrite (accelSaveString, 1, ACCEL_PACKET_LENGTH, logFile) != ACCEL_PACKET_LENGTH) while(1);			
-			SPIUART_Send(accelSaveString, ACCEL_PACKET_LENGTH);
-		}
-		
-		if(!(PORTD & 0x0040)) has_media |= 0x02;
-
-		
-		
-
-		if((time_ms - lastGPSRequestTime) > 1000){
-			lastGPSRequestTime = time_ms;
-			GPSCare = 0;
-			GPSRequest();
-		}
-		if(GPSCare == 5){
-			PORTA = PORTA ^ 0x0008;
-			GPSSaveString[1] = GPSRecvBytes+6;
-			*((long int *)(GPSSaveString+2)) = time_ms;
-			if (FSfwrite (GPSSaveString, 1, GPSRecvBytes+8, logFile) != GPSRecvBytes+8) while(1);	
-			SPIUART_Send(GPSSaveString, GPSRecvBytes+8);
-			if(!GPSLoggedFirstDatetime){
-				GPSLoggedFirstDatetime = 1;
-				GPSSaveString[7] = 'P';
+			if(!has_media && MDD_MediaDetect()){
+				while (!FSInit());
+				has_media = 0x01;
+				sensors = FSfopen("Sensors.ini", "r");
+				if(sensors){
+					FSfread(ELM_Sensors, 1, SENSORS, sensors);
+					FSfclose(sensors);
+					has_sensors = 1;
+				}else if(has_sensors){
+					SensorsSave();
+				}
+				logFile = FSfopen ("Sensors.log", "a");
+				has_session = 0;
 			}
-			GPSCare = 0;
-		}
-		
-		/*
-		UART1SaveString[1] = UART1RecvBytes+6;
-		*((long int *)(UART1SaveString+2)) = time_ms;
-		if (FSfwrite (UART1SaveString, 1, UART1RecvBytes+8, logFile) != UART1RecvBytes+8) while(1);	
-		SPIUART_Send(UART1SaveString, UART1RecvBytes+8);
-		*/
+			if(has_media & 0x02 && !MDD_MediaDetect()){
+				has_media = 0x00;
+			}	
+			if(has_media & 0x01 && !MDD_MediaDetect()){
+				has_media = 0x00;
+			}
+	
+			if(!has_sensors){
+				ELM_Enumerate();
+				has_sensors = 1;
+				if(has_media & 0x01) SensorsSave();
+			}
+	
+			if(!has_session){
+			    if(has_media & 0x01) FSfwrite("\xEE\x06\0\0\0\0NS", 1, 8, logFile);
+				SPIUART_Send((unsigned char *)"\xEE\x06\0\0\0\0NS", 8);
+				Timer_Reset();
+				has_session = 1;
+				pid = 1;
+				GPSLoggedFirstDatetime = 0;
+				lastGPSRequestTime = 0;
+				GPSCare = 0;
+			}
 
-		UART1SaveString[1] = UART1RecvBytes+4;
-		*((long int *)(UART1SaveString+2)) = time_ms;
-		if (FSfwrite (UART1SaveString, 1, 8, logFile) != 8) while(1);	
-		if (FSfwrite ((UART1SaveString+10), 1, UART1RecvBytes-2, logFile) != UART1RecvBytes-2) while(1);	
-		SPIUART_Send(UART1SaveString, 8);
-		SPIUART_Send(UART1SaveString+10, UART1RecvBytes-2);
+			if(pid >= SENSORS){
+			    pid = 1;
+	            pass += 1;
+				PORTA = PORTA ^ 0x0001;
+	 		}      
+			if(!(ELM_Sensors[pid] & 0x80) || (ELM_Sensors[pid] & 0x7C) == 0 || pass%((ELM_Sensors[pid] & 0x7C)>>2) != 0 ){
+				pid += 1;
+				continue;
+			}
+			if((ELM_Sensors[pid]&0x03) > 0){
+				ELM_SensorReadFast(pid, ELM_Sensors[pid]&0x03);
+			}else{
+				ELM_SensorRead(pid);
+			}	
+			if(!ELM_Wait(2000)){
+				continue;   //IMPL Check if this is desired
+			}else{
+				Accel_BeginUpdateSaveString();  
+				time_ms = Timer_GetTimeMS();
+				*((long int *)(accelSaveString+2)) = time_ms;
+				Accel_WaitUpdated(); //IMPL if MSB start with 011 , data overflow in +
+									 //IMPL if MSB start with 100 , data overflow in -
+				if(has_media & 0x01) FSfwrite (accelSaveString, 1, ACCEL_PACKET_LENGTH, logFile);
+				SPIUART_Send((unsigned char *)accelSaveString, ACCEL_PACKET_LENGTH);
+			}
+			
+			if(!(PORTD & 0x0040)){
+				if(has_media & 0x01){
+					FSfclose(logFile);
+					has_media = 0x02;
+					PORTA = 0x00AA;
+				}
+			}
+			if(!(PORTD & 0x0080)){
+				if(!has_mark){
+					*((long int *)(MarkSaveString+2)) = time_ms;
+					if(has_media & 0x01) FSfwrite(MarkSaveString, 1, 8, logFile);
+					SPIUART_Send((unsigned char *)MarkSaveString, 8);
+				}	
+				has_mark = 1;
+			}else{
+				has_mark = 0;
+			}	
+
+			if((time_ms - lastGPSRequestTime) > 1000){
+				lastGPSRequestTime = time_ms;
+				GPSCare = 0;
+				GPSRequest();
+			}
+			if(GPSCare == 5){
+				PORTA = PORTA ^ 0x0008;
+				GPSSaveString[1] = GPSRecvBytes+6;
+				if(!GPSLoggedFirstDatetime){
+					GPSSaveString[7] = 'T';
+				}else{
+					GPSSaveString[7] = 'P';
+				}
+				*((long int *)(GPSSaveString+2)) = time_ms;
+				if(has_media & 0x01) FSfwrite (GPSSaveString, 1, GPSRecvBytes+8, logFile);
+				SPIUART_Send((unsigned char *)GPSSaveString, GPSRecvBytes+8);
+				if(!GPSLoggedFirstDatetime){
+					GPSLoggedFirstDatetime = 1;
+				}
+				GPSCare = 0;
+			}
+			
+			/*
+			UART1SaveString[1] = UART1RecvBytes+6;
+			*((long int *)(UART1SaveString+2)) = time_ms;
+			if (FSfwrite (UART1SaveString, 1, UART1RecvBytes+8, logFile) != UART1RecvBytes+8) while(1);	
+			SPIUART_Send(UART1SaveString, UART1RecvBytes+8);
+			*/
+	
+			UART1SaveString[1] = UART1RecvBytes+4;
+			*((long int *)(UART1SaveString+2)) = time_ms;
+			if(has_media & 0x01){
+				FSfwrite(UART1SaveString, 1, 8, logFile);
+				FSfwrite((UART1SaveString+10), 1, UART1RecvBytes-2, logFile);
+			}
+			SPIUART_Send((unsigned char *)UART1SaveString, 8);
+			SPIUART_Send((unsigned char *)UART1SaveString+10, UART1RecvBytes-2);
+
+			pid += 1;
+		}	
 
 		while(hasChar(&SPIUART_BufIn)){
 			PORTA = PORTA ^ 0x0002;
@@ -796,17 +885,50 @@ int main(void){
 				pid_write += 1;
 				if(pid_write == SENSORS){
 					pid_dowrite = 0;
+					if(has_media & 0x01) SensorsSave();
+					else if(!has_media && MDD_MediaDetect()){
+						while(!FSInit());
+						SensorsSave();
+					}
 				}
-			}else if(ch == 'r'){
-				SPIUART_Send("\xEE\x47\0\0\0\0CF", 8);
-				SPIUART_Send(ELM_Sensors, SENSORS);
-			}else if(ch == 'w' && pid_dowrite == 0){
+			}else if(ch == 'r' && !has_t_command){
+				SPIUART_Send((unsigned char *)"\xEE\x5A\0\0\0\0CF", 8);
+				SPIUART_Send((unsigned char *)ELM_Sensors, SENSORS);
+			}else if(ch == 'r' && has_t_command){
+				ELM_TroubleCodeReset();
+				has_t_command = 0;
+			}else if(ch == 'w' && pid_dowrite == 0 && !has_t_command){
 				pid_dowrite = 1;
 				pid_write   = 0;
+			}else if(ch == 's' && !has_t_command){
+				running = 0;
+				has_session = 0;
+				if(has_media){
+					has_media = 0x00;
+					FSfclose(logFile);
+				}
+			}else if(ch == 'g' && !has_t_command && !running){
+				running = 1;
+			}else if(ch == 't' && !has_t_command){
+				has_t_command = 1;
+			}else if(ch == 'c' && has_t_command){
+				if(ELM_TroubleCodeGet()){
+					UART1SaveString[6] = 'T';
+					UART1SaveString[7] = 'C';
+					UART1SaveString[1] = UART1RecvBytes+6;
+					*((long int *)(UART1SaveString+2)) = time_ms;
+					if(has_media & 0x01) FSfwrite(UART1SaveString, 1, UART1RecvBytes+8, logFile);
+					SPIUART_Send((unsigned char *)UART1SaveString, UART1RecvBytes + 8);
+					UART1SaveString[6] = 'O';
+					UART1SaveString[7] = 'B';				
+				}
+				has_t_command = 0;
+			}else{
+				has_t_command = 0;
 			}
 		}
 
-		pid += 1;
+		
 	}
     
 	PORTA = 0x00FF;
