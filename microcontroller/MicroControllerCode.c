@@ -83,23 +83,28 @@ void Timer_WaitMS(long int ms){
 	//IEC3bits.INT4IE = 1;  
 
 ///////////////////////////////////////////////////////////////////
-// Accelerometer Code
+// Accelerometer / SPI UART Main Code
 ///////////////////////////////////////////////////////////////////
 #define ACCEL_PACKET_LENGTH 11
 
+char SPI2Mode = 0;   //0 for Accelerometer mode, 1 for UART mode
 char accelAxisReady = 0;
 char accelAxisPoll = 0;
 char accelSaveString[ACCEL_PACKET_LENGTH];
 
 void __attribute__((__interrupt__)) _INT4Interrupt(void){  
     IFS3bits.INT4IF = 0;
+	//This interrupt happens whenever we have data from the UART3, we should switch the spi2mode to 
+    //UART and om nom nom blargle blargle from the UART3 before switching back to accelerometer
+	// maybe use 0x0002;  (rg1) for the UART chip?  rg9 is being used for accelo.
+	// trnamission works in this way: write whilenotready; write whilenotready;
 } 
 
 void __attribute__((__interrupt__)) _SPI2Interrupt(void){  
 	int data, i;
 	for(i=0; i<5; i+=1);
 	
-	PORTG = 0x0200;
+	PORTG = 0x0202;
 	PORTA = PORTA ^ 0x0080;
 
 	data = SPI2BUF;
@@ -112,7 +117,7 @@ void __attribute__((__interrupt__)) _SPI2Interrupt(void){
 		}else{
 			for(i=0; i<4; i+=1);
 			accelAxisPoll += 1;
-			PORTG   = 0x0000;
+			PORTG   = 0x0002;
 			for(i=0; i<1; i+=1);
 			SPI2BUF = (0x03 + accelAxisPoll*2) << 10;
 		}
@@ -140,7 +145,7 @@ void Accel_BeginUpdateSaveString(void){
 	int i;
 	accelAxisReady = 0;
 	accelAxisPoll = 1;
-	PORTG   = 0x0000;
+	PORTG   = 0x0002;
 	for(i=0; i<1; i+=1);
 	SPI2BUF = (0x03 + accelAxisPoll*2) << 10;
 }
@@ -148,6 +153,24 @@ void Accel_BeginUpdateSaveString(void){
 void Accel_WaitUpdated(void){
 	while(!accelAxisReady);
 }
+///////////////////////////////////////////////////////////////////
+
+
+void SPIUART_Init(void){
+	PORTG   = 0x0200;
+	for(i=0; i<1; i+=1);
+	SPI2BUF = 0xC409;
+}
+
+///////////////////////////////////////////////////////////////////
+// SPI UART Code
+///////////////////////////////////////////////////////////////////
+// when we send some of them there datamons over the UART we have to switch to 
+// 16bit mode over summa them thar SPIs dudebrah
+//
+//  configuratoin to write: 0b1100 0100 0000 1001
+//                             C409
+//
 ///////////////////////////////////////////////////////////////////
 
 
@@ -479,11 +502,10 @@ void IO_Init(void){
 	PORTA = 0x0000;
 
 	TRISD = 0xFFFF;
-	
-	TRISG = 0xF1CF;  // This is the chip select for the accelerometer on SPI2 bus
-	PORTG = 0x0200;  //
 
-	// There will be another chip select for the UART3 we will put on SPI2 bus
+	// There will be another chip select for the UART3 we will put on SPI2 bus -> this is RG1 (0x0002)	
+	TRISG = 0xF1CD;  // This is the chip select for the accelerometer on SPI2 bus and chip select for UART3
+	PORTG = 0x0202;  //
 }
 
 
@@ -516,7 +538,7 @@ int main(void){
 
 	logFile = FSfopen ("Sensors.log", "a");
 	if (logFile == NULL) while(1);	
-    if (FSfwrite("\xFE\x06\0\0\0\0NS", 1, 8, logFile) != 8) while(1);	
+    if (FSfwrite("\xEE\x06\0\0\0\0NS", 1, 8, logFile) != 8) while(1);	
 
 	int pid = 1;
 	int doScanning = 1;
