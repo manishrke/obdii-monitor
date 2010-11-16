@@ -32,6 +32,7 @@ namespace ObdiiMonitor
         private static string STOP = "s";
         private static string REQCONF = "r";
         private byte acGraphCount=0;
+        private int liveGraphLength = 300000;
         private ArrayList sensornames;
         private ArrayList pids ;
         private ArrayList configs;
@@ -65,7 +66,6 @@ namespace ObdiiMonitor
             sensornames = new ArrayList();
             pids = new ArrayList();
             configs = new ArrayList();
- //           this.PopulateSelectionWindow();
             panelSensorGraphs.Visible = false;
             comboBoxComPort.SelectedIndex = 3;
             comboBoxMeasurement.SelectedIndex = 1;
@@ -183,8 +183,15 @@ namespace ObdiiMonitor
                         }
                 }
 
-                // add a default AC graph
-                numsSelected.Add(0);
+                for (int i = 0; i < controller.SensorController.Sensors.Length; ++i)
+                {
+                    if (controller.SensorController.Sensors[i].Pid == "AC")
+                    {
+                        // add a default AC graph
+                        numsSelected.Add(i);
+                        break;
+                    }
+                }
 
                 this.controller.SensorController.initializeSelectedSensors(numsSelected);
                 saveConfig();
@@ -202,13 +209,16 @@ namespace ObdiiMonitor
                 this.controller.Serial.sendCommand(STOP);
                 this.controller.cancelAllThreads();
                 resetGraphs();
-                uint endTime = ((PollResponse)controller.SensorData.PollResponses[controller.SensorData.PollResponses.Count - 1]).Time;
-                setTotalMsLabel(endTime);
-                if (endTime > LoadController.DefaultEndTime)
-                    endTime = LoadController.DefaultEndTime;
-                LoadDataIntoSensorGraphs(0, endTime);
-                setStartTimeEndTime(0, endTime);
-                AlignAllGraphs(0);
+                if ((controller.SensorData.PollResponses != null)&&(controller.SensorData.PollResponses.Count != 0))
+                {
+                    uint endTime = ((PollResponse)controller.SensorData.PollResponses[controller.SensorData.PollResponses.Count - 1]).Time;
+                    setTotalMsLabel(endTime);
+                    if (endTime > LoadController.DefaultEndTime)
+                        endTime = LoadController.DefaultEndTime;
+                    LoadDataIntoSensorGraphs(0, endTime);
+                    setStartTimeEndTime(0, endTime);
+                    AlignAllGraphs(0);
+                }
             }
             else if (buttonCollect.Text == "Reset")
             {
@@ -268,7 +278,7 @@ namespace ObdiiMonitor
                     }
                     else if (response.DataType == "AC")
                     {
-                        if (++acGraphCount > 6)
+                        if (++acGraphCount > controller.SensorController.SelectedSensors.Length)
                         {
                             acGraphCount = 0;
                             for (int i = 0; i < this.controller.SensorController.SelectedSensors.Length; ++i)
@@ -309,12 +319,16 @@ namespace ObdiiMonitor
                 {
                     foreach (Series series in this.chartsSensorGraphs[i].Series)
                     {
+                        while ((series.Points.Count > 0)&&((series.Points[series.Points.Count - 1].XValue - series.Points[0].XValue) > liveGraphLength))
+                        {      
+                            series.Points.RemoveAt(0);
+                        }
                         series.Points.Add(new DataPoint((double)response.Time, response.ConvertData()));
                         this.CreateDataPointToolTip(series.Points[series.Points.Count - 1]);
                         this.chartsSensorGraphs[i].ChartAreas[0].AxisX.Maximum = response.Time;
                     }
 
-                    this.chartsSensorGraphs[i].Width += 10;
+                    this.chartsSensorGraphs[i].Width = this.chartsSensorGraphs[i].Series[0].Points.Count * 10 + 170;
                     this.labelsSensorGraphsValues[i].Text = "Value: " + response.ConvertData();
                 }
             }
@@ -471,7 +485,7 @@ namespace ObdiiMonitor
                     }
                     else if (response.DataType == "AC")
                     {
-                        if (++acGraphCount > 6)
+                        if (++acGraphCount > controller.SensorController.SelectedSensors.Length)
                         {
                             acGraphCount = 0;
                             for (int i = 0; i < this.controller.SensorController.SelectedSensors.Length; ++i)

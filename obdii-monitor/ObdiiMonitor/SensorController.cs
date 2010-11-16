@@ -17,27 +17,20 @@ namespace ObdiiMonitor
 
         Sensor[] sensors = {
                                new Sensor("Acceleration:", "AC", 3, "m/ss"),
-                            /*   new Sensor( "Absolute Throttle Position:", "11", 4),
-                               new Sensor( "Engine RPM:", "0C", 6),
-                               new Sensor( "Vehicle Speed:", "0D", 4),
-                               new Sensor( "Calculated Load Value:", "04", 4),
-                               new Sensor( "Timing Advance (Cyl. #1):", "0E", 4),
-                               new Sensor( "Intake Manifold Pressure:", "0B", 4),
-                               new Sensor( "Air Flow Rate (MAF sensor):", "10", 6),*/
-                               new Sensor( "Calculated Load value:", "04", 1, "%"),
-                               new Sensor( "Engine Coolant Temp:",   "05", 1, "°C", "°F"),
-                               new Sensor( "Short term % trim Bank 1:", "06", 1, "%"),
-                               new Sensor( "Long term % trim Bank 1:", "07", 1, "%"),
-                               new Sensor( "Short term % trim Bank 2:", "08", 1, "%"),
-                               new Sensor( "Long term % trim Bank 2:", "09", 1, "%"),
-                               new Sensor( "Fuel Pressure:", "0A", 1 , "kPa (gauge)", "psi"),
-                               new Sensor( "Intake Manifold Abs. Pressure:", "0B", 1, "kPa (absolute)", "inHg"),
                                new Sensor( "Engine RPM:", "0C", 2, "rpm", "r/min"),
                                new Sensor( "Vehicle Speed:","0D", 1, "km/h", "mph"),
+                               new Sensor( "Calculated Load value:", "04", 1, "%"),
+                               new Sensor( "Engine Coolant Temp:",   "05", 1, "°C", "°F"),
+                               new Sensor( "Fuel Pressure:", "0A", 1 , "kPa (gauge)", "psi"),
+                               new Sensor( "Intake Manifold Abs. Pressure:", "0B", 1, "kPa (absolute)", "inHg"),
                                new Sensor( "Timing advance", "0E", 1, "° relative to #1 cylinder"),
                                new Sensor( "Intake air temperature", "0F", 1, "°C", "°F"),
                                new Sensor( "MAF air flow rate", "10", 2, "g/s", "lb/min"),
                                new Sensor( "Throttle position", "11", 1, "%"),
+                               new Sensor( "Short term % trim Bank 1:", "06", 1, "%"),
+                               new Sensor( "Long term % trim Bank 1:", "07", 1, "%"),
+                               new Sensor( "Short term % trim Bank 2:", "08", 1, "%"),
+                               new Sensor( "Long term % trim Bank 2:", "09", 1, "%"),
                                new Sensor( "Bank 1, Sensor 1: Oxygen sensor voltage", "14", 2, "Volts",
                                            "Bank 1, Sensor 1: Short term fuel trim,","%"),
                                new Sensor( "Bank 1, Sensor 2: Oxygen sensor voltage", "15", 2, "Volts",
@@ -156,41 +149,41 @@ namespace ObdiiMonitor
 
             while (true)
             {
-                        try
-                        {
-                            byte[] buffer = controller.Serial.dataReceived();
+                try
+                {
+                    byte[] buffer = controller.Serial.dataReceived();
 
-                            if (buffer == null)
-                                continue;
+                    if (buffer == null)
+                        continue;
 
-                            while (buffer.Contains((byte)PollResponse.StartTag))
-                            {
-                                if (buffer.Length < 2)
-                                    break;
+                    while (buffer.Contains((byte)PollResponse.StartTag))
+                    {
+                        if (buffer.Length < 2)
+                            break;
 
-                                int index = Array.IndexOf(buffer, (byte)PollResponse.StartTag);
+                        int index = Array.IndexOf(buffer, (byte)PollResponse.StartTag);
 
-                                byte length = buffer[index+1];
+                        byte length = buffer[index + 1];
 
-                                if (buffer.Length < length + 2)
-                                    break;
+                        if (buffer.Length < length + 2)
+                            break;
 
 
 
-                                byte[] data = new byte[length + 2];
-                                Array.Copy(buffer, index, data, 0, length + 2);
-                                PollResponse response = new PollResponse(controller, data);
-                                controller.SensorData.PollResponses.Add(response);
-                                controller.MainWindow.GraphQueue.Enqueue(response);
-                                data = new byte[buffer.Length - length - 2];
-                                Array.Copy(buffer, index + length + 2, data, 0, buffer.Length - length - 2 - index);
-                                buffer = data;
-                            }
-                        }
-                        catch (Exception ex)
-                        {
+                        byte[] data = new byte[length + 2];
+                        Array.Copy(buffer, index, data, 0, length + 2);
+                        PollResponse response = new PollResponse(controller, data);
+                        controller.SensorData.PollResponses.Add(response);
+                        controller.MainWindow.GraphQueue.Enqueue(response);
+                        data = new byte[buffer.Length - length - 2];
+                        Array.Copy(buffer, index + length + 2, data, 0, buffer.Length - length - 2 - index);
+                        buffer = data;
+                    }
+                }
+                catch (Exception ex)
+                {
 
-                        }
+                }
             }
         }
 
@@ -199,7 +192,7 @@ namespace ObdiiMonitor
             receiving = new Thread(new ThreadStart(beginReceiving));
 
             receiving.Name = "Polling";
-            
+
             receiving.Start();
         }
 
