@@ -126,6 +126,8 @@ namespace ObdiiMonitor
             int height = StartHeight;
             int width = StartWidth;
 
+            TickMark yTmAdj = new TickMark();
+
             for (int i = 0; i < numsSelected.Count; ++i)
             {
                 this.labelsSensorGraphs[i] = new Label();
@@ -142,6 +144,13 @@ namespace ObdiiMonitor
                 chartAreas[i] = new ChartArea();
                 chartAreas[i].AlignmentStyle = AreaAlignmentStyles.All;
                 chartAreas[i].AxisX.IsReversed = true;
+                
+                // While "InsideArea" may seem like the reverse of what we want, the Double.MaxValue Crossing reverses the meaning of Inside and Outside area.
+                chartAreas[i].AxisX.Crossing = Double.MaxValue;
+                yTmAdj = chartAreas[i].AxisY.MajorTickMark;
+                yTmAdj.TickMarkStyle = TickMarkStyle.InsideArea;
+                chartAreas[i].AxisY.MajorTickMark = yTmAdj;
+                
                 seriesLines[i] = new Series();
 
                 seriesPoints[i] = new Series();
