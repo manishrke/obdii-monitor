@@ -141,7 +141,7 @@ namespace ObdiiMonitor
             this.controller.MainWindow.LoadDataIntoSensorGraphs(startTime, endTime);
 
             // ensure that the size of all graphs are the same so they line up
-            this.controller.MainWindow.AlignAllGraphs(startTime);
+            this.controller.MainWindow.SetDisplayedGraphRange(startTime, endTime);
 
             // now that the data has all been loaded, show the panel
             this.controller.MainWindow.ShowSensorDataPanel();

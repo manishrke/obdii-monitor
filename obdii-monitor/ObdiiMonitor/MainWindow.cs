@@ -223,7 +223,8 @@ namespace ObdiiMonitor
                         endTime = LoadController.DefaultEndTime;
                     LoadDataIntoSensorGraphs(0, endTime);
                     setStartTimeEndTime(0, endTime);
-                    AlignAllGraphs(0);
+                    this.controller.MainWindow.SetDisplayedGraphRange(0, endTime);
+                    // AlignAllGraphs(0); // TODO: Remove this line completely if live feed still aligns properly, if not, have Nicholas reimplement called function
                 }
             }
             else if (buttonCollect.Text == "Reset")
@@ -466,8 +467,10 @@ namespace ObdiiMonitor
 
         /// <summary>
         /// this function will load the data in SensorData.PollResponses into the corresponding graphs
-        /// that have already been created 
+        /// that have already been created
         /// </summary>
+        /// <param name="startTime">The start time.</param>
+        /// <param name="endTime">The end time.</param>
         internal void LoadDataIntoSensorGraphs(uint startTime, uint endTime)
         {
             resetGraphs();
@@ -535,27 +538,21 @@ namespace ObdiiMonitor
         }
 
         /// <summary>
-        /// Aligns all graphs by time, by making all graphs the same size and setting same min/max values
+        /// Sets the displayed X-axis graph range for all graphs.
+        /// This method also causes all graphs to line up.
         /// </summary>
-        internal void AlignAllGraphs(uint minX)
+        /// <param name="startTime">The start time.</param>
+        /// <param name="endTime">The end time.</param>
+        internal void SetDisplayedGraphRange(uint startTime, uint endTime)
         {
-            int maxWidth = 0;
-            double maxX = 0.0;
+            // This value inversely affects the spacing between graph points. Set lower to increase spacing, set higher for the reverse.
+            int scale = 90;
 
             for (int i = 0; i < this.chartsSensorGraphs.Length; ++i)
             {
-                if (maxWidth < this.chartsSensorGraphs[i].Width)
-                {
-                    maxWidth = this.chartsSensorGraphs[i].Width;
-                    maxX = this.chartsSensorGraphs[i].ChartAreas[0].AxisX.Maximum;
-                }
-            }
-
-            for (int i = 0; i < this.chartsSensorGraphs.Length; ++i)
-            {
-                this.chartsSensorGraphs[i].Width = maxWidth;
-                this.chartsSensorGraphs[i].ChartAreas[0].AxisX.Maximum = maxX;
-                this.chartsSensorGraphs[i].ChartAreas[0].AxisX.Minimum = minX;
+                this.chartsSensorGraphs[i].ChartAreas[0].AxisX.Minimum = startTime;
+                this.chartsSensorGraphs[i].ChartAreas[0].AxisX.Maximum = endTime;
+                this.chartsSensorGraphs[i].Width = (int)((endTime - startTime)/scale);
             }
         }
 
@@ -777,8 +774,7 @@ namespace ObdiiMonitor
                     return;
                 }
 
-                LoadDataIntoSensorGraphs(startTime, endTime);
-                AlignAllGraphs(startTime);
+                SetDisplayedGraphRange(startTime, endTime);
             }
             catch 
             {
