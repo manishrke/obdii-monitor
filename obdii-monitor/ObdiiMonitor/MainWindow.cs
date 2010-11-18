@@ -149,6 +149,7 @@ namespace ObdiiMonitor
                 chartAreas[i].AxisX.Crossing = Double.MaxValue;
                 yTmAdj = chartAreas[i].AxisY.MajorTickMark;
                 yTmAdj.TickMarkStyle = TickMarkStyle.InsideArea;
+                yTmAdj.Size = 0;
                 chartAreas[i].AxisY.MajorTickMark = yTmAdj;
                 
                 seriesLines[i] = new Series();
