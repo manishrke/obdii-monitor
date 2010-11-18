@@ -10,6 +10,7 @@ namespace ObdiiMonitor
     using System;
     using System.Collections;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.ComponentModel;
     using System.Data;
     using System.Drawing;
@@ -473,6 +474,25 @@ namespace ObdiiMonitor
         private void CreateDataPointToolTip(DataPoint pt)
         {
             pt.ToolTip = "Value:\t" + pt.YValues[0].ToString() + "\nTime:\t" + controller.TimeOfDayConverter.get(pt.XValue) + " GMT" + "\nGPS:\t" + controller.Gps.get((uint)pt.XValue);
+        }
+
+        /// <summary>
+        /// Adds a graph highlight to all graphs.
+        /// </summary>
+        /// <param name="time">The time to display the highlight.</param>
+        private void AddGraphHighlight(uint time)
+        {
+            StripLine highlightToBeAdded = new StripLine();
+
+            for (int i = 0; i < this.chartsSensorGraphs.Length; ++i)
+            {
+                // A new StripLine is required for each graph; reusing the same StripLine eventually leads to display problems
+                highlightToBeAdded = new StripLine();
+                highlightToBeAdded.BackColor = Color.Yellow;
+                highlightToBeAdded.IntervalOffset = time;
+                highlightToBeAdded.StripWidth = 1000;
+                this.chartsSensorGraphs[i].ChartAreas[0].AxisX.StripLines.Add(highlightToBeAdded);
+            }
         }
 
         /// <summary>
