@@ -805,6 +805,16 @@ namespace ObdiiMonitor
 
             return folderBrowserDialog.SelectedPath;
         }
+
+        /// <summary>
+        /// Standard "exit" functionality -- exits the form
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
     }
 }
 

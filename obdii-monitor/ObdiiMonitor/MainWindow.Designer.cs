@@ -57,6 +57,7 @@
             this.labelEnd = new System.Windows.Forms.Label();
             this.labelTotalMs = new System.Windows.Forms.Label();
             this.folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
+            this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip.SuspendLayout();
             this.panelCollectData.SuspendLayout();
             this.SuspendLayout();
@@ -78,7 +79,8 @@
             this.saveToolStripMenuItem,
             this.loadToolStripMenuItem,
             this.ConfigToolStripMenuItem,
-            this.exportToolStripMenuItem});
+            this.exportToolStripMenuItem,
+            this.exitToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
             this.fileToolStripMenuItem.Text = "File";
@@ -111,19 +113,19 @@
             this.spreadsheetToolStripMenuItem});
             this.exportToolStripMenuItem.Name = "exportToolStripMenuItem";
             this.exportToolStripMenuItem.Size = new System.Drawing.Size(249, 22);
-            this.exportToolStripMenuItem.Text = "Export";
+            this.exportToolStripMenuItem.Text = "Export Data";
             // 
             // textFileToolStripMenuItem
             // 
             this.textFileToolStripMenuItem.Name = "textFileToolStripMenuItem";
-            this.textFileToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
+            this.textFileToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.textFileToolStripMenuItem.Text = "Text File";
             this.textFileToolStripMenuItem.Click += new System.EventHandler(this.textFileToolStripMenuItem_Click);
             // 
             // spreadsheetToolStripMenuItem
             // 
             this.spreadsheetToolStripMenuItem.Name = "spreadsheetToolStripMenuItem";
-            this.spreadsheetToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
+            this.spreadsheetToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.spreadsheetToolStripMenuItem.Text = "Spreadsheet";
             this.spreadsheetToolStripMenuItem.Click += new System.EventHandler(this.spreadsheetToolStripMenuItem_Click);
             // 
@@ -297,6 +299,13 @@
             this.labelTotalMs.TabIndex = 20;
             this.labelTotalMs.Text = "Total (ms):";
             // 
+            // exitToolStripMenuItem
+            // 
+            this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(249, 22);
+            this.exitToolStripMenuItem.Text = "Exit";
+            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -359,5 +368,6 @@
         private System.Windows.Forms.Label labelTotalMs;
         private System.Windows.Forms.ToolStripMenuItem ConfigToolStripMenuItem;
         private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog;
+        private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
     }
 }
