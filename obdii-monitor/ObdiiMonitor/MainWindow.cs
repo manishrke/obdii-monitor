@@ -576,13 +576,16 @@ namespace ObdiiMonitor
         internal void SetDisplayedGraphRange(uint startTime, uint endTime)
         {
             // This value inversely affects the spacing between graph points. Set lower to increase spacing, set higher for the reverse.
-            int scale = 90;
+            const int scale = 90;
+
+            // The largest between minimumWidth/scale and the calculated appropriate width based on the timespan will be the width of all graphs
+            const int minimumWidth = 70000;
 
             for (int i = 0; i < this.chartsSensorGraphs.Length; ++i)
             {
                 this.chartsSensorGraphs[i].ChartAreas[0].AxisX.Minimum = startTime;
                 this.chartsSensorGraphs[i].ChartAreas[0].AxisX.Maximum = endTime;
-                this.chartsSensorGraphs[i].Width = (int)((endTime - startTime)/scale);
+                this.chartsSensorGraphs[i].Width = ((int)((endTime - startTime) / scale) > minimumWidth / scale) ? (int)(endTime - startTime) / scale : minimumWidth / scale;
             }
         }
 
