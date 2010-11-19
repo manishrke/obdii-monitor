@@ -585,7 +585,7 @@ namespace ObdiiMonitor
             {
                 this.chartsSensorGraphs[i].ChartAreas[0].AxisX.Minimum = startTime;
                 this.chartsSensorGraphs[i].ChartAreas[0].AxisX.Maximum = endTime;
-                this.chartsSensorGraphs[i].Width = ((int)((endTime - startTime) / scale) > minimumWidth / scale) ? (int)(endTime - startTime) / scale : minimumWidth / scale;
+                this.chartsSensorGraphs[i].Width = (int)Math.Max(endTime - startTime, minimumWidth) / scale;
             }
         }
 
