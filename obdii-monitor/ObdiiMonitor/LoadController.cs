@@ -138,7 +138,7 @@ namespace ObdiiMonitor
             this.CreateGraphs(this.controller.SensorData.PollResponses);
 
             // load the data into the graphs just created
-            this.controller.MainWindow.LoadDataIntoSensorGraphs(startTime, endTime);
+            this.controller.MainWindow.LoadDataIntoSensorGraphs(startTime, totalMs);
 
             // ensure that the size of all graphs are the same so they line up
             this.controller.MainWindow.SetDisplayedGraphRange(startTime, endTime);
