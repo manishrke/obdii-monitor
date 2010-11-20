@@ -256,7 +256,7 @@ namespace ObdiiMonitor
                 byte[] nums = data2;
                 return this.length + "-" + this.time + "-" + this.dataType + "-" + nums[0] + "." + nums[1] + "." + nums[2];
             }
-            else if (dataType == "OB" || dataType == "GP")
+            else if (dataType == "OB" || dataType == "GP" || dataType == "GT")
                 return this.length + "-" + this.time + "-" + this.dataType + "-" + this.data;
             else
                 return this.length + "-" + this.time + "-" + this.dataType;

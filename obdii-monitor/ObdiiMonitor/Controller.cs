@@ -53,13 +53,6 @@ namespace ObdiiMonitor
             get { return saveController; }
         }
 
-        private LiveDataController liveDataController = new LiveDataController();
-
-        internal LiveDataController LiveDataController
-        {
-            get { return liveDataController; }
-        }
-
         private Serial serial = new Serial();
 
         public Serial Serial
@@ -121,7 +114,6 @@ namespace ObdiiMonitor
             accelerometerConverver.Controller = this;
             gps.Controller = this;
             tcWindow.Controller = this;
-            liveDataController.Controller = this;
             timeOfDayConverter.Controller = this;
             configSave.Controller = this;
             

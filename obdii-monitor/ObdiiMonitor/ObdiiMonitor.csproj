@@ -64,7 +64,6 @@
     <Compile Include="ConvertSensorData.cs" />
     <Compile Include="GPS.cs" />
     <Compile Include="GPSCoordinate.cs" />
-    <Compile Include="LiveDataController.cs" />
     <Compile Include="TCWindow.cs">
       <SubType>Form</SubType>
     </Compile>
