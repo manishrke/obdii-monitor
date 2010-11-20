@@ -32,7 +32,6 @@ namespace ObdiiMonitor
         private static string COLLECT = "g";
         private static string STOP = "s";
         private static string REQCONF = "r";
-        private byte acGraphCount=0;
         private int liveGraphLength = 300000;
         private ArrayList sensornames;
         private ArrayList pids ;
@@ -305,9 +304,6 @@ namespace ObdiiMonitor
                     }
                     else if (response.DataType == "AC")
                     {
-                        if (++acGraphCount > controller.SensorController.SelectedSensors.Length)
-                        {
-                            acGraphCount = 0;
                             for (int i = 0; i < this.controller.SensorController.SelectedSensors.Length; ++i)
                             {
                                 try
@@ -322,7 +318,6 @@ namespace ObdiiMonitor
                                 {
                                 }
                             }
-                        }
                     }
                 }
             }
@@ -536,9 +531,6 @@ namespace ObdiiMonitor
                     }
                     else if (response.DataType == "AC")
                     {
-                        if (++acGraphCount > controller.SensorController.SelectedSensors.Length)
-                        {
-                            acGraphCount = 0;
                             for (int i = 0; i < this.controller.SensorController.SelectedSensors.Length; ++i)
                             {
                                 if (this.controller.SensorController.SelectedSensors[i].Pid == response.DataType)
@@ -561,7 +553,6 @@ namespace ObdiiMonitor
                                     break;
                                 }
                             }
-                        }
                     }
                 }
             }
