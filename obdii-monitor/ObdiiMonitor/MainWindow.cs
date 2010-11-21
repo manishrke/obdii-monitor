@@ -231,7 +231,9 @@ namespace ObdiiMonitor
                     setTotalMsLabel(endTime);
                     if (endTime > LoadController.DefaultEndTime)
                         endTime = LoadController.DefaultEndTime;
-                    LoadDataIntoSensorGraphs(0, endTime);
+                    LoadDataIntoSensorGraphs();
+                    // ensure that the size of all graphs are the same so they line up
+                    this.controller.MainWindow.SetDisplayedGraphRange(0, endTime);
                     setStartTimeEndTime(0, endTime);
                     this.controller.MainWindow.SetDisplayedGraphRange(0, endTime);
                     // AlignAllGraphs(0); // TODO: Remove this line completely if live feed still aligns properly, if not, have Nicholas reimplement called function
@@ -494,16 +496,12 @@ namespace ObdiiMonitor
         /// this function will load the data in SensorData.PollResponses into the corresponding graphs
         /// that have already been created
         /// </summary>
-        /// <param name="startTime">The start time.</param>
-        /// <param name="endTime">The end time.</param>
-        internal void LoadDataIntoSensorGraphs(uint startTime, uint endTime)
+        internal void LoadDataIntoSensorGraphs()
         {
             resetGraphs();
 
             foreach (PollResponse response in this.controller.SensorData.PollResponses)
             {
-                if ((response.Time >= startTime) && (response.Time <= endTime))
-                {
                     if (response.DataType == "OB")
                     {
                         for (int i = 0; i < this.controller.SensorController.SelectedSensors.Length; ++i)
@@ -556,7 +554,6 @@ namespace ObdiiMonitor
                     }
                 }
             }
-        }
 
         /// <summary>
         /// Sets the displayed X-axis graph range for all graphs.
