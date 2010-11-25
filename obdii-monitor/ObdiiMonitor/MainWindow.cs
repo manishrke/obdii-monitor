@@ -70,6 +70,7 @@ namespace ObdiiMonitor
             comboBoxComPort.SelectedIndex = 3;
             comboBoxMeasurement.SelectedIndex = 1;
             this.Resize += new System.EventHandler(this.Resizing);
+            Disables();
         }
 
         /// <summary>
@@ -114,6 +115,7 @@ namespace ObdiiMonitor
         /// <param name="numsSelected">The indices of selected sensors to display.</param>
         internal void PopulateGraphWindow(ArrayList numsSelected)
         {
+
             this.panelSensorGraphs.Controls.Clear();
             this.labelsSensorGraphs = new Label[numsSelected.Count];
             this.labelsSensorGraphsValues = new Label[numsSelected.Count];
@@ -178,6 +180,7 @@ namespace ObdiiMonitor
                 }
                 else
                     controller.US = false;
+                comboBoxMeasurement.Enabled = false;
                 controller.reset();
 
                 ArrayList numsSelected = new ArrayList();
@@ -221,6 +224,7 @@ namespace ObdiiMonitor
             }
             else if (buttonCollect.Text == "Stop")
             {
+                comboBoxMeasurement.Enabled = true;
                 this.ShowResetButton();
                 this.controller.Serial.sendCommand(STOP);
                 this.controller.cancelAllThreads();
@@ -372,9 +376,19 @@ namespace ObdiiMonitor
                 Thread.Sleep(300);
 
                 byte[] response = controller.Serial.dataReceived();
-
+                int loop=0;
                 while (response == null)
+                {
                     response = controller.Serial.dataReceived();
+                    Thread.Sleep(300);
+                    if (loop > 30)
+                    {
+                        this.controller.Serial.sendCommand(REQCONF);
+                        loop = 0;
+                    }
+                    loop++;
+
+                }
 
                 controller.SensorData.loadData(response);
 
@@ -382,6 +396,7 @@ namespace ObdiiMonitor
                 {
                     controller.US = true;
                 }
+                Enables();
                 
             }
             catch (Exception ex)
@@ -477,7 +492,7 @@ namespace ObdiiMonitor
         /// Adds a graph highlight to all graphs.
         /// </summary>
         /// <param name="time">The time to display the highlight.</param>
-        private void AddGraphHighlight(uint time)
+        public void AddGraphHighlight(uint time)
         {
             StripLine highlightToBeAdded = new StripLine();
 
@@ -821,6 +836,21 @@ namespace ObdiiMonitor
             folderBrowserDialog.ShowDialog();
 
             return folderBrowserDialog.SelectedPath;
+        }
+        void Enables()
+        {
+            buttonCollect.Enabled = true;
+            buttonInitialize.Enabled = false;
+            comboBoxComPort.Enabled = false;
+            controller.TcWindow.Enable();
+        }
+
+        void Disables()
+        {
+            buttonCollect.Enabled = false;
+            buttonInitialize.Enabled = true;
+            comboBoxComPort.Enabled = true;
+            controller.TcWindow.Disable();
         }
 
         /// <summary>

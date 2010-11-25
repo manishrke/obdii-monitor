@@ -13,7 +13,7 @@ namespace ObdiiMonitor
     public partial class TCWindow : Form
     {
         private Controller controller;
-        private string Codes = "\0\0";
+        private string Codes = "0000";
         
         internal Controller Controller
         {
@@ -27,25 +27,76 @@ namespace ObdiiMonitor
             this.Resize += new System.EventHandler(this.Resizing);
             Rsize();
         }
-        public void Set_Data(uint time, byte[] data)
+        public void Set_Data(uint time, string data)
         {
             string outdata = "";
-            for (int i = 0; i < data.Length; i = i + 2)
+            for (int i = 0; i < data.Length; i = i + 4)
             {
+                if (0 == (i % 14))
+                    i = i + 2;
                 bool added = false;
-                for (int j = 0; j < Codes.Length; j = j + 2)
+                for (int j = 0; j < Codes.Length; j = j + 4)
                 {
-                    if (((char)data[i] == Codes[j]) && ((char)data[i+1] == Codes[j+1]))
+                    if (data.Substring(i,4) == Codes.Substring(j,4))
                         added = true;
                 }
                 if (!added)
                 {
-                    Codes += (char)data[i];
-                    Codes += (char)data[i+1];
-                    char[] values = { 'P', 'C', 'B', 'U' };
-                    outdata = values[(data[i] >> 4) / 4]+ ((data[i] >> 4) % 4).ToString()
-                    + (data[i] % 16).ToString() + (data[i+1] >> 4).ToString() + (data[i+1] % 16).ToString();
+                    Codes += data.Substring(i, 4);
 
+                    char[] values = { 'P', 'C', 'B', 'U' };
+                    switch (data[i])
+                    {
+                        case '0':
+                            outdata = "P0";
+                            break;
+                        case '1':
+                            outdata = "P1";
+                            break;
+                        case '2':
+                            outdata = "P2";
+                            break;
+                        case '3':
+                            outdata = "P3";
+                            break;
+                        case '4':
+                            outdata = "C0";
+                            break;
+                        case '5':
+                            outdata = "C1";
+                            break;
+                        case '6':
+                            outdata = "C2";
+                            break;
+                        case '7':
+                            outdata = "C3";
+                            break;
+                        case '8':
+                            outdata = "B0";
+                            break;
+                        case '9':
+                            outdata = "B1";
+                            break;
+                        case 'A':
+                            outdata = "B2";
+                            break;
+                        case 'B':
+                            outdata = "B3";
+                            break;
+                        case 'C':
+                            outdata = "U0";
+                            break;
+                        case 'D':
+                            outdata = "U1";
+                            break;
+                        case 'E':
+                            outdata = "U2";
+                            break;
+                        case 'F':
+                            outdata = "U3";
+                            break;
+                    }
+                    outdata += data.Substring(i + 1, 3);
                     string[] data2 = new string[2];
                     data2[0] = time.ToString();
                     data2[1] = outdata;
@@ -80,6 +131,16 @@ namespace ObdiiMonitor
         {
             e.Cancel = true;
             this.Hide();
+        }
+        public void Enable()
+        {
+            btnget.Enabled = true;
+            btnreset.Enabled = true;
+        }
+        public void Disable()
+        {
+            btnget.Enabled = false;
+            btnreset.Enabled = false;
         }
     }
 }

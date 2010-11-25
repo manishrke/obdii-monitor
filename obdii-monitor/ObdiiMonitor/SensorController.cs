@@ -174,6 +174,10 @@ namespace ObdiiMonitor
                         Array.Copy(buffer, index, data, 0, length + 2);
                         PollResponse response = new PollResponse(controller, data);
                         controller.SensorData.PollResponses.Add(response);
+                        if (response.DataType == "MK")
+                        {
+                            controller.MainWindow.AddGraphHighlight(response.Time);
+                        }
                         controller.MainWindow.GraphQueue.Enqueue(response);
                         data = new byte[buffer.Length - length - 2];
                         Array.Copy(buffer, index + length + 2, data, 0, buffer.Length - length - 2 - index);

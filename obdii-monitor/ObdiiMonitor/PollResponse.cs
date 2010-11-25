@@ -159,15 +159,16 @@ namespace ObdiiMonitor
 
             this.dataType = enc.GetString(bytes, 6, 2);
 
-            if (this.dataType == "OB" || this.dataType == "GP" || this.dataType == "GT")
+            if (this.dataType == "OB" || this.dataType == "GP" || this.dataType == "GT" || this.dataType == "TC")
             {
                 this.data = enc.GetString(bytes, ConstantStart, this.length - ConstantStart + StartTagLength);
+                if (this.dataType == "TC")
+                    controller.TcWindow.Set_Data(this.time, this.data);
             }
-            else
+            else if (this.dataType != "MK" && this.dataType != "NS")
             {
                 data2 = new byte[this.length - ConstantStart + StartTagLength];
                 Array.Copy(bytes, ConstantStart, data2, 0, this.length - ConstantStart + StartTagLength);
-
                 if (data2.Length != 3 && this.dataType == "AC")
                     throw new Exception();
             }
@@ -217,8 +218,12 @@ namespace ObdiiMonitor
 
             stream.Write(System.BitConverter.GetBytes(StartTag), 0, 1);
 
-            if (this.dataType == "OB" || this.dataType == "GP" || this.dataType == "GT")
+            if (this.dataType == "OB" || this.dataType == "GP" || this.dataType == "GT" || this.dataType == "TC")
                 stream.Write(System.BitConverter.GetBytes(this.data.Length + ConstantStart - StartTagLength), 0, 1);
+            else if (this.dataType == "MK" || this.dataType == "NS")
+            {
+                stream.Write(System.BitConverter.GetBytes(ConstantStart - StartTagLength), 0, 1);
+            }
             else
                 stream.Write(System.BitConverter.GetBytes(this.data2.Length + ConstantStart - StartTagLength), 0, 1);
 
@@ -227,11 +232,10 @@ namespace ObdiiMonitor
 
             stream.Write(encoding.GetBytes(this.dataType), 0, encoding.GetBytes(this.dataType).Length);
 
-            if (this.dataType == "OB" || this.dataType == "GP" || this.dataType == "GT")
+            if (this.dataType == "OB" || this.dataType == "GP" || this.dataType == "GT" || this.dataType == "TC")
                 stream.Write(encoding.GetBytes(this.data), 0, encoding.GetBytes(this.data).Length);
-            else
-                stream.Write(this.data2, 0, this.data2.Length);
-                
+            else if(this.dataType != "MK" && this.dataType != "NS")
+                stream.Write(this.data2, 0, this.data2.Length);    
 
             stream.Position = 0;
 
@@ -256,7 +260,7 @@ namespace ObdiiMonitor
                 byte[] nums = data2;
                 return this.length + "-" + this.time + "-" + this.dataType + "-" + nums[0] + "." + nums[1] + "." + nums[2];
             }
-            else if (dataType == "OB" || dataType == "GP" || dataType == "GT")
+            else if (dataType == "OB" || dataType == "GP" || dataType == "GT" || this.dataType == "TC")
                 return this.length + "-" + this.time + "-" + this.dataType + "-" + this.data;
             else
                 return this.length + "-" + this.time + "-" + this.dataType;

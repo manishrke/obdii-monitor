@@ -25,58 +25,6 @@ namespace ObdiiMonitor
             get { return pollResponses; }
         }
 
-        public void parseData(string data, uint time)
-        {
-            Console.WriteLine(data);
-
-            // remove whitespace
-            data = data.Replace(" ", "");
-
-            int length;
-
-            string dataType, pollData;
-
-            if (data.Contains(SENSOR_RESPONSE))
-            {
-                dataType = "OB";
-                data = data.Substring(data.IndexOf(SENSOR_RESPONSE) + SENSOR_RESPONSE.Length);
-
-                if (data.Length > 1)
-                    length = controller.SensorController.returnLength(data.Substring(0, 2));
-                else
-                    return;
-
-                pollData = data.Substring(0, length);
-
-                PollResponse pollResponse = new PollResponse(controller, time, pollData, dataType, length);
-
-                Console.WriteLine(pollResponse.ToString());
-
-                pollResponses.Add(pollResponse);
-
-                controller.MainWindow.GraphQueue.Enqueue(pollResponse);
-            }
-            else if (data.Contains(TC_RESPONSE))
-            {
-                dataType = "TC";
-                data = data.Substring(data.IndexOf(SENSOR_RESPONSE) + SENSOR_RESPONSE.Length);
-
-                if (data.Length > 1)
-                    length = controller.SensorController.returnLength(data.Substring(0, 2));
-                else
-                    return;
-
-                pollData = data.Substring(0, length);
-               // .Set_Data(pollData);
- //               PollResponse pollResponse = new PollResponse(time, pollData, dataType, length);
-
- //               Console.WriteLine(pollResponse.ToString());
-
-  //              pollResponses.Add(pollResponse);
-
-  //              controller.MainWindow.GraphQueue.Enqueue(pollResponse);
-            }
-        }
 
         public void loadData(byte[] data)
         {
@@ -86,7 +34,7 @@ namespace ObdiiMonitor
                 if (response.DataType == "GP")
                     controller.Gps.GpsList.Add(new GPSCoordinate(response));
                 else if (response.DataType == "TC")
-                    controller.TcWindow.Set_Data(response.Time, response.Data2);
+                    controller.TcWindow.Set_Data(response.Time, response.Data);
                 else if (response.DataType == "GT")
                     controller.TimeOfDayConverter.setBaseTime(response.Time, response.Data);
                 else if (response.DataType == "CF")
@@ -94,11 +42,13 @@ namespace ObdiiMonitor
                     this.controller.Config = response.Data2;
                     this.controller.MainWindow.PopulateSelectionWindow();
                 }
+                else if (response.DataType == "MK")
+                    this.controller.MainWindow.AddGraphHighlight(response.Time);
                 else
                 {
-                    pollResponses.Add(response);
                     controller.MainWindow.GraphQueue.Enqueue(response);
                 }
+                pollResponses.Add(response);
                 Console.WriteLine(response);
             }
             catch (Exception e)
