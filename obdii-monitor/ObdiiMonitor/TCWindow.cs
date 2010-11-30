@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Diagnostics;
+using System.Threading;
 
 namespace ObdiiMonitor
 {
@@ -43,6 +44,7 @@ namespace ObdiiMonitor
                 if (!added)
                 {
                     Codes += data.Substring(i, 4);
+                    bool goodData = true;
 
                     char[] values = { 'P', 'C', 'B', 'U' };
                     switch (data[i])
@@ -95,18 +97,44 @@ namespace ObdiiMonitor
                         case 'F':
                             outdata = "U3";
                             break;
+                        default:
+                            goodData = false;
+                            break;
                     }
-                    outdata += data.Substring(i + 1, 3);
-                    string[] data2 = new string[2];
-                    data2[0] = time.ToString();
-                    data2[1] = outdata;
-                    dataGridView1.Rows.Add(data2);
+                    if (goodData)
+                    {
+                        outdata += data.Substring(i + 1, 3);
+                        string[] data2 = new string[2];
+                        data2[0] = time.ToString();
+                        data2[1] = outdata;
+                        dataGridView1.Rows.Add(data2);
+                    }
                 }
             }
         }
         private void btnget_Click(object sender, EventArgs e)
         {
+            controller.Serial.flush();
+            int loop = 0;
+
             this.controller.Serial.sendCommand("tc");
+
+            byte[] response = controller.Serial.dataReceived();
+
+            while (response == null)
+            {
+                response = controller.Serial.dataReceived();
+                Thread.Sleep(300);
+                if (loop > 30)
+                {
+                    this.controller.Serial.flush();
+                    this.controller.Serial.sendCommand("tc");
+                    loop = 0;
+                }
+                loop++;
+            }
+
+            controller.SensorData.loadData(response);
         }
 
         private void btnreset_Click(object sender, EventArgs e)
@@ -115,6 +143,8 @@ namespace ObdiiMonitor
                             "Reset Trouble Codes", MessageBoxButtons.YesNo, MessageBoxIcon.Question))
             {
                 this.controller.Serial.sendCommand("tr");
+                Codes = "0000";
+                dataGridView1.Rows.Clear();
             }
         }
         private void Resizing(object sender, EventArgs e)

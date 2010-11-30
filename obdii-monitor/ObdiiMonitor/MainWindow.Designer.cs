@@ -36,8 +36,8 @@
             this.exportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.textFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.spreadsheetToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.MarksToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.troubleCodesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.panelSensorSelection = new System.Windows.Forms.Panel();
             this.buttonCollect = new System.Windows.Forms.Button();
@@ -57,7 +57,6 @@
             this.labelEnd = new System.Windows.Forms.Label();
             this.labelTotalMs = new System.Windows.Forms.Label();
             this.folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
-            this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip.SuspendLayout();
             this.panelCollectData.SuspendLayout();
             this.SuspendLayout();
@@ -118,36 +117,36 @@
             // textFileToolStripMenuItem
             // 
             this.textFileToolStripMenuItem.Name = "textFileToolStripMenuItem";
-            this.textFileToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.textFileToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
             this.textFileToolStripMenuItem.Text = "Text File";
             this.textFileToolStripMenuItem.Click += new System.EventHandler(this.textFileToolStripMenuItem_Click);
             // 
             // spreadsheetToolStripMenuItem
             // 
             this.spreadsheetToolStripMenuItem.Name = "spreadsheetToolStripMenuItem";
-            this.spreadsheetToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.spreadsheetToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
             this.spreadsheetToolStripMenuItem.Text = "Spreadsheet";
             this.spreadsheetToolStripMenuItem.Click += new System.EventHandler(this.spreadsheetToolStripMenuItem_Click);
+            // 
+            // exitToolStripMenuItem
+            // 
+            this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(249, 22);
+            this.exitToolStripMenuItem.Text = "Exit";
+            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
             // viewToolStripMenuItem
             // 
             this.viewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.MarksToolStripMenuItem,
             this.troubleCodesToolStripMenuItem});
             this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
             this.viewToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.viewToolStripMenuItem.Text = "View";
             // 
-            // MarksToolStripMenuItem
-            // 
-            this.MarksToolStripMenuItem.Name = "MarksToolStripMenuItem";
-            this.MarksToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
-            this.MarksToolStripMenuItem.Text = "Marks";
-            // 
             // troubleCodesToolStripMenuItem
             // 
             this.troubleCodesToolStripMenuItem.Name = "troubleCodesToolStripMenuItem";
-            this.troubleCodesToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
+            this.troubleCodesToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.troubleCodesToolStripMenuItem.Text = "Trouble Codes";
             this.troubleCodesToolStripMenuItem.Click += new System.EventHandler(this.troubleCodesToolStripMenuItem_Click);
             // 
@@ -299,13 +298,6 @@
             this.labelTotalMs.TabIndex = 20;
             this.labelTotalMs.Text = "Total (ms):";
             // 
-            // exitToolStripMenuItem
-            // 
-            this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(249, 22);
-            this.exitToolStripMenuItem.Text = "Exit";
-            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
-            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -347,7 +339,6 @@
         private System.Windows.Forms.ToolStripMenuItem textFileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem spreadsheetToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem viewToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem MarksToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem troubleCodesToolStripMenuItem;
         private System.Windows.Forms.Panel panelSensorSelection;
         private System.Windows.Forms.Label labelSensorData;

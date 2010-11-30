@@ -72,6 +72,7 @@ namespace ObdiiMonitor
             comboBoxComPort.SelectedIndex = 3;
             comboBoxMeasurement.SelectedIndex = 1;
             this.Resize += new System.EventHandler(this.Resizing);
+            this.troubleCodesToolStripMenuItem.Enabled = false;
             Disables();
         }
 
@@ -190,6 +191,7 @@ namespace ObdiiMonitor
                 else
                     controller.US = false;
 
+                troubleCodesToolStripMenuItem.Enabled = false;
                 comboBoxMeasurement.Enabled = false;
                 controller.reset();
 
@@ -234,6 +236,7 @@ namespace ObdiiMonitor
             }
             else if (buttonCollect.Text == "Stop")
             {
+                troubleCodesToolStripMenuItem.Enabled = true;
                 comboBoxMeasurement.Enabled = true;
                 this.ShowResetButton();
                 this.controller.Serial.sendCommand(STOP);
@@ -382,7 +385,6 @@ namespace ObdiiMonitor
         {
             try
             {
-
                 this.controller.Serial.initialize(comboBoxComPort.Text);
                 labelStatus.Text = comboBoxComPort.Text + " now open.";
                 this.controller.Serial.sendCommand(STOP);
@@ -412,6 +414,7 @@ namespace ObdiiMonitor
                     controller.US = true;
                 }
                 Enables();
+
                 
             }
             catch (Exception ex)
@@ -547,11 +550,11 @@ namespace ObdiiMonitor
 
             foreach (PollResponse response in this.controller.SensorData.PollResponses)
             {
-                    if (response.DataType == "OB")
+                    if (response.DataType == "OB" && response.Data.Length > 2)
                     {
                         for (int i = 0; i < this.controller.SensorController.SelectedSensors.Length; ++i)
                         {
-                            if ((response.Data.Length > 2) && (this.controller.SensorController.SelectedSensors[i].Pid == response.Data.Substring(0, 2)))
+                            if (this.controller.SensorController.SelectedSensors[i].Pid == response.Data.Substring(0, 2))
                             {
                                 this.chartsSensorGraphs[i].Width += 10;
                                 foreach (Series series in this.chartsSensorGraphs[i].Series)
@@ -596,6 +599,10 @@ namespace ObdiiMonitor
                                     break;
                                 }
                             }
+                    }
+                    else if (response.DataType == "MK")
+                    {
+                        AddGraphHighlight(response.Time);
                     }
                 }
             }
@@ -889,6 +896,7 @@ namespace ObdiiMonitor
         }
         void Enables()
         {
+            troubleCodesToolStripMenuItem.Enabled = true;
             buttonCollect.Enabled = true;
             buttonInitialize.Enabled = false;
             comboBoxComPort.Enabled = false;

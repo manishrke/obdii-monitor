@@ -162,8 +162,6 @@ namespace ObdiiMonitor
             if (this.dataType == "OB" || this.dataType == "GP" || this.dataType == "GT" || this.dataType == "TC")
             {
                 this.data = enc.GetString(bytes, ConstantStart, this.length - ConstantStart + StartTagLength);
-                if (this.dataType == "TC")
-                    controller.TcWindow.Set_Data(this.time, this.data);
             }
             else if (this.dataType != "MK" && this.dataType != "NS")
             {

@@ -31,6 +31,7 @@ namespace ObdiiMonitor
             try
             {
                 PollResponse response = new PollResponse(controller, data);
+                pollResponses.Add(response);
                 if (response.DataType == "GP")
                     controller.Gps.GpsList.Add(new GPSCoordinate(response));
                 else if (response.DataType == "TC")
@@ -42,13 +43,10 @@ namespace ObdiiMonitor
                     this.controller.Config = response.Data2;
                     this.controller.MainWindow.PopulateSelectionWindow();
                 }
-                else if (response.DataType == "MK")
-                    this.controller.MainWindow.AddGraphHighlight(response.Time);
                 else
                 {
                     controller.MainWindow.GraphQueue.Enqueue(response);
                 }
-                pollResponses.Add(response);
                 Console.WriteLine(response);
             }
             catch (Exception e)
