@@ -37,39 +37,12 @@ namespace ObdiiMonitor
 
         public GPSCoordinate(uint time, string coordinates)
         {
-            int index = 0;
 
-            while ((index < coordinates.Length) && (coordinates[index] != 'N') && (coordinates[index] != 'S'))
-            {
-                ++index;
-            }
+            vertical = Convert.ToString(Math.Round(Convert.ToDouble(coordinates.Substring(0, 2)) + Convert.ToDouble(coordinates.Substring(2, 7)) / 60.0, 6)) + coordinates.Substring(9, 1);
 
-            if (index >= coordinates.Length)
-            {
-                return;
-            }
-
-            ++index;
-
-            vertical = coordinates.Substring(0, index);
-
-            int index2 = index;
-
-            while ((index2 < coordinates.Length) && (coordinates[index2] != 'E') && (coordinates[index2] != 'W'))
-            {
-                ++index2;
-            }
-
-            if (index2 >= coordinates.Length)
-            {
-                return;
-            }
-
-            ++index2;
-
-            horizontal = coordinates.Substring(index, index2 - index);
-
-        this.time = time;
+            horizontal = Convert.ToString(Math.Round(Convert.ToDouble(coordinates.Substring(10, 3)) + Convert.ToDouble(coordinates.Substring(13, 7)) / 60.0, 6)) + coordinates.Substring(20, 1);
+            
+            this.time = time;
         }
 
         public GPSCoordinate(PollResponse response) : this (response.Time, response.Data)
@@ -79,7 +52,7 @@ namespace ObdiiMonitor
 
         public override string ToString()
         {
-            return horizontal + " " + vertical;
+            return vertical + " " + horizontal;
         }
     }
 }

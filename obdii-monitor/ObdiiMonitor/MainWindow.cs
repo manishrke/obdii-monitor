@@ -714,6 +714,26 @@ namespace ObdiiMonitor
                 MessageBox.Show("No data exists to export", "Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
+
+
+        /// <summary>
+        /// Maps the GPS coordinate using Google Maps
+        /// </summary>
+        /// <param name="g">The GPS Coordinate.</param>
+        private void MapGpsCoordinate(GPSCoordinate g)
+        {
+            WebBrowser web = new WebBrowser();
+
+            // Create URL.
+            string url = "http://maps.google.com/maps?f=q&source=s_q&hl=en&geocode=&q=" + g.ToString();
+
+            // Open URL in default browser.
+            System.Diagnostics.Process.Start(url);
+
+            return;
+
+        }
+
         private void addConfigPanel()
         {
 
