@@ -46,7 +46,9 @@ namespace ObdiiMonitor
 
         internal Thread UpdateGraphPlots;
 
-        delegate void SetResponseCallback(int i, PollResponse response);
+        delegate void SetResponseCallbackHighlight(int i, StripLine highlightToBeAdded);
+
+        delegate void SetResponseCallbackGraph(int i, PollResponse response);
 
         Queue graphQueue = new Queue();
 
@@ -264,8 +266,7 @@ namespace ObdiiMonitor
                     controller.US = false;
                 this.PopulateSelectionWindow();
                 buttonCollect.Text = "Collect Data";
-                this.panelSensorSelection.Visible = true;
-                this.panelSensorGraphs.Visible = false;
+                ShowSensorSelectionPanel();
             }
         }
 
@@ -273,6 +274,13 @@ namespace ObdiiMonitor
         {
             buttonCollect.Text = "Reset";
             this.controller.cancelAllThreads();
+        }
+
+        internal void ShowSensorSelectionPanel()
+        {
+            this.panelSensorGraphs.Controls.Clear();
+            this.panelSensorGraphs.Visible = false;
+            this.panelSensorSelection.Visible = true;
         }
 
         internal void ShowSensorDataPanel()
@@ -346,7 +354,7 @@ namespace ObdiiMonitor
         {
             if (this.chartsSensorGraphs[i].InvokeRequired)
             {
-                SetResponseCallback d = new SetResponseCallback(this.SetGraphPoint);
+                SetResponseCallbackGraph d = new SetResponseCallbackGraph(this.SetGraphPoint);
                 this.Invoke(d, new object[] { i, response });
             }
             else
@@ -395,7 +403,6 @@ namespace ObdiiMonitor
                         loop = 0;
                     }
                     loop++;
-
                 }
 
                 controller.SensorData.loadData(response);
@@ -504,15 +511,30 @@ namespace ObdiiMonitor
         {
             StripLine highlightToBeAdded = new StripLine();
 
-            for (int i = 0; i < this.chartsSensorGraphs.Length; ++i)
+            for (int i = 0; i < controller.SensorController.SelectedSensors.Length; ++i)
             {
                 // A new StripLine is required for each graph; reusing the same StripLine eventually leads to display problems
                 highlightToBeAdded = new StripLine();
                 highlightToBeAdded.BackColor = Color.Yellow;
                 highlightToBeAdded.IntervalOffset = time;
                 highlightToBeAdded.StripWidth = 1000;
+                AddGraphHighlightAuxilliary(i, highlightToBeAdded);
+            }
+        }
+
+        private void AddGraphHighlightAuxilliary(int i, StripLine highlightToBeAdded)
+        {
+
+            if (this.chartsSensorGraphs[i].InvokeRequired)
+            {
+                SetResponseCallbackHighlight d = new SetResponseCallbackHighlight(this.AddGraphHighlightAuxilliary);
+                this.Invoke(d, new object[] { i, highlightToBeAdded });
+            }
+            else
+            {
                 this.chartsSensorGraphs[i].ChartAreas[0].AxisX.StripLines.Add(highlightToBeAdded);
             }
+            
         }
 
         /// <summary>

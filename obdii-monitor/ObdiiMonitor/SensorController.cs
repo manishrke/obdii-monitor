@@ -229,7 +229,7 @@ namespace ObdiiMonitor
             if (controller.SensorController.SelectedSensors == null || controller.SensorController.SelectedSensors[i] == null)
                 return "";
 
-            if (!ConvertSensorData.US && controller.SensorController.SelectedSensors[i].UnitsMet != null)
+            if (!controller.US && controller.SensorController.SelectedSensors[i].UnitsMet != null)
                 return controller.SensorController.SelectedSensors[i].UnitsMet;
             else if (controller.SensorController.SelectedSensors[i].Units != null)
                 return controller.SensorController.SelectedSensors[i].Units;
