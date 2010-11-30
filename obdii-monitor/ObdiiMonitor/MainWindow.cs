@@ -73,6 +73,7 @@ namespace ObdiiMonitor
             comboBoxMeasurement.SelectedIndex = 1;
             this.Resize += new System.EventHandler(this.Resizing);
             this.troubleCodesToolStripMenuItem.Enabled = false;
+            buttonGet.Enabled = false;
             Disables();
         }
 
@@ -191,6 +192,7 @@ namespace ObdiiMonitor
                 else
                     controller.US = false;
 
+                buttonGet.Enabled = false;
                 troubleCodesToolStripMenuItem.Enabled = false;
                 comboBoxMeasurement.Enabled = false;
                 controller.reset();
@@ -281,6 +283,7 @@ namespace ObdiiMonitor
 
         internal void ShowSensorSelectionPanel()
         {
+            buttonGet.Enabled = false;
             this.panelSensorGraphs.Controls.Clear();
             this.panelSensorGraphs.Visible = false;
             this.panelSensorSelection.Visible = true;
@@ -399,28 +402,30 @@ namespace ObdiiMonitor
                 {
                     response = controller.Serial.dataReceived();
                     Thread.Sleep(300);
-                    if (loop > 30)
+                    if (loop > 10)
                     {
-                        this.controller.Serial.sendCommand(REQCONF);
-                        loop = 0;
+                        MessageBox.Show("Could not connect with the ObdiiMonitor.  Please press reset and wait for the lights to stop counting.");
+                        labelStatus.Text = comboBoxComPort.Text + " could not connect.";
+                        return;
                     }
                     loop++;
                 }
 
                 controller.SensorData.loadData(response);
 
+                labelStatus.Text = comboBoxComPort.Text + " successfully connected.";
+
                 if (comboBoxMeasurement.SelectedIndex == 1)
                 {
                     controller.US = true;
                 }
                 Enables();
-
-                
             }
             catch (Exception ex)
             {
-                labelStatus.Text = "Could not connect. Try again.";
-                MessageBox.Show(ex.Message);
+                MessageBox.Show("Could not connect with the ObdiiMonitor.  Please press reset and wait for the lights to stop counting.");
+                labelStatus.Text = comboBoxComPort.Text + " could not connect.";
+                return;;
             }
         }
 
@@ -605,6 +610,7 @@ namespace ObdiiMonitor
                         AddGraphHighlight(response.Time);
                     }
                 }
+                buttonGet.Enabled = true;
             }
 
         /// <summary>

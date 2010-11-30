@@ -193,6 +193,8 @@ namespace ObdiiMonitor
                 }
             }
 
+            numsSelected.Sort();
+
             // initialize the selectedSensors member of SensorController
             this.controller.SensorController.initializeSelectedSensors(numsSelected);
 

@@ -62,7 +62,8 @@ namespace ObdiiMonitor
 
         public void sendCommand(string command)
         {   
-            serialPort.WriteLine(command);
+            if (serialPort.IsOpen)
+                serialPort.WriteLine(command);
         }
         public void sendConfig()
         {
