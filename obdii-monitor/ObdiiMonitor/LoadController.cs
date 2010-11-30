@@ -47,6 +47,8 @@ namespace ObdiiMonitor
         /// <param name="fileName">Name of the file.</param>
         internal void LoadData(string fileName)
         {
+            ConvertSensorData.US = controller.US;
+
             this.controller.reset();
 
             // open the FileStream of the fileName
@@ -195,7 +197,7 @@ namespace ObdiiMonitor
             this.controller.SensorController.initializeSelectedSensors(numsSelected);
 
             // create the initial graphs based off the sensors in selectedSensor member of SensorController
-            this.controller.MainWindow.PopulateGraphWindow(numsSelected);
+            this.controller.MainWindow.PopulateGraphWindow();
         }
     }
 }

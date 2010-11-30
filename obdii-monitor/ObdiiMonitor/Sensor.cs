@@ -92,7 +92,7 @@ namespace ObdiiMonitor
             this.units2 = units2;
             this.unitsMet2 = units2;
         }
-        public Sensor(string label, string pid, int bytes, string units, string unitsMet)
+        public Sensor(string label, string pid, int bytes, string unitsMet, string units)
         {
             this.label = label;
             this.pid = pid;

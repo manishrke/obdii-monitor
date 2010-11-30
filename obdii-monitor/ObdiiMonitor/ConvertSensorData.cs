@@ -7,7 +7,7 @@ namespace ObdiiMonitor
 {
     static class ConvertSensorData
     {
-        private static bool US;
+        public static bool US = false;
         public static string convert(string dataTag, string data, bool us)
         {
             US = us;

@@ -16,14 +16,14 @@ namespace ObdiiMonitor
         private Controller controller;
 
         Sensor[] sensors = {
-                               new Sensor("Acceleration:", "AC", 3, "m/ss"),
-                               new Sensor( "Engine RPM:", "0C", 2, "rpm", "r/min"),
+                               new Sensor("Acceleration:", "AC", 3, "m/s^2"),
+                               new Sensor( "Engine RPM:", "0C", 2, "rpm"),
                                new Sensor( "Vehicle Speed:","0D", 1, "km/h", "mph"),
                                new Sensor( "Calculated Load value:", "04", 1, "%"),
                                new Sensor( "Engine Coolant Temp:",   "05", 1, "°C", "°F"),
                                new Sensor( "Fuel Pressure:", "0A", 1 , "kPa (gauge)", "psi"),
                                new Sensor( "Intake Manifold Abs. Pressure:", "0B", 1, "kPa (absolute)", "inHg"),
-                               new Sensor( "Timing advance", "0E", 1, "° relative to #1 cylinder"),
+                               new Sensor( "Timing advance", "0E", 1, "° from #1 cylinder"),
                                new Sensor( "Intake air temperature", "0F", 1, "°C", "°F"),
                                new Sensor( "MAF air flow rate", "10", 2, "g/s", "lb/min"),
                                new Sensor( "Throttle position", "11", 1, "%"),
@@ -217,6 +217,25 @@ namespace ObdiiMonitor
             }
 
             return -1;
+        }
+
+        /// <summary>
+        /// Returns either the US or metric unit of index i of SelectedSensors
+        /// </summary>
+        /// <param name="i">the index of SelectedSensors whose unit is required</param>
+        /// <returns></returns>
+        internal string returnUnit(int i)
+        {
+            if (controller.SensorController.SelectedSensors == null || controller.SensorController.SelectedSensors[i] == null)
+                return "";
+
+            if (!ConvertSensorData.US && controller.SensorController.SelectedSensors[i].UnitsMet != null)
+                return controller.SensorController.SelectedSensors[i].UnitsMet;
+            else if (controller.SensorController.SelectedSensors[i].Units != null)
+                return controller.SensorController.SelectedSensors[i].Units;
+            else
+                return "";
+
         }
     }
 }

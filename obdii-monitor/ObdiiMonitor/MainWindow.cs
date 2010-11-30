@@ -112,33 +112,34 @@ namespace ObdiiMonitor
         /// This function assumes that the SelectedSensors member of SensorController has already been intialized and set to the indexes that
         /// numsSelected represents
         /// </summary>
-        /// <param name="numsSelected">The indices of selected sensors to display.</param>
-        internal void PopulateGraphWindow(ArrayList numsSelected)
+        internal void PopulateGraphWindow()
         {
 
             this.panelSensorGraphs.Controls.Clear();
-            this.labelsSensorGraphs = new Label[numsSelected.Count];
-            this.labelsSensorGraphsValues = new Label[numsSelected.Count];
-            this.chartsSensorGraphs = new Chart[numsSelected.Count];
+            this.labelsSensorGraphs = new Label[controller.SensorController.SelectedSensors.Length];
+            this.labelsSensorGraphsValues = new Label[controller.SensorController.SelectedSensors.Length];
+            this.chartsSensorGraphs = new Chart[controller.SensorController.SelectedSensors.Length];
 
-            ChartArea[] chartAreas = new ChartArea[numsSelected.Count];
-            Series[] seriesLines = new Series[numsSelected.Count];
-            Series[] seriesPoints = new Series[numsSelected.Count];
+            ChartArea[] chartAreas = new ChartArea[controller.SensorController.SelectedSensors.Length];
+            Series[] seriesLines = new Series[controller.SensorController.SelectedSensors.Length];
+            Series[] seriesPoints = new Series[controller.SensorController.SelectedSensors.Length];
 
             int height = StartHeight;
             int width = StartWidth;
 
-            TickMark yTmAdj = new TickMark();
+            TickMark tickMark = new TickMark();
 
-            for (int i = 0; i < numsSelected.Count; ++i)
+            for (int i = 0; i < controller.SensorController.SelectedSensors.Length; ++i)
             {
                 this.labelsSensorGraphs[i] = new Label();
-                this.labelsSensorGraphs[i].Text = this.controller.SensorController.Sensors[(int)numsSelected[i]].Label;
+                this.labelsSensorGraphs[i].AutoSize = true;
+                this.labelsSensorGraphs[i].Text = this.controller.SensorController.SelectedSensors[i].Label + " ( " + controller.SensorController.returnUnit(i) + " ) ";
                 this.labelsSensorGraphs[i].Location = new Point(width, height + (200 * i));
                 this.panelSensorGraphs.Controls.Add(this.labelsSensorGraphs[i]);
 
                 this.labelsSensorGraphsValues[i] = new Label();
-                this.labelsSensorGraphsValues[i].Text = "Value: ";
+                this.labelsSensorGraphsValues[i].AutoSize = true;
+                this.labelsSensorGraphsValues[i].Text = "";
                 this.labelsSensorGraphsValues[i].Location = new Point(width + this.labelsSensorGraphs[i].Size.Width + 5, height + (200 * i));
                 this.panelSensorGraphs.Controls.Add(this.labelsSensorGraphsValues[i]);
 
@@ -149,10 +150,16 @@ namespace ObdiiMonitor
                 
                 // While "InsideArea" may seem like the reverse of what we want, the Double.MaxValue Crossing reverses the meaning of Inside and Outside area.
                 chartAreas[i].AxisX.Crossing = Double.MaxValue;
-                yTmAdj = chartAreas[i].AxisY.MajorTickMark;
-                yTmAdj.TickMarkStyle = TickMarkStyle.InsideArea;
-                yTmAdj.Size = 0;
-                chartAreas[i].AxisY.MajorTickMark = yTmAdj;
+                tickMark = chartAreas[i].AxisY.MajorTickMark;
+                tickMark.TickMarkStyle = TickMarkStyle.InsideArea;
+                tickMark.Size = 0;
+                chartAreas[i].AxisY.MajorTickMark = tickMark;
+
+                // add units to the graphs
+                chartAreas[i].AxisX.Title = "ms (starting at zero) (hover mouse over point for time of day)";
+                chartAreas[i].AxisY.Title = controller.SensorController.returnUnit(i);
+                chartAreas[i].AxisX.TitleAlignment = StringAlignment.Near;
+                chartAreas[i].AxisY.TextOrientation = TextOrientation.Rotated90;
                 
                 seriesLines[i] = new Series();
 
@@ -180,6 +187,7 @@ namespace ObdiiMonitor
                 }
                 else
                     controller.US = false;
+
                 comboBoxMeasurement.Enabled = false;
                 controller.reset();
 
@@ -217,7 +225,7 @@ namespace ObdiiMonitor
                 this.controller.Serial.sendConfig();
                 this.controller.SensorController.initializeReceivingThreads();
                 this.controller.Serial.sendCommand(COLLECT);
-                this.PopulateGraphWindow(numsSelected);
+                this.PopulateGraphWindow();
                 this.ShowSensorDataPanel();
                 buttonCollect.Text = "Stop";
                 this.StartGraphPlotThread();
@@ -352,7 +360,7 @@ namespace ObdiiMonitor
                             series.Points.RemoveAt(0);
                         }
                         series.Points.Add(new DataPoint((double)response.Time, response.ConvertData()));
-                        this.CreateDataPointToolTip(series.Points[series.Points.Count - 1]);
+                        this.CreateDataPointToolTip(series.Points[series.Points.Count - 1], controller.SensorController.returnUnit(i));
                         this.chartsSensorGraphs[i].ChartAreas[0].AxisX.Maximum = response.Time;
                     }
 
@@ -483,9 +491,9 @@ namespace ObdiiMonitor
         /// Creates the string used for the mouse hover text (ToolTip) of a point.
         /// </summary>
         /// <param name="pt">The datapoint for which to set the ToolTip property.</param>
-        private void CreateDataPointToolTip(DataPoint pt)
+        private void CreateDataPointToolTip(DataPoint pt, string unit)
         {
-            pt.ToolTip = "Value:\t" + pt.YValues[0].ToString() + "\nTime:\t" + controller.TimeOfDayConverter.get(pt.XValue) + " GMT" + "\nGPS:\t" + controller.Gps.get((uint)pt.XValue);
+            pt.ToolTip = "Value:\t" + pt.YValues[0].ToString() + " " + unit + "\nTime:\t" + controller.TimeOfDayConverter.get(pt.XValue) + " GMT" + "\nGPS:\t" + controller.Gps.get((uint)pt.XValue);
         }
 
         /// <summary>
@@ -529,7 +537,7 @@ namespace ObdiiMonitor
                                     try
                                     {
                                         series.Points.Add(new DataPoint(response.Time, response.ConvertData()));
-                                        this.CreateDataPointToolTip(series.Points[series.Points.Count - 1]);
+                                        this.CreateDataPointToolTip(series.Points[series.Points.Count - 1], controller.SensorController.returnUnit(i));
                                         this.chartsSensorGraphs[i].ChartAreas[0].AxisX.Maximum = response.Time;
                                     }
                                     catch (Exception e)
@@ -554,7 +562,7 @@ namespace ObdiiMonitor
                                         try
                                         {
                                             series.Points.Add(new DataPoint(response.Time, response.ConvertData()));
-                                            this.CreateDataPointToolTip(series.Points[series.Points.Count - 1]);
+                                            this.CreateDataPointToolTip(series.Points[series.Points.Count - 1], controller.SensorController.returnUnit(i));
                                             this.chartsSensorGraphs[i].ChartAreas[0].AxisX.Maximum = response.Time;
                                         }
                                         catch (Exception e)
