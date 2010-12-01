@@ -163,7 +163,6 @@ namespace ObdiiMonitor
                 chartAreas[i].AxisX.Title = "ms (starting at zero) (hover mouse over point for time of day)";
                 chartAreas[i].AxisY.Title = controller.SensorController.returnUnit(i);
                 chartAreas[i].AxisX.TitleAlignment = StringAlignment.Near;
-                chartAreas[i].AxisY.TextOrientation = TextOrientation.Rotated90;
                 
                 seriesLines[i] = new Series();
 
@@ -572,7 +571,6 @@ namespace ObdiiMonitor
                                     }
                                     catch (Exception e)
                                     {
-                                        Console.WriteLine(e.Message);
                                     }
                                 }
 
@@ -597,7 +595,7 @@ namespace ObdiiMonitor
                                         }
                                         catch (Exception e)
                                         {
-                                            Console.WriteLine(e.Message);
+                                            
                                         }
                                     }
 

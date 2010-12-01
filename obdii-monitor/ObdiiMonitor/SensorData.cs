@@ -47,11 +47,9 @@ namespace ObdiiMonitor
                 {
                     controller.MainWindow.GraphQueue.Enqueue(response);
                 }
-                Console.WriteLine(response);
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
                 return;
             }
         }

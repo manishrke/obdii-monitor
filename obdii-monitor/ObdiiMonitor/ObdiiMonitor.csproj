@@ -6,7 +6,7 @@
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{855BCBAC-A2DE-4B6B-99BC-0B7B87FC151C}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ObdiiMonitor</RootNamespace>
     <AssemblyName>ObdiiMonitor</AssemblyName>

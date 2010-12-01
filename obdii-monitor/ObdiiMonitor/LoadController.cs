@@ -124,6 +124,7 @@ namespace ObdiiMonitor
                 return;
             }
 
+            controller.MainWindow.Cursor = Cursors.WaitCursor;
 
             uint startTime = 0, endTime = 0, totalMs = ((PollResponse)controller.SensorData.PollResponses[controller.SensorData.PollResponses.Count - 1]).Time;
 
@@ -150,6 +151,8 @@ namespace ObdiiMonitor
 
             // show the Reset text on the action button of the window
             this.controller.MainWindow.ShowResetButton();
+
+            this.controller.MainWindow.Cursor = Cursors.Default;
         }
 
         /// <summary>
