@@ -224,6 +224,7 @@ namespace ObdiiMonitor
 
                 buttonGet.Enabled = false;
                 troubleCodesToolStripMenuItem.Enabled = false;
+                controller.TcWindow.Hide();
                 comboBoxMeasurement.Enabled = false;
                 controller.reset();
 
