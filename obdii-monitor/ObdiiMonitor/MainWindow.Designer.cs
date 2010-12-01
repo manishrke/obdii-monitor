@@ -47,6 +47,7 @@
             this.comboBoxComPort = new System.Windows.Forms.ComboBox();
             this.comboBoxMeasurement = new System.Windows.Forms.ComboBox();
             this.panelCollectData = new System.Windows.Forms.Panel();
+            this.MapButton = new System.Windows.Forms.Button();
             this.panelSensorGraphs = new System.Windows.Forms.Panel();
             this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
             this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
@@ -57,6 +58,8 @@
             this.labelEnd = new System.Windows.Forms.Label();
             this.labelTotalMs = new System.Windows.Forms.Label();
             this.folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
+            this.CancelMapButton = new System.Windows.Forms.Button();
+            this.HelpText = new System.Windows.Forms.Label();
             this.menuStrip.SuspendLayout();
             this.panelCollectData.SuspendLayout();
             this.SuspendLayout();
@@ -146,7 +149,7 @@
             // troubleCodesToolStripMenuItem
             // 
             this.troubleCodesToolStripMenuItem.Name = "troubleCodesToolStripMenuItem";
-            this.troubleCodesToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.troubleCodesToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
             this.troubleCodesToolStripMenuItem.Text = "Trouble Codes";
             this.troubleCodesToolStripMenuItem.Click += new System.EventHandler(this.troubleCodesToolStripMenuItem_Click);
             // 
@@ -229,12 +232,26 @@
             // 
             // panelCollectData
             // 
+            this.panelCollectData.Controls.Add(this.HelpText);
+            this.panelCollectData.Controls.Add(this.CancelMapButton);
+            this.panelCollectData.Controls.Add(this.MapButton);
             this.panelCollectData.Controls.Add(this.buttonCollect);
             this.panelCollectData.Controls.Add(this.labelSensorData);
             this.panelCollectData.Location = new System.Drawing.Point(0, 52);
             this.panelCollectData.Name = "panelCollectData";
             this.panelCollectData.Size = new System.Drawing.Size(884, 32);
             this.panelCollectData.TabIndex = 14;
+            // 
+            // MapButton
+            // 
+            this.MapButton.Location = new System.Drawing.Point(255, 9);
+            this.MapButton.Name = "MapButton";
+            this.MapButton.Size = new System.Drawing.Size(75, 23);
+            this.MapButton.TabIndex = 2;
+            this.MapButton.Text = "Map";
+            this.MapButton.UseVisualStyleBackColor = true;
+            this.MapButton.Visible = false;
+            this.MapButton.Click += new System.EventHandler(this.MapButton_Click);
             // 
             // panelSensorGraphs
             // 
@@ -298,6 +315,26 @@
             this.labelTotalMs.TabIndex = 20;
             this.labelTotalMs.Text = "Total (ms):";
             // 
+            // CancelMapButton
+            // 
+            this.CancelMapButton.Location = new System.Drawing.Point(336, 9);
+            this.CancelMapButton.Name = "CancelMapButton";
+            this.CancelMapButton.Size = new System.Drawing.Size(75, 23);
+            this.CancelMapButton.TabIndex = 3;
+            this.CancelMapButton.Text = "Cancel Map";
+            this.CancelMapButton.UseVisualStyleBackColor = true;
+            this.CancelMapButton.Visible = false;
+            this.CancelMapButton.Click += new System.EventHandler(this.CancelMap_Click);
+            // 
+            // HelpText
+            // 
+            this.HelpText.Location = new System.Drawing.Point(417, 14);
+            this.HelpText.Name = "HelpText";
+            this.HelpText.Size = new System.Drawing.Size(455, 13);
+            this.HelpText.TabIndex = 0;
+            this.HelpText.Text = "HelpText";
+            this.HelpText.Visible = false;
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -360,5 +397,8 @@
         private System.Windows.Forms.ToolStripMenuItem ConfigToolStripMenuItem;
         private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog;
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
+        private System.Windows.Forms.Button MapButton;
+        private System.Windows.Forms.Button CancelMapButton;
+        private System.Windows.Forms.Label HelpText;
     }
 }

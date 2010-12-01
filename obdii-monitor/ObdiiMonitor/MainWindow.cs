@@ -37,6 +37,10 @@ namespace ObdiiMonitor
         private ArrayList pids ;
         private ArrayList configs;
         Controller controller;
+        /// <summary>
+        /// True if user is selecting point to map, false otherwise
+        /// </summary>
+        private bool InMapMode = false;
 
         Label[] labelsSensorGraphs;
 
@@ -149,6 +153,7 @@ namespace ObdiiMonitor
 
                 this.chartsSensorGraphs[i] = new Chart();
                 chartAreas[i] = new ChartArea();
+                chartAreas[i].Name = "Chart" + i;
                 chartAreas[i].AlignmentStyle = AreaAlignmentStyles.All;
                 chartAreas[i].AxisX.IsReversed = true;
                 
@@ -177,6 +182,32 @@ namespace ObdiiMonitor
                 this.chartsSensorGraphs[i].Size = new System.Drawing.Size(170, 170);
                 this.chartsSensorGraphs[i].Location = new Point(width, height + (200 * i) + 25);
                 this.panelSensorGraphs.Controls.Add(this.chartsSensorGraphs[i]);
+            }
+
+            for (int i = 0; i < chartsSensorGraphs.Length; i++)
+            {
+                chartsSensorGraphs[i].MouseClick += new MouseEventHandler(OnChart_MouseClick);
+            }
+
+        }
+
+        /// <summary>
+        /// Called when any chart is clicked.
+        /// Current intention is to clear the cursorX on all of the charts that were not clicked.
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="e">The <see cref="System.Windows.Forms.MouseEventArgs"/> instance containing the event data.</param>
+        void OnChart_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (this.InMapMode)
+            {
+                foreach (Chart chart in chartsSensorGraphs)
+                {
+                    if (sender != chart)
+                    {
+                        chart.ChartAreas[0].CursorX.Position = 0.0;
+                    }
+                }
             }
         }
 
@@ -232,7 +263,9 @@ namespace ObdiiMonitor
                 this.controller.Serial.sendCommand(COLLECT);
                 this.PopulateGraphWindow();
                 this.ShowSensorDataPanel();
-                buttonCollect.Text = "Stop";
+                this.buttonCollect.Text = "Stop";
+                this.LeaveMapMode();
+                this.MapButton.Visible = false;
                 this.StartGraphPlotThread();
             }
             else if (buttonCollect.Text == "Stop")
@@ -254,7 +287,7 @@ namespace ObdiiMonitor
                     this.controller.MainWindow.SetDisplayedGraphRange(0, endTime);
                     setStartTimeEndTime(0, endTime);
                     this.controller.MainWindow.SetDisplayedGraphRange(0, endTime);
-                    // AlignAllGraphs(0); // TODO: Remove this line completely if live feed still aligns properly, if not, have Nicholas reimplement called function
+                    this.MapButton.Visible = true;
                 }
             }
             else if (buttonCollect.Text == "Reset")
@@ -483,6 +516,7 @@ namespace ObdiiMonitor
             try
             {
                 this.controller.LoadController.LoadData(openFileDialog.FileName);
+                this.MapButton.Visible = true;
             }
             catch (Exception ex)
             {
@@ -756,25 +790,6 @@ namespace ObdiiMonitor
             }
         }
 
-
-        /// <summary>
-        /// Maps the GPS coordinate using Google Maps
-        /// </summary>
-        /// <param name="g">The GPS Coordinate.</param>
-        private void MapGpsCoordinate(GPSCoordinate g)
-        {
-            WebBrowser web = new WebBrowser();
-
-            // Create URL.
-            string url = "http://maps.google.com/maps?f=q&source=s_q&hl=en&geocode=&q=" + g.ToString();
-
-            // Open URL in default browser.
-            System.Diagnostics.Process.Start(url);
-
-            return;
-
-        }
-
         private void addConfigPanel()
         {
 
@@ -924,6 +939,90 @@ namespace ObdiiMonitor
         {
             this.Close();
         }
+
+        /// <summary>
+        /// Handles the Click event of the MapButton control.
+        /// Will make the cursor visible so a point can be mapped.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
+        private void MapButton_Click(object sender, EventArgs e)
+        {
+            if (this.MapButton.Text == "Map")
+            {
+                this.EnterMapMode();
+            }
+            else if (this.MapButton.Text == "Map Now")
+            {
+                foreach (Chart chart in this.chartsSensorGraphs)
+                {
+                    if (chart.ChartAreas[0].CursorX.Position != 0.0)
+                    {
+                        this.MapGpsCoordinate(controller.Gps.get((uint)chart.ChartAreas[0].CursorX.Position));
+                        this.LeaveMapMode();
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Provides user with a way to leave the map mode themselves
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
+        private void CancelMap_Click(object sender, EventArgs e)
+        {
+            this.LeaveMapMode();
+        }
+
+        /// <summary>
+        /// Enters the map mode. Charts have cursor functionality so user can select at what time they want to see GPS location.
+        /// </summary>
+        private void EnterMapMode()
+        {
+            foreach (Chart chart in this.chartsSensorGraphs)
+            {
+                chart.ChartAreas[0].CursorX.IsUserEnabled = true;
+            }
+            this.MapButton.Text = "Map Now";
+            this.HelpText.Visible = true;
+            this.HelpText.Text = "Select point to map, then click \"Map Now\"";
+            this.CancelMapButton.Visible = true;
+            this.InMapMode = true;
+        }
+
+        /// <summary>
+        /// Maps the GPS coordinate using Google Maps
+        /// </summary>
+        /// <param name="g">The GPS Coordinate.</param>
+        private void MapGpsCoordinate(GPSCoordinate g)
+        {
+            // Create URL.
+            string url = "http://maps.google.com/maps?f=q&source=s_q&hl=en&geocode=&q=" + g.ToString();
+
+            // Open URL in default browser.
+            System.Diagnostics.Process.Start(url);
+
+            return;
+
+        }
+
+        /// <summary>
+        /// Leaves the map mode.
+        /// </summary>
+        private void LeaveMapMode()
+        {
+            foreach (Chart chart in this.chartsSensorGraphs)
+            {
+                chart.ChartAreas[0].CursorX.IsUserEnabled = false;
+                chart.ChartAreas[0].CursorX.Position = 0.0;
+            }
+            this.MapButton.Text = "Map";
+            this.CancelMapButton.Visible = false;
+            this.HelpText.Visible = false;
+            this.InMapMode = false;
+        }
+
     }
 }
 
