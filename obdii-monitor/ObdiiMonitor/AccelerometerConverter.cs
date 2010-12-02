@@ -64,6 +64,10 @@ namespace ObdiiMonitor
                 }
             }
 
+            if ((data[1] & 0x80) == 1) return 0;
+            if (data[1] > 10) return 0;
+            return (data[1] - calibrationReading[1]) * .024 * 9.81;
+
             int[] values = new int[3];
 
             for (int i = 0; i < values.Length; ++i)

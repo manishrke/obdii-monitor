@@ -54,13 +54,16 @@ namespace ObdiiMonitor
         }
         public void sendConfig()
         {
-            serialPort.Write("w");
-            Thread.Sleep(5);
-            for (int i=0; i < controller.Config.Length; ++i)
+            if (serialPort.IsOpen)
             {
-                serialPort.Write(controller.Config, i, 1);
+                serialPort.Write("w");
                 Thread.Sleep(5);
-            }
+                for (int i = 0; i < controller.Config.Length; ++i)
+                {
+                    serialPort.Write(controller.Config, i, 1);
+                    Thread.Sleep(5);
+                }
+            }   
         }
         public byte[] dataReceived()
         {
