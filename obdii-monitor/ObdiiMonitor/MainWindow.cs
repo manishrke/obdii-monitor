@@ -280,7 +280,6 @@ namespace ObdiiMonitor
                     // ensure that the size of all graphs are the same so they line up
                     this.controller.MainWindow.SetDisplayedGraphRange(0, endTime);
                     setStartTimeEndTime(0, endTime);
-                    this.controller.MainWindow.SetDisplayedGraphRange(0, endTime);
                     this.MapButton.Enabled = true;
                 }
             }
@@ -309,6 +308,7 @@ namespace ObdiiMonitor
 
         internal void ShowSensorSelectionPanel()
         {
+            MapButton.Enabled = false;
             buttonGet.Enabled = false;
             this.panelSensorGraphs.Controls.Clear();
             this.panelSensorGraphs.Visible = false;
@@ -384,6 +384,9 @@ namespace ObdiiMonitor
         /// <param name="response">The response from the microcontroller.</param>
         private void SetGraphPoint(int i, PollResponse response)
         {
+            if (!UpdateGraphPlots.IsAlive)
+                return;
+
             if (this.chartsSensorGraphs[i].InvokeRequired)
             {
                 SetResponseCallbackGraph d = new SetResponseCallbackGraph(this.SetGraphPoint);
@@ -957,12 +960,18 @@ namespace ObdiiMonitor
         /// <param name="g">The GPS Coordinate.</param>
         private void MapGpsCoordinate(GPSCoordinate g)
         {
-            // Create URL.
-            string url = "http://maps.google.com/maps?f=q&source=s_q&hl=en&geocode=&q=" + g.ToString();
+            if (g != null)
+            {
+                // Create URL.
+                string url = "http://maps.google.com/maps?f=q&source=s_q&hl=en&geocode=&q=" + g.ToString();
 
-            // Open URL in default browser.
-            System.Diagnostics.Process.Start(url);
-
+                // Open URL in default browser.
+                System.Diagnostics.Process.Start(url);
+            }
+            else
+            {
+                MessageBox.Show("No GPS Coordinate present to Map.");
+            }
             return;
 
         }

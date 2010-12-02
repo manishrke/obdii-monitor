@@ -47,6 +47,10 @@ namespace ObdiiMonitor
                 return -1;
             }
 
+            if ((data[1] & 0x80)==1) return 0;
+            if (data[1] > 10) return 0;
+            return data[1];
+
             if (calibrationReading == null)
             {
                 calibrationReading = new int[3];

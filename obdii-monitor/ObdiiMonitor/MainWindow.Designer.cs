@@ -89,22 +89,22 @@
             // saveToolStripMenuItem
             // 
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(249, 22);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(240, 22);
             this.saveToolStripMenuItem.Text = "Save";
             this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
             // 
             // loadToolStripMenuItem
             // 
             this.loadToolStripMenuItem.Name = "loadToolStripMenuItem";
-            this.loadToolStripMenuItem.Size = new System.Drawing.Size(249, 22);
+            this.loadToolStripMenuItem.Size = new System.Drawing.Size(240, 22);
             this.loadToolStripMenuItem.Text = "Load";
             this.loadToolStripMenuItem.Click += new System.EventHandler(this.loadToolStripMenuItem_Click);
             // 
             // ConfigToolStripMenuItem
             // 
             this.ConfigToolStripMenuItem.Name = "ConfigToolStripMenuItem";
-            this.ConfigToolStripMenuItem.Size = new System.Drawing.Size(249, 22);
-            this.ConfigToolStripMenuItem.Text = "Export/Load config from SD Card";
+            this.ConfigToolStripMenuItem.Size = new System.Drawing.Size(240, 22);
+            this.ConfigToolStripMenuItem.Text = "Save/Load config from SD Card";
             this.ConfigToolStripMenuItem.Click += new System.EventHandler(this.ConfigToolStripMenuItem_Click);
             // 
             // exportToolStripMenuItem
@@ -113,7 +113,7 @@
             this.textFileToolStripMenuItem,
             this.spreadsheetToolStripMenuItem});
             this.exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-            this.exportToolStripMenuItem.Size = new System.Drawing.Size(249, 22);
+            this.exportToolStripMenuItem.Size = new System.Drawing.Size(240, 22);
             this.exportToolStripMenuItem.Text = "Export Data";
             // 
             // textFileToolStripMenuItem
@@ -133,7 +133,7 @@
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(249, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(240, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
@@ -148,7 +148,7 @@
             // troubleCodesToolStripMenuItem
             // 
             this.troubleCodesToolStripMenuItem.Name = "troubleCodesToolStripMenuItem";
-            this.troubleCodesToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
+            this.troubleCodesToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.troubleCodesToolStripMenuItem.Text = "Trouble Codes";
             this.troubleCodesToolStripMenuItem.Click += new System.EventHandler(this.troubleCodesToolStripMenuItem_Click);
             // 
