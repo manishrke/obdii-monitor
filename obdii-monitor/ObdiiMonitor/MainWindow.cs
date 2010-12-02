@@ -37,10 +37,6 @@ namespace ObdiiMonitor
         private ArrayList pids ;
         private ArrayList configs;
         Controller controller;
-        /// <summary>
-        /// True if user is selecting point to map, false otherwise
-        /// </summary>
-        private bool InMapMode = false;
 
         Label[] labelsSensorGraphs;
 
@@ -156,6 +152,7 @@ namespace ObdiiMonitor
                 chartAreas[i].Name = "Chart" + i;
                 chartAreas[i].AlignmentStyle = AreaAlignmentStyles.All;
                 chartAreas[i].AxisX.IsReversed = true;
+                chartAreas[i].CursorX.IsUserEnabled = true;
                 
                 // While "InsideArea" may seem like the reverse of what we want, the Double.MaxValue Crossing reverses the meaning of Inside and Outside area.
                 chartAreas[i].AxisX.Crossing = Double.MaxValue;
@@ -199,14 +196,11 @@ namespace ObdiiMonitor
         /// <param name="e">The <see cref="System.Windows.Forms.MouseEventArgs"/> instance containing the event data.</param>
         void OnChart_MouseClick(object sender, MouseEventArgs e)
         {
-            if (this.InMapMode)
+            foreach (Chart chart in chartsSensorGraphs)
             {
-                foreach (Chart chart in chartsSensorGraphs)
+                if (sender != chart)
                 {
-                    if (sender != chart)
-                    {
-                        chart.ChartAreas[0].CursorX.Position = 0.0;
-                    }
+                    chart.ChartAreas[0].CursorX.Position = 0.0;
                 }
             }
         }
@@ -265,8 +259,7 @@ namespace ObdiiMonitor
                 this.PopulateGraphWindow();
                 this.ShowSensorDataPanel();
                 this.buttonCollect.Text = "Stop";
-                this.LeaveMapMode();
-                this.MapButton.Visible = false;
+                this.MapButton.Enabled = false;
                 this.StartGraphPlotThread();
             }
             else if (buttonCollect.Text == "Stop")
@@ -288,7 +281,7 @@ namespace ObdiiMonitor
                     this.controller.MainWindow.SetDisplayedGraphRange(0, endTime);
                     setStartTimeEndTime(0, endTime);
                     this.controller.MainWindow.SetDisplayedGraphRange(0, endTime);
-                    this.MapButton.Visible = true;
+                    this.MapButton.Enabled = true;
                 }
             }
             else if (buttonCollect.Text == "Reset")
@@ -517,7 +510,7 @@ namespace ObdiiMonitor
             try
             {
                 this.controller.LoadController.LoadData(openFileDialog.FileName);
-                this.MapButton.Visible = true;
+                this.MapButton.Enabled = true;
             }
             catch (Exception ex)
             {
@@ -949,47 +942,13 @@ namespace ObdiiMonitor
         /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
         private void MapButton_Click(object sender, EventArgs e)
         {
-            if (this.MapButton.Text == "Map")
-            {
-                this.EnterMapMode();
-            }
-            else if (this.MapButton.Text == "Map Now")
-            {
-                foreach (Chart chart in this.chartsSensorGraphs)
-                {
-                    if (chart.ChartAreas[0].CursorX.Position != 0.0)
-                    {
-                        this.MapGpsCoordinate(controller.Gps.get((uint)chart.ChartAreas[0].CursorX.Position));
-                        this.LeaveMapMode();
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Provides user with a way to leave the map mode themselves
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
-        private void CancelMap_Click(object sender, EventArgs e)
-        {
-            this.LeaveMapMode();
-        }
-
-        /// <summary>
-        /// Enters the map mode. Charts have cursor functionality so user can select at what time they want to see GPS location.
-        /// </summary>
-        private void EnterMapMode()
-        {
             foreach (Chart chart in this.chartsSensorGraphs)
             {
-                chart.ChartAreas[0].CursorX.IsUserEnabled = true;
+                if (chart.ChartAreas[0].CursorX.Position != 0.0)
+                {
+                    this.MapGpsCoordinate(controller.Gps.get((uint)chart.ChartAreas[0].CursorX.Position));
+                }
             }
-            this.MapButton.Text = "Map Now";
-            this.HelpText.Visible = true;
-            this.HelpText.Text = "Select point to map, then click \"Map Now\"";
-            this.CancelMapButton.Visible = true;
-            this.InMapMode = true;
         }
 
         /// <summary>
@@ -1007,23 +966,6 @@ namespace ObdiiMonitor
             return;
 
         }
-
-        /// <summary>
-        /// Leaves the map mode.
-        /// </summary>
-        private void LeaveMapMode()
-        {
-            foreach (Chart chart in this.chartsSensorGraphs)
-            {
-                chart.ChartAreas[0].CursorX.IsUserEnabled = false;
-                chart.ChartAreas[0].CursorX.Position = 0.0;
-            }
-            this.MapButton.Text = "Map";
-            this.CancelMapButton.Visible = false;
-            this.HelpText.Visible = false;
-            this.InMapMode = false;
-        }
-
     }
 }
 
