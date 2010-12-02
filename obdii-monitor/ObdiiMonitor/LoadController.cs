@@ -84,7 +84,7 @@ namespace ObdiiMonitor
 
                 // send what should be a single poll response to the SensorData.loadData function that will construct a PollResponse object
                 // and store them in order in the pollRespnses member, any error checking of a bad data parameter will occur there
-                this.controller.SensorData.loadData(data);
+                this.controller.LoadController.loadData(data);
             }
 
             ArrayList nsIndex = new ArrayList();
@@ -153,6 +153,31 @@ namespace ObdiiMonitor
             this.controller.MainWindow.ShowResetButton();
 
             this.controller.MainWindow.Cursor = Cursors.Default;
+        }
+
+        public void loadData(byte[] data)
+        {
+            try
+            {
+                PollResponse response = new PollResponse(controller, data);
+                controller.SensorData.PollResponses.Add(response);
+                if (response.DataType == "GP")
+                    controller.Gps.GpsList.Add(new GPSCoordinate(response));
+                else if (response.DataType == "TC")
+                    controller.TcWindow.Set_Data(response.Time, response.Data);
+                else if (response.DataType == "GT")
+                    controller.TimeOfDayConverter.setBaseTime(response.Time, response.Data);
+                else if (response.DataType == "CF")
+                {
+                    this.controller.Config = response.Data2;
+                    this.controller.MainWindow.PopulateSelectionWindow();
+                }
+
+            }
+            catch (Exception e)
+            {
+                return;
+            }
         }
 
         /// <summary>

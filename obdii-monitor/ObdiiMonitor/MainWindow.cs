@@ -70,7 +70,7 @@ namespace ObdiiMonitor
             configs = new ArrayList();
             panelSensorGraphs.Visible = false;
             comboBoxComPort.SelectedIndex = 3;
-            comboBoxMeasurement.SelectedIndex = 1;
+            comboBoxMeasurement.SelectedIndex = 0;
             this.Resize += new System.EventHandler(this.Resizing);
             this.troubleCodesToolStripMenuItem.Enabled = false;
             buttonGet.Enabled = false;
@@ -437,7 +437,7 @@ namespace ObdiiMonitor
                     loop++;
                 }
 
-                controller.SensorData.loadData(response);
+                controller.LoadController.loadData(response);
 
                 labelStatus.Text = comboBoxComPort.Text + " successfully connected.";
 

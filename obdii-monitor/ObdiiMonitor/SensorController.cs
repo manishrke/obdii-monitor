@@ -202,25 +202,6 @@ namespace ObdiiMonitor
             receiving.Start();
         }
 
-        public void stopPollingReceiving()
-        {
-            if (receiving != null)
-            {
-                receiving.Abort();
-            }
-        }
-
-        public int returnLength(string dataTag)
-        {
-            foreach (Sensor sensor in sensors)
-            {
-                if (sensor.Pid == dataTag)
-                    return sensor.Bytes;
-            }
-
-            return -1;
-        }
-
         /// <summary>
         /// Returns either the US or metric unit of index i of SelectedSensors
         /// </summary>

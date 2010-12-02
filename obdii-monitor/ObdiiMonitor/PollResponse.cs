@@ -196,7 +196,7 @@ namespace ObdiiMonitor
                 return controller.AccelerometerConverver.convert(data2).ToString();
             }
 
-            if (this.dataType == "GP")
+            if (this.dataType == "GP" || this.dataType == "TC")
             {
                 return this.data;
             }

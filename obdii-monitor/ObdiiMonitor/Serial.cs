@@ -39,19 +39,6 @@ namespace ObdiiMonitor
                 serialPort.ReadTimeout = 1000;
                 serialPort.ReadBufferSize = 256;
                 serialPort.Open();
- /*               // initialize the elm
-                serialPort.WriteLine("ATZ\r");
-                while (serialPort.ReadChar() != '>')
-                    ;
-                // turn echo off
-                serialPort.WriteLine("ATE0\r");
-                while (serialPort.ReadChar() != '>')
-                    ;
-                serialPort.WriteLine("ATS0\r");
-                while (serialPort.ReadChar() != '>')
-                    ;
-                // turn line feeds on
-                serialPort.WriteLine("ATL1\r");*/
                 serialPort.ReadTimeout = 300;
             }
             catch (Exception ex)

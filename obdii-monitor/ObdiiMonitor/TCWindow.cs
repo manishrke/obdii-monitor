@@ -134,7 +134,7 @@ namespace ObdiiMonitor
                 loop++;
             }
 
-            controller.SensorData.loadData(response);
+            controller.LoadController.loadData(response);
         }
 
         private void btnreset_Click(object sender, EventArgs e)

@@ -9,8 +9,6 @@ namespace ObdiiMonitor
 {
     public class SensorData
     {
-        private static string SENSOR_RESPONSE = "41";
-        private static string TC_RESPONSE = "43";
         private Controller controller;
 
         internal Controller Controller
@@ -23,35 +21,6 @@ namespace ObdiiMonitor
         public ArrayList PollResponses
         {
             get { return pollResponses; }
-        }
-
-
-        public void loadData(byte[] data)
-        {
-            try
-            {
-                PollResponse response = new PollResponse(controller, data);
-                pollResponses.Add(response);
-                if (response.DataType == "GP")
-                    controller.Gps.GpsList.Add(new GPSCoordinate(response));
-                else if (response.DataType == "TC")
-                    controller.TcWindow.Set_Data(response.Time, response.Data);
-                else if (response.DataType == "GT")
-                    controller.TimeOfDayConverter.setBaseTime(response.Time, response.Data);
-                else if (response.DataType == "CF")
-                {
-                    this.controller.Config = response.Data2;
-                    this.controller.MainWindow.PopulateSelectionWindow();
-                }
-                else
-                {
-                    controller.MainWindow.GraphQueue.Enqueue(response);
-                }
-            }
-            catch (Exception e)
-            {
-                return;
-            }
         }
 
         internal void clearPollResponses()
