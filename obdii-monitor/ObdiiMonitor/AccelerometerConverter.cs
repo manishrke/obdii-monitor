@@ -47,10 +47,6 @@ namespace ObdiiMonitor
                 return -1;
             }
 
-            if ((data[1] & 0x80)==1) return 0;
-            if (data[1] > 10) return 0;
-            return data[1];
-
             if (calibrationReading == null)
             {
                 calibrationReading = new int[3];
@@ -63,10 +59,6 @@ namespace ObdiiMonitor
                         calibrationReading[i] = data[0];
                 }
             }
-
-            if ((data[1] & 0x80) == 1) return 0;
-            if (data[1] > 10) return 0;
-            return (data[1] - calibrationReading[1]) * .024 * 9.81;
 
             int[] values = new int[3];
 
@@ -83,8 +75,13 @@ namespace ObdiiMonitor
             }
 
             // calculate the value for m/s^2 by squaring all adjusted values and taking square root
-            // it then converts it to m/h/s for english units
-            return Math.Sqrt(values[0] * values[0] + values[1] * values[1] + values[2] * values[2]) * 0.000621371192 * 3600/ 1000;
+            double d = Math.Sqrt(values[0] * values[0] + values[1] * values[1] + values[2] * values[2]) * 9.81/1000;
+            
+            //get rid of all freakishly high values
+            if (d > 10)
+                return 0;
+
+            return d;
         }
     }
 }
