@@ -153,6 +153,7 @@ namespace ObdiiMonitor
                 chartAreas[i].AlignmentStyle = AreaAlignmentStyles.All;
                 chartAreas[i].AxisX.IsReversed = true;
                 chartAreas[i].CursorX.IsUserEnabled = true;
+                chartAreas[i].CursorX.Position = 0;
                 
                 // While "InsideArea" may seem like the reverse of what we want, the Double.MaxValue Crossing reverses the meaning of Inside and Outside area.
                 chartAreas[i].AxisX.Crossing = Double.MaxValue;
