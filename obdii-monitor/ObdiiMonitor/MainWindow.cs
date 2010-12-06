@@ -441,7 +441,7 @@ namespace ObdiiMonitor
                     loop++;
                 }
 
-                controller.LoadController.loadData(response);
+                controller.LoadController.LoadData(response);
 
                 labelStatus.Text = comboBoxComPort.Text + " successfully connected.";
 

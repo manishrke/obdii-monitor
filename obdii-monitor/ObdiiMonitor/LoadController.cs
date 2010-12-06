@@ -1,10 +1,8 @@
-﻿// <copyright file="LoadController.cs" company="University of Louisville">
-// Copyright (c) 2010 All Rights Reserved
+﻿//-----------------------------------------------------------------------
+// <copyright file="LoadController.cs" company="University of Louisville">
+//     Copyright (c) 2010 All Rights Reserved
 // </copyright>
-// <author>Bradley Schoch</author>
-// <author>Nicholas Bell</author>
-// <date>2010-10-16</date>
-// <summary>Contains functions for loading log data from a file and displaying this data to a graph</summary>
+//-----------------------------------------------------------------------
 namespace ObdiiMonitor
 {
     using System;
@@ -20,7 +18,10 @@ namespace ObdiiMonitor
     /// </summary>
     public class LoadController
     {
-        public static uint DefaultEndTime = 600000;
+        /// <summary>
+        /// Be default, only the first DefaultEndTime ms will be displayed when loaded.  More can be shown by the user after load.
+        /// </summary>
+        private static uint defaultEndTime = 600000;
 
         /// <summary>
         /// See Controller.cs
@@ -29,12 +30,55 @@ namespace ObdiiMonitor
         private Controller controller;
 
         /// <summary>
+        /// Gets the default end time.
+        /// </summary>
+        /// <value>The default end time.</value>
+        public static uint DefaultEndTime
+        {
+            get { return defaultEndTime; }
+        }
+
+        /// <summary>
         /// Sets the controller.
         /// </summary>
         /// <value>The controller.</value>
         internal Controller Controller
         {
             set { this.controller = value; }
+        }
+
+        /// <summary>
+        /// Loads the data from the file, interpreting control codes as it reads
+        /// </summary>
+        /// <param name="data">The data file stream.</param>
+        public void LoadData(byte[] data)
+        {
+            try
+            {
+                PollResponse response = new PollResponse(this.controller, data);
+                this.controller.SensorData.PollResponses.Add(response);
+                if (response.DataType == "GP")
+                {
+                    this.controller.Gps.GpsList.Add(new GPSCoordinate(response));
+                }
+                else if (response.DataType == "TC")
+                {
+                    this.controller.TcWindow.Set_Data(response.Time, response.Data);
+                }
+                else if (response.DataType == "GT")
+                {
+                    this.controller.TimeOfDayConverter.setBaseTime(response.Time, response.Data);
+                }
+                else if (response.DataType == "CF")
+                {
+                    this.controller.Config = response.Data2;
+                    this.controller.MainWindow.PopulateSelectionWindow();
+                }
+            }
+            catch (Exception e)
+            {
+                return;
+            }
         }
 
         /// <summary>
@@ -47,12 +91,13 @@ namespace ObdiiMonitor
         /// <param name="fileName">Name of the file.</param>
         internal void LoadData(string fileName)
         {
-            ConvertSensorData.US = controller.US;
+            ConvertSensorData.US = this.controller.US;
 
             this.controller.Reset();
 
             // open the FileStream of the fileName
             FileStream fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
+
             // while more to read
             while (fileStream.Position < fileStream.Length)
             {
@@ -84,39 +129,48 @@ namespace ObdiiMonitor
 
                 // send what should be a single poll response to the SensorData.loadData function that will construct a PollResponse object
                 // and store them in order in the pollRespnses member, any error checking of a bad data parameter will occur there
-                this.controller.LoadController.loadData(data);
+                this.controller.LoadController.LoadData(data);
             }
 
             ArrayList nsIndex = new ArrayList();
+
             // scan through entire list of sensors looking for multiple NS tags
-            for (int i = 0; i < controller.SensorData.PollResponses.Count; ++i)
+            for (int i = 0; i < this.controller.SensorData.PollResponses.Count; ++i)
             {
-                if (((PollResponse)controller.SensorData.PollResponses[i]).DataType == "NS")
+                if (((PollResponse)this.controller.SensorData.PollResponses[i]).DataType == "NS")
+                {
                     nsIndex.Add(i);
+                }
             }
 
             // if nsIndex has a count of more than one, separate into separate files.
             if (nsIndex.Count > 1)
             {
-                string directoryName = controller.MainWindow.getSplitDirectoryName();
+                string directoryName = this.controller.MainWindow.getSplitDirectoryName();
 
-                if (directoryName == "")
+                if (directoryName == string.Empty)
+                {
                     return;
+                }
 
                 int start = (int)nsIndex[0];
                 int fileNme = 0;
                 for (int i = 0; i < nsIndex.Count; ++i)
                 {
                     while (File.Exists(directoryName + "/" + fileNme))
+                    {
                         ++fileNme;
+                    }
 
                     if (i < nsIndex.Count - 1)
                     {
-                        controller.SaveController.saveData(directoryName + "/" + fileNme, start, (int)nsIndex[i+1]);
-                        start = (int)nsIndex[i+1];
+                        this.controller.SaveController.saveData(directoryName + "/" + fileNme, start, (int)nsIndex[i + 1]);
+                        start = (int)nsIndex[i + 1];
                     }
                     else
-                        controller.SaveController.saveData(directoryName + "/" + fileNme, start, controller.SensorData.PollResponses.Count);
+                    {
+                        this.controller.SaveController.saveData(directoryName + "/" + fileNme, start, this.controller.SensorData.PollResponses.Count);
+                    }
                 }
 
                 MessageBox.Show("Data file successfully split up to the path " + directoryName);
@@ -124,17 +178,21 @@ namespace ObdiiMonitor
                 return;
             }
 
-            controller.MainWindow.Cursor = Cursors.WaitCursor;
+            this.controller.MainWindow.Cursor = Cursors.WaitCursor;
 
-            uint startTime = 0, endTime = 0, totalMs = ((PollResponse)controller.SensorData.PollResponses[controller.SensorData.PollResponses.Count - 1]).Time;
+            uint startTime = 0, endTime = 0, totalMs = ((PollResponse)this.controller.SensorData.PollResponses[this.controller.SensorData.PollResponses.Count - 1]).Time;
 
-            if (totalMs < DefaultEndTime)
+            if (totalMs < defaultEndTime)
+            {
                 endTime = totalMs;
+            }
             else
-                endTime = DefaultEndTime;
+            {
+                endTime = defaultEndTime;
+            }
 
-            controller.MainWindow.setTotalMsLabel(totalMs);
-            controller.MainWindow.setStartTimeEndTime(startTime, endTime);
+            this.controller.MainWindow.setTotalMsLabel(totalMs);
+            this.controller.MainWindow.setStartTimeEndTime(startTime, endTime);
 
             // now that the data has been loaded into the software
             // create a series of graphs to represent the data
@@ -153,31 +211,6 @@ namespace ObdiiMonitor
             this.controller.MainWindow.ShowResetButton();
 
             this.controller.MainWindow.Cursor = Cursors.Default;
-        }
-
-        public void loadData(byte[] data)
-        {
-            try
-            {
-                PollResponse response = new PollResponse(controller, data);
-                controller.SensorData.PollResponses.Add(response);
-                if (response.DataType == "GP")
-                    controller.Gps.GpsList.Add(new GPSCoordinate(response));
-                else if (response.DataType == "TC")
-                    controller.TcWindow.Set_Data(response.Time, response.Data);
-                else if (response.DataType == "GT")
-                    controller.TimeOfDayConverter.setBaseTime(response.Time, response.Data);
-                else if (response.DataType == "CF")
-                {
-                    this.controller.Config = response.Data2;
-                    this.controller.MainWindow.PopulateSelectionWindow();
-                }
-
-            }
-            catch (Exception e)
-            {
-                return;
-            }
         }
 
         /// <summary>
@@ -202,9 +235,9 @@ namespace ObdiiMonitor
                         set.Add(response.Data.Substring(0, 2));
                     }
                 }
-                // if the data type is the accellerometer
                 else if (response.DataType == "AC")
-                {
+                {   
+                    // if the data type is the accelerometer
                     set.Add(response.DataType);
                 }
             }
