@@ -539,7 +539,7 @@ namespace ObdiiMonitor
         /// <param name="pt">The datapoint for which to set the ToolTip property.</param>
         private void CreateDataPointToolTip(DataPoint pt, string unit)
         {
-            pt.ToolTip = "Value:\t" + pt.YValues[0].ToString() + " " + unit + "\nTime:\t" + controller.TimeOfDayConverter.get(pt.XValue) + " GMT" + "\nGPS:\t" + controller.Gps.get((uint)pt.XValue);
+            pt.ToolTip = "Value:\t" + pt.YValues[0].ToString() + " " + unit + "\nTime:\t" + controller.TimeOfDayConverter.get(pt.XValue) + " GMT" + "\nGPS:\t" + controller.Gps.Get((uint)pt.XValue);
         }
 
         /// <summary>
@@ -697,7 +697,7 @@ namespace ObdiiMonitor
                                     foreach (DataPoint point in series.Points)
                                     {
                                         sw.WriteLine(this.controller.SensorController.SelectedSensors[i].Label + "," +
-                                            controller.TimeOfDayConverter.get(point.XValue) + "," + point.YValues[0] + "," + controller.Gps.get((uint)point.XValue));
+                                            controller.TimeOfDayConverter.get(point.XValue) + "," + point.YValues[0] + "," + controller.Gps.Get((uint)point.XValue));
                                     }
                                 }
                             }
@@ -950,7 +950,7 @@ namespace ObdiiMonitor
             {
                 if (chart.ChartAreas[0].CursorX.Position != 0.0)
                 {
-                    this.MapGpsCoordinate(controller.Gps.get((uint)chart.ChartAreas[0].CursorX.Position));
+                    this.MapGpsCoordinate(controller.Gps.Get((uint)chart.ChartAreas[0].CursorX.Position));
                 }
             }
         }
