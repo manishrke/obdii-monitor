@@ -193,7 +193,7 @@ namespace ObdiiMonitor
 
             if (this.dataType == "AC")
             {
-                return controller.AccelerometerConverver.Convert(data2).ToString();
+                return controller.AccelerometerConverter.Convert(data2).ToString();
             }
 
             if (this.dataType == "GP" || this.dataType == "TC")

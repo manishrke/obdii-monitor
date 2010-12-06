@@ -49,7 +49,7 @@ namespace ObdiiMonitor
         {
             ConvertSensorData.US = controller.US;
 
-            this.controller.reset();
+            this.controller.Reset();
 
             // open the FileStream of the fileName
             FileStream fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);

@@ -221,7 +221,7 @@ namespace ObdiiMonitor
                 troubleCodesToolStripMenuItem.Enabled = false;
                 controller.TcWindow.Hide();
                 comboBoxMeasurement.Enabled = false;
-                controller.reset();
+                controller.Reset();
 
                 ArrayList numsSelected = new ArrayList();
 
@@ -269,7 +269,7 @@ namespace ObdiiMonitor
                 comboBoxMeasurement.Enabled = true;
                 this.ShowResetButton();
                 this.controller.Serial.sendCommand(STOP);
-                this.controller.cancelAllThreads();
+                this.controller.CancelAllThreads();
                 resetGraphs();
                 if ((controller.SensorData.PollResponses != null)&&(controller.SensorData.PollResponses.Count != 0))
                 {
@@ -304,7 +304,7 @@ namespace ObdiiMonitor
         internal void ShowResetButton()
         {
             buttonCollect.Text = "Reset";
-            this.controller.cancelAllThreads();
+            this.controller.CancelAllThreads();
         }
 
         internal void ShowSensorSelectionPanel()
@@ -461,7 +461,7 @@ namespace ObdiiMonitor
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            this.controller.cancelAllThreads();
+            this.controller.CancelAllThreads();
 
             if ((this.controller.SensorData.PollResponses == null) || (this.controller.SensorData.PollResponses.Count == 0))
             {
@@ -504,7 +504,7 @@ namespace ObdiiMonitor
                 return;
             }
 
-            this.controller.cancelAllThreads();
+            this.controller.CancelAllThreads();
             if (comboBoxMeasurement.SelectedIndex == 1)
             {
                 controller.US = true;
