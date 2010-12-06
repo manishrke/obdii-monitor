@@ -122,7 +122,7 @@ namespace ObdiiMonitor
         public void reset()
         {
             // reset the calibration reading for the accelerometer as this is a new session.
-            accelerometerConverver.resetCalibrationReading();
+            accelerometerConverver.ResetCalibrationReading();
 
             // clear the pollResponses ArrayList member in SensorData to begin loading in new data
             sensorData.clearPollResponses();
