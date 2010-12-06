@@ -183,7 +183,7 @@ namespace ObdiiMonitor
             {
                 try
                 {
-                    return ConvertSensorData.convert(this.data.Substring(0, 2), this.data.Substring(2), controller.US);
+                    return ConvertSensorData.ConvertData(this.data.Substring(0, 2), this.data.Substring(2), controller.US);
                 }
                 catch
                 {
