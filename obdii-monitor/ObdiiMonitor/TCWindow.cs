@@ -114,21 +114,21 @@ namespace ObdiiMonitor
         }
         private void btnget_Click(object sender, EventArgs e)
         {
-            controller.Serial.flush();
+            controller.Serial.Flush();
             int loop = 0;
 
-            this.controller.Serial.sendCommand("tc");
+            this.controller.Serial.SendCommand("tc");
 
-            byte[] response = controller.Serial.dataReceived();
+            byte[] response = controller.Serial.DataReceived();
 
             while (response == null)
             {
-                response = controller.Serial.dataReceived();
+                response = controller.Serial.DataReceived();
                 Thread.Sleep(300);
                 if (loop > 30)
                 {
-                    this.controller.Serial.flush();
-                    this.controller.Serial.sendCommand("tc");
+                    this.controller.Serial.Flush();
+                    this.controller.Serial.SendCommand("tc");
                     loop = 0;
                 }
                 loop++;
@@ -142,7 +142,7 @@ namespace ObdiiMonitor
             if (DialogResult.Yes == MessageBox.Show("This will clear all codes and sensor data. Are you sure you want to Reset Trouble Codes?",
                             "Reset Trouble Codes", MessageBoxButtons.YesNo, MessageBoxIcon.Question))
             {
-                this.controller.Serial.sendCommand("tr");
+                this.controller.Serial.SendCommand("tr");
                 Codes = "0000";
                 dataGridView1.Rows.Clear();
             }

@@ -568,9 +568,9 @@ namespace ObdiiMonitor
 
                 this.controller.SensorController.InitializeSelectedSensors(numsSelected);
                 this.SaveConfig();
-                this.controller.Serial.sendConfig();
+                this.controller.Serial.SendConfig();
                 this.controller.SensorController.InitializeReceivingThreads();
-                this.controller.Serial.sendCommand(collectCommand);
+                this.controller.Serial.SendCommand(collectCommand);
                 this.PopulateGraphWindow();
                 this.ShowSensorDataPanel();
                 this.buttonCollect.Text = "Stop";
@@ -582,7 +582,7 @@ namespace ObdiiMonitor
                 troubleCodesToolStripMenuItem.Enabled = true;
                 comboBoxMeasurement.Enabled = true;
                 this.ShowResetButton();
-                this.controller.Serial.sendCommand(stopCommand);
+                this.controller.Serial.SendCommand(stopCommand);
                 this.controller.CancelAllThreads();
                 this.ResetGraphs();
                 if ((this.controller.SensorData.PollResponses != null) && (this.controller.SensorData.PollResponses.Count != 0))
@@ -604,7 +604,7 @@ namespace ObdiiMonitor
             }
             else if (buttonCollect.Text == "Reset")
             {
-                this.controller.Serial.sendCommand(requestConfigCommand);
+                this.controller.Serial.SendCommand(requestConfigCommand);
                 Thread.Sleep(300);
                 this.configPanelSensors.Clear();
                 if (comboBoxMeasurement.SelectedIndex == 1)
@@ -670,19 +670,19 @@ namespace ObdiiMonitor
         {
             try
             {
-                this.controller.Serial.initialize(comboBoxComPort.Text);
+                this.controller.Serial.Initialize(comboBoxComPort.Text);
                 labelStatus.Text = comboBoxComPort.Text + " now open.";
-                this.controller.Serial.sendCommand(stopCommand);
+                this.controller.Serial.SendCommand(stopCommand);
                 Thread.Sleep(300);
-                this.controller.Serial.flush();
-                this.controller.Serial.sendCommand(requestConfigCommand);
+                this.controller.Serial.Flush();
+                this.controller.Serial.SendCommand(requestConfigCommand);
                 Thread.Sleep(300);
 
-                byte[] response = this.controller.Serial.dataReceived();
+                byte[] response = this.controller.Serial.DataReceived();
                 int loop = 0;
                 while (response == null)
                 {
-                    response = this.controller.Serial.dataReceived();
+                    response = this.controller.Serial.DataReceived();
                     Thread.Sleep(300);
                     if (loop > 10)
                     {

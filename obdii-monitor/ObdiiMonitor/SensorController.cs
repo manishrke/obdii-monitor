@@ -203,7 +203,7 @@ namespace ObdiiMonitor
             {
                 try
                 {
-                    byte[] buffer = this.controller.Serial.dataReceived();
+                    byte[] buffer = this.controller.Serial.DataReceived();
 
                     if (buffer == null)
                     {
