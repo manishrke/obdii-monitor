@@ -1,10 +1,8 @@
-﻿// <copyright file="PollResponse.cs" company="University of Louisville">
-// Copyright (c) 2010 All Rights Reserved
+﻿//-----------------------------------------------------------------------
+// <copyright file="Program.cs" company="University of Louisville">
+//     Copyright (c) 2010 All Rights Reserved
 // </copyright>
-// <author>Bradley Schoch</author>
-// <author>Nicholas Bell</author>
-// <date>2010-10-16</date>
-// <summary>Contains logic for handling responses to polls.</summary>
+//-----------------------------------------------------------------------
 namespace ObdiiMonitor
 {
     using System;
@@ -16,30 +14,33 @@ namespace ObdiiMonitor
     /// <summary>
     /// Contains logic for handling responses to polls.
     /// </summary>
-    class PollResponse
+    public class PollResponse
     {
         /// <summary>
-        /// See Controller.cs
-        /// TODO: Possibly explain what this actually does.
+        /// Data that indicates the beginning of the data to be read.
         /// </summary>
-        private Controller controller;
+        private static char startTag = '\x00EE';
 
         /// <summary>
-        /// Dataword that indicates the beginning of the data to be read.
+        /// Tag that symbolizes a Config File
+        /// Not currently implemented.
         /// </summary>
-        public static char StartTag = '\x00EE';
-
-        public static string ConfigTag = "CF";
+        private static string configTag = "CF";
 
         /// <summary>
-        /// Length of the above start tagn, in bytes.
+        /// Length of the above start tag, in bytes.
         /// </summary>
-        public static int StartTagLength = 2;
+        private static int startTagLength = 2;
 
         /// <summary>
         /// Index of the first byte to decode
         /// </summary>
-        public static int ConstantStart = 8;
+        private static int constantStart = 8;
+
+        /// <summary>
+        /// Reference to controller in MVC pattern
+        /// </summary>
+        private Controller controller;
 
         /// <summary>
         /// Type of data being read (for example: "OB")
@@ -47,27 +48,9 @@ namespace ObdiiMonitor
         private string dataType;
 
         /// <summary>
-        /// Gets the type of the data.
-        /// </summary>
-        /// <value>The type of the data.</value>
-        public string DataType
-        {
-            get { return this.dataType; }
-        }
-
-        /// <summary>
         /// Length of the poll response, in bytes
         /// </summary>
         private int length;
-
-        /// <summary>
-        /// Gets the length.
-        /// </summary>
-        /// <value>The length.</value>
-        public int Length
-        {
-            get { return this.length; }
-        }
 
         /// <summary>
         /// The data in the poll response
@@ -75,46 +58,19 @@ namespace ObdiiMonitor
         private string data;
 
         /// <summary>
-        /// Gets the data.
-        /// </summary>
-        /// <value>The collected data.</value>
-        public string Data
-        {
-            get { return this.data; }
-        }
-
-        /// <summary>
         /// The data in the poll response
         /// </summary>
         private byte[] data2;
 
         /// <summary>
-        /// Gets the data.
-        /// </summary>
-        /// <value>The collected data.</value>
-        public byte[] Data2
-        {
-            get { return this.data2; }
-        }
-
-        /// <summary>
-        /// Time that the data was collected
-        /// TODO: Specify format of time
+        /// Time that the data was collected in ms
         /// </summary>
         private uint time;
 
         /// <summary>
-        /// Gets the time.
-        /// </summary>
-        /// <value>The time data was collected.</value>
-        public uint Time
-        {
-            get { return this.time; }
-        }
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="PollResponse"/> class.
         /// </summary>
+        /// <param name="controller">The controller reference.</param>
         /// <param name="time">The time data was collected.</param>
         /// <param name="data">The data that was collected.</param>
         /// <param name="dataType">Type of the data.</param>
@@ -131,6 +87,7 @@ namespace ObdiiMonitor
         /// <summary>
         /// Initializes a new instance of the <see cref="PollResponse"/> class.
         /// </summary>
+        /// <param name="controller">The controller reference.</param>
         /// <param name="bytes">The bytes.</param>
         public PollResponse(Controller controller, byte[] bytes)
         {
@@ -141,14 +98,14 @@ namespace ObdiiMonitor
                 throw new Exception();
             }
 
-            if (bytes[0] != StartTag)
+            if (bytes[0] != startTag)
             {
                 throw new Exception();
             }
 
             this.length = bytes[1];
 
-            if ((this.length + StartTagLength) != bytes.Length)
+            if ((this.length + startTagLength) != bytes.Length)
             {
                 throw new Exception();
             }
@@ -161,16 +118,80 @@ namespace ObdiiMonitor
 
             if (this.dataType == "OB" || this.dataType == "GP" || this.dataType == "GT" || this.dataType == "TC")
             {
-                this.data = enc.GetString(bytes, ConstantStart, this.length - ConstantStart + StartTagLength);
+                this.data = enc.GetString(bytes, constantStart, this.length - constantStart + startTagLength);
             }
             else if (this.dataType != "MK" && this.dataType != "NS")
             {
-                data2 = new byte[this.length - ConstantStart + StartTagLength];
-                Array.Copy(bytes, ConstantStart, data2, 0, this.length - ConstantStart + StartTagLength);
-                if (data2.Length != 3 && this.dataType == "AC")
+                this.data2 = new byte[this.length - constantStart + startTagLength];
+                Array.Copy(bytes, constantStart, this.data2, 0, this.length - constantStart + startTagLength);
+                if (this.data2.Length != 3 && this.dataType == "AC")
+                {
                     throw new Exception();
+                }
             }
+        }
 
+        /// <summary>
+        /// Gets the start tag.
+        /// </summary>
+        /// <value>Data that indicates the beginning of the data to be read.</value>
+        public static char StartTag
+        {
+            get { return startTag; }
+        }
+
+        /// <summary>
+        /// Gets the length of the start tag in bytes.
+        /// </summary>
+        /// <value>Byte length of start tag.</value>
+        public static int StartTagLength
+        {
+            get { return startTagLength; }
+        }
+
+        /// <summary>
+        /// Gets the type of the data.
+        /// </summary>
+        /// <value>The type of the data.</value>
+        public string DataType
+        {
+            get { return this.dataType; }
+        }
+
+        /// <summary>
+        /// Gets the length of the poll response in bytes.
+        /// </summary>
+        /// <value>Byte length of the poll response.</value>
+        public int Length
+        {
+            get { return this.length; }
+        }
+
+        /// <summary>
+        /// Gets the data.
+        /// </summary>
+        /// <value>The collected data.</value>
+        public string Data
+        {
+            get { return this.data; }
+        }
+
+        /// <summary>
+        /// Gets the data.
+        /// </summary>
+        /// <value>The collected data.</value>
+        public byte[] Data2
+        {
+            get { return this.data2; }
+        }
+
+        /// <summary>
+        /// Gets the time.
+        /// </summary>
+        /// <value>The time data was collected.</value>
+        public uint Time
+        {
+            get { return this.time; }
         }
 
         /// <summary>
@@ -179,11 +200,11 @@ namespace ObdiiMonitor
         /// <returns>Converted data.</returns>
         public string ConvertData()
         {
-            if ((this.data != null)&&(this.data.Length > 2) && (this.dataType == "OB"))
+            if ((this.data != null) && (this.data.Length > 2) && (this.dataType == "OB"))
             {
                 try
                 {
-                    return ConvertSensorData.ConvertData(this.data.Substring(0, 2), this.data.Substring(2), controller.US);
+                    return ConvertSensorData.ConvertData(this.data.Substring(0, 2), this.data.Substring(2), this.controller.US);
                 }
                 catch
                 {
@@ -193,7 +214,7 @@ namespace ObdiiMonitor
 
             if (this.dataType == "AC")
             {
-                return controller.AccelerometerConverter.Convert(data2).ToString();
+                return this.controller.AccelerometerConverter.Convert(this.data2).ToString();
             }
 
             if (this.dataType == "GP" || this.dataType == "TC")
@@ -201,7 +222,7 @@ namespace ObdiiMonitor
                 return this.data;
             }
 
-            return "";
+            return string.Empty;
         }
 
         /// <summary>
@@ -214,30 +235,37 @@ namespace ObdiiMonitor
 
             System.Text.UTF8Encoding encoding = new System.Text.UTF8Encoding();
 
-            stream.Write(System.BitConverter.GetBytes(StartTag), 0, 1);
+            stream.Write(System.BitConverter.GetBytes(startTag), 0, 1);
 
             if (this.dataType == "OB" || this.dataType == "GP" || this.dataType == "GT" || this.dataType == "TC")
-                stream.Write(System.BitConverter.GetBytes(this.data.Length + ConstantStart - StartTagLength), 0, 1);
+            {
+                stream.Write(System.BitConverter.GetBytes(this.data.Length + constantStart - startTagLength), 0, 1);
+            }
             else if (this.dataType == "MK" || this.dataType == "NS")
             {
-                stream.Write(System.BitConverter.GetBytes(ConstantStart - StartTagLength), 0, 1);
+                stream.Write(System.BitConverter.GetBytes(constantStart - startTagLength), 0, 1);
             }
             else
-                stream.Write(System.BitConverter.GetBytes(this.data2.Length + ConstantStart - StartTagLength), 0, 1);
-
+            {
+                stream.Write(System.BitConverter.GetBytes(this.data2.Length + constantStart - startTagLength), 0, 1);
+            }
 
             stream.Write(System.BitConverter.GetBytes(this.time), 0, System.BitConverter.GetBytes(this.time).Length);
 
             stream.Write(encoding.GetBytes(this.dataType), 0, encoding.GetBytes(this.dataType).Length);
 
             if (this.dataType == "OB" || this.dataType == "GP" || this.dataType == "GT" || this.dataType == "TC")
+            {
                 stream.Write(encoding.GetBytes(this.data), 0, encoding.GetBytes(this.data).Length);
-            else if(this.dataType != "MK" && this.dataType != "NS")
-                stream.Write(this.data2, 0, this.data2.Length);    
+            }
+            else if (this.dataType != "MK" && this.dataType != "NS")
+            {
+                stream.Write(this.data2, 0, this.data2.Length);
+            }
 
             stream.Position = 0;
 
-            byte[] bytes = new byte[StartTagLength + this.length];
+            byte[] bytes = new byte[startTagLength + this.length];
 
             stream.Read(bytes, 0, bytes.Length);
 
@@ -252,17 +280,20 @@ namespace ObdiiMonitor
         /// </returns>
         public override string ToString()
         {
-            if (dataType == "AC")
+            if (this.dataType == "AC")
             {
                 ASCIIEncoding enc = new ASCIIEncoding();
-                byte[] nums = data2;
+                byte[] nums = this.data2;
                 return this.length + "-" + this.time + "-" + this.dataType + "-" + nums[0] + "." + nums[1] + "." + nums[2];
             }
-            else if (dataType == "OB" || dataType == "GP" || dataType == "GT" || this.dataType == "TC")
+            else if (this.dataType == "OB" || this.dataType == "GP" || this.dataType == "GT" || this.dataType == "TC")
+            {
                 return this.length + "-" + this.time + "-" + this.dataType + "-" + this.data;
+            }
             else
+            {
                 return this.length + "-" + this.time + "-" + this.dataType;
-
+            }
         }
     }
 }
