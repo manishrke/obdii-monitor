@@ -228,7 +228,7 @@ namespace ObdiiMonitor
             this.accelerometerConverter.ResetCalibrationReading();
 
             // clear the pollResponses ArrayList member in SensorData to begin loading in new data
-            this.sensorData.clearPollResponses();
+            this.sensorData.ClearPollResponses();
 
             // Clear the GraphQueue, not sure if the GraphQueue will stick around.
             this.mainWindow.GraphQueue.Clear();
