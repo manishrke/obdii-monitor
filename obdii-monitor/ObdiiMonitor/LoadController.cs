@@ -67,7 +67,7 @@ namespace ObdiiMonitor
                 }
                 else if (response.DataType == "GT")
                 {
-                    this.controller.TimeOfDayConverter.setBaseTime(response.Time, response.Data);
+                    this.controller.TimeOfDayConverter.SetBaseTime(response.Time, response.Data);
                 }
                 else if (response.DataType == "CF")
                 {

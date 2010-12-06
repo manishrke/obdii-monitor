@@ -817,7 +817,7 @@ namespace ObdiiMonitor
         /// <param name="unit">The unit (e.g., s, km, etc.)</param>
         private void CreateDataPointToolTip(DataPoint pt, string unit)
         {
-            pt.ToolTip = "Value:\t" + pt.YValues[0].ToString() + " " + unit + "\nTime:\t" + this.controller.TimeOfDayConverter.get(pt.XValue) + " GMT" + "\nGPS:\t" + this.controller.Gps.Get((uint)pt.XValue);
+            pt.ToolTip = "Value:\t" + pt.YValues[0].ToString() + " " + unit + "\nTime:\t" + this.controller.TimeOfDayConverter.Get(pt.XValue) + " GMT" + "\nGPS:\t" + this.controller.Gps.Get((uint)pt.XValue);
         }
 
         /// <summary>
@@ -870,7 +870,7 @@ namespace ObdiiMonitor
                                     foreach (DataPoint point in series.Points)
                                     {
                                         sw.WriteLine(this.controller.SensorController.SelectedSensors[i].Label + "," +
-                                            this.controller.TimeOfDayConverter.get(point.XValue) + "," + point.YValues[0] + "," + this.controller.Gps.Get((uint)point.XValue));
+                                            this.controller.TimeOfDayConverter.Get(point.XValue) + "," + point.YValues[0] + "," + this.controller.Gps.Get((uint)point.XValue));
                                     }
                                 }
                             }
@@ -929,7 +929,7 @@ namespace ObdiiMonitor
                                 {
                                     foreach (DataPoint point in series.Points)
                                     {
-                                        sw.WriteLine(this.controller.TimeOfDayConverter.get(point.XValue) + "\t\t" + point.YValues[0]);
+                                        sw.WriteLine(this.controller.TimeOfDayConverter.Get(point.XValue) + "\t\t" + point.YValues[0]);
                                     }
                                 }
                             }
@@ -943,7 +943,7 @@ namespace ObdiiMonitor
                         sw.WriteLine(separatorDash);
                         foreach (GPSCoordinate coordinate in this.controller.Gps.GpsList)
                         {
-                            sw.WriteLine(this.controller.TimeOfDayConverter.get(coordinate.Time) + "\t\t" + coordinate);
+                            sw.WriteLine(this.controller.TimeOfDayConverter.Get(coordinate.Time) + "\t\t" + coordinate);
                         }
 
                         sw.Close();

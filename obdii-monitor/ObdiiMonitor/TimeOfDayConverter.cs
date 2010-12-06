@@ -1,25 +1,50 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
+﻿//-----------------------------------------------------------------------
+// <copyright file="TimeOfDayConverter.cs" company="University of Louisville">
+//     Copyright (c) 2010 All Rights Reserved
+// </copyright>
+//-----------------------------------------------------------------------
 namespace ObdiiMonitor
 {
-    class TimeOfDayConverter
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+
+    /// <summary>
+    /// Converts the millisecond count to the actual date and time, given a base time maintained by the class
+    /// </summary>
+    public class TimeOfDayConverter
     {
+        /// <summary>
+        /// Controller in MVC Design Pattern
+        /// </summary>
         private Controller controller;
 
-        public Controller Controller
-        {
-            set { controller = value; }
-        }
-
+        /// <summary>
+        /// DateTime instance used to convert
+        /// </summary>
         private DateTime dateTime = new DateTime();
 
-        public void setBaseTime(uint time, string data)
+        /// <summary>
+        /// Sets the controller reference.
+        /// </summary>
+        /// <value>The controller reference.</value>
+        public Controller Controller
+        {
+            set { this.controller = value; }
+        }
+
+        /// <summary>
+        /// Sets the base time.
+        /// </summary>
+        /// <param name="time">The time already elapsed.</param>
+        /// <param name="data">The data directly from the microcontroller containing current time.</param>
+        public void SetBaseTime(uint time, string data)
         {
             if (data.Length != 12)
+            {
                 return;
+            }
 
             int hour, minutes, seconds, month, day, year;
 
@@ -37,14 +62,19 @@ namespace ObdiiMonitor
                 return;
             }
 
-            dateTime = new DateTime(year + 2000, month, day, hour, minutes, seconds);
+            this.dateTime = new DateTime(year + 2000, month, day, hour, minutes, seconds);
 
-            dateTime = dateTime.Subtract(new TimeSpan(0, 0, 0, 0, (int)time));
+            this.dateTime = this.dateTime.Subtract(new TimeSpan(0, 0, 0, 0, (int)time));
         }
 
-        public string get(double time)
+        /// <summary>
+        /// Gets a human readable representation of the specified time.
+        /// </summary>
+        /// <param name="time">The time in ms.</param>
+        /// <returns>The human readable representation of the time</returns>
+        public string Get(double time)
         {
-            return dateTime.AddMilliseconds(time).ToString("MM/dd/yyyy HH:mm:ss.fff");
+            return this.dateTime.AddMilliseconds(time).ToString("MM/dd/yyyy HH:mm:ss.fff");
         }
     }
 }
