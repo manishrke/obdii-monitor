@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Program.cs" company="University of Louisville">
+// <copyright file="PollResponse.cs" company="University of Louisville">
 //     Copyright (c) 2010 All Rights Reserved
 // </copyright>
 //-----------------------------------------------------------------------

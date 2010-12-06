@@ -743,7 +743,7 @@ namespace ObdiiMonitor
                 return;
             }
 
-            this.controller.SaveController.saveData(saveFileDialog.FileName, 0, this.controller.SensorData.PollResponses.Count);
+            this.controller.SaveController.SaveData(saveFileDialog.FileName, 0, this.controller.SensorData.PollResponses.Count);
         }
 
         /// <summary>

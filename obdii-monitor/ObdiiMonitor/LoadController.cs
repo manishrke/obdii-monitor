@@ -164,12 +164,12 @@ namespace ObdiiMonitor
 
                     if (i < nsIndex.Count - 1)
                     {
-                        this.controller.SaveController.saveData(directoryName + "/" + fileNme, start, (int)nsIndex[i + 1]);
+                        this.controller.SaveController.SaveData(directoryName + "/" + fileNme, start, (int)nsIndex[i + 1]);
                         start = (int)nsIndex[i + 1];
                     }
                     else
                     {
-                        this.controller.SaveController.saveData(directoryName + "/" + fileNme, start, this.controller.SensorData.PollResponses.Count);
+                        this.controller.SaveController.SaveData(directoryName + "/" + fileNme, start, this.controller.SensorData.PollResponses.Count);
                     }
                 }
 
