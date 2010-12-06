@@ -250,9 +250,9 @@ namespace ObdiiMonitor
                 MainWindow.UpdateGraphPlots.Abort();
             }
 
-            if (this.sensorController.receiving != null)
+            if (this.sensorController.Receiving != null)
             {
-                this.sensorController.receiving.Abort();
+                this.sensorController.Receiving.Abort();
             }
         }
     }

@@ -282,7 +282,7 @@ namespace ObdiiMonitor
             {
                 this.labelsSensorGraphs[i] = new Label();
                 this.labelsSensorGraphs[i].AutoSize = true;
-                this.labelsSensorGraphs[i].Text = this.controller.SensorController.SelectedSensors[i].Label + " ( " + this.controller.SensorController.returnUnit(i) + " ) ";
+                this.labelsSensorGraphs[i].Text = this.controller.SensorController.SelectedSensors[i].Label + " ( " + this.controller.SensorController.ReturnUnit(i) + " ) ";
                 this.labelsSensorGraphs[i].Location = new Point(widthP, heightP + (200 * i));
                 this.panelSensorGraphs.Controls.Add(this.labelsSensorGraphs[i]);
 
@@ -309,7 +309,7 @@ namespace ObdiiMonitor
 
                 // add units to the graphs
                 chartAreas[i].AxisX.Title = "ms (starting at zero) (hover mouse over point for time of day)";
-                chartAreas[i].AxisY.Title = this.controller.SensorController.returnUnit(i);
+                chartAreas[i].AxisY.Title = this.controller.SensorController.ReturnUnit(i);
                 chartAreas[i].AxisX.TitleAlignment = StringAlignment.Near;
 
                 seriesLines[i] = new Series();
@@ -395,7 +395,7 @@ namespace ObdiiMonitor
                                 try
                                 {
                                     series.Points.Add(new DataPoint(response.Time, response.ConvertData()));
-                                    this.CreateDataPointToolTip(series.Points[series.Points.Count - 1], this.controller.SensorController.returnUnit(i));
+                                    this.CreateDataPointToolTip(series.Points[series.Points.Count - 1], this.controller.SensorController.ReturnUnit(i));
                                     this.chartsSensorGraphs[i].ChartAreas[0].AxisX.Maximum = response.Time;
                                 }
                                 catch (Exception e)
@@ -419,7 +419,7 @@ namespace ObdiiMonitor
                                 try
                                 {
                                     series.Points.Add(new DataPoint(response.Time, response.ConvertData()));
-                                    this.CreateDataPointToolTip(series.Points[series.Points.Count - 1], this.controller.SensorController.returnUnit(i));
+                                    this.CreateDataPointToolTip(series.Points[series.Points.Count - 1], this.controller.SensorController.ReturnUnit(i));
                                     this.chartsSensorGraphs[i].ChartAreas[0].AxisX.Maximum = response.Time;
                                 }
                                 catch (Exception e)
@@ -566,10 +566,10 @@ namespace ObdiiMonitor
                     }
                 }
 
-                this.controller.SensorController.initializeSelectedSensors(numsSelected);
+                this.controller.SensorController.InitializeSelectedSensors(numsSelected);
                 this.SaveConfig();
                 this.controller.Serial.sendConfig();
-                this.controller.SensorController.initializeReceivingThreads();
+                this.controller.SensorController.InitializeReceivingThreads();
                 this.controller.Serial.sendCommand(collectCommand);
                 this.PopulateGraphWindow();
                 this.ShowSensorDataPanel();
@@ -651,7 +651,7 @@ namespace ObdiiMonitor
                         }
 
                         series.Points.Add(new DataPoint((double)response.Time, response.ConvertData()));
-                        this.CreateDataPointToolTip(series.Points[series.Points.Count - 1], this.controller.SensorController.returnUnit(i));
+                        this.CreateDataPointToolTip(series.Points[series.Points.Count - 1], this.controller.SensorController.ReturnUnit(i));
                         this.chartsSensorGraphs[i].ChartAreas[0].AxisX.Maximum = response.Time;
                     }
 

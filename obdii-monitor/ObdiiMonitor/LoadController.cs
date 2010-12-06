@@ -257,7 +257,7 @@ namespace ObdiiMonitor
             numsSelected.Sort();
 
             // initialize the selectedSensors member of SensorController
-            this.controller.SensorController.initializeSelectedSensors(numsSelected);
+            this.controller.SensorController.InitializeSelectedSensors(numsSelected);
 
             // create the initial graphs based off the sensors in selectedSensor member of SensorController
             this.controller.MainWindow.PopulateGraphWindow();
