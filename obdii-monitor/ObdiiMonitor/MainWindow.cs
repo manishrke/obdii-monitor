@@ -1127,7 +1127,7 @@ namespace ObdiiMonitor
 
         /// <summary>
         /// Handles the Click event of the MapButton control.
-        /// Will make the cursor visible so a point can be mapped.
+        /// Will map the point in time determined by the CursorX (horizontal cursor) of a visible graph.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
