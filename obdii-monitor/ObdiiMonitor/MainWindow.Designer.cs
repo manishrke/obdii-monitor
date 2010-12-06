@@ -91,14 +91,14 @@
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
             this.saveToolStripMenuItem.Size = new System.Drawing.Size(240, 22);
             this.saveToolStripMenuItem.Text = "Save";
-            this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
+            this.saveToolStripMenuItem.Click += new System.EventHandler(this.SaveToolStripMenuItem_Click);
             // 
             // loadToolStripMenuItem
             // 
             this.loadToolStripMenuItem.Name = "loadToolStripMenuItem";
             this.loadToolStripMenuItem.Size = new System.Drawing.Size(240, 22);
             this.loadToolStripMenuItem.Text = "Load";
-            this.loadToolStripMenuItem.Click += new System.EventHandler(this.loadToolStripMenuItem_Click);
+            this.loadToolStripMenuItem.Click += new System.EventHandler(this.LoadToolStripMenuItem_Click);
             // 
             // ConfigToolStripMenuItem
             // 
@@ -121,21 +121,21 @@
             this.textFileToolStripMenuItem.Name = "textFileToolStripMenuItem";
             this.textFileToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
             this.textFileToolStripMenuItem.Text = "Text File";
-            this.textFileToolStripMenuItem.Click += new System.EventHandler(this.textFileToolStripMenuItem_Click);
+            this.textFileToolStripMenuItem.Click += new System.EventHandler(this.TextFileToolStripMenuItem_Click);
             // 
             // spreadsheetToolStripMenuItem
             // 
             this.spreadsheetToolStripMenuItem.Name = "spreadsheetToolStripMenuItem";
             this.spreadsheetToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
             this.spreadsheetToolStripMenuItem.Text = "Spreadsheet";
-            this.spreadsheetToolStripMenuItem.Click += new System.EventHandler(this.spreadsheetToolStripMenuItem_Click);
+            this.spreadsheetToolStripMenuItem.Click += new System.EventHandler(this.SpreadsheetToolStripMenuItem_Click);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
             this.exitToolStripMenuItem.Size = new System.Drawing.Size(240, 22);
             this.exitToolStripMenuItem.Text = "Exit";
-            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
+            this.exitToolStripMenuItem.Click += new System.EventHandler(this.ExitToolStripMenuItem_Click);
             // 
             // viewToolStripMenuItem
             // 
@@ -150,7 +150,7 @@
             this.troubleCodesToolStripMenuItem.Name = "troubleCodesToolStripMenuItem";
             this.troubleCodesToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.troubleCodesToolStripMenuItem.Text = "Trouble Codes";
-            this.troubleCodesToolStripMenuItem.Click += new System.EventHandler(this.troubleCodesToolStripMenuItem_Click);
+            this.troubleCodesToolStripMenuItem.Click += new System.EventHandler(this.TroubleCodesToolStripMenuItem_Click);
             // 
             // panelSensorSelection
             // 
@@ -168,7 +168,7 @@
             this.buttonCollect.TabIndex = 1;
             this.buttonCollect.Text = "Collect Data";
             this.buttonCollect.UseVisualStyleBackColor = true;
-            this.buttonCollect.Click += new System.EventHandler(this.buttonCollect_Click);
+            this.buttonCollect.Click += new System.EventHandler(this.ButtonCollect_Click);
             // 
             // labelSensorData
             // 
@@ -197,7 +197,7 @@
             this.buttonInitialize.TabIndex = 11;
             this.buttonInitialize.Text = "Initialize";
             this.buttonInitialize.UseVisualStyleBackColor = true;
-            this.buttonInitialize.Click += new System.EventHandler(this.buttonInitialize_Click);
+            this.buttonInitialize.Click += new System.EventHandler(this.ButtonInitialize_Click);
             // 
             // comboBoxComPort
             // 
@@ -293,7 +293,7 @@
             this.buttonGet.TabIndex = 17;
             this.buttonGet.Text = "Get";
             this.buttonGet.UseVisualStyleBackColor = true;
-            this.buttonGet.Click += new System.EventHandler(this.buttonGet_Click);
+            this.buttonGet.Click += new System.EventHandler(this.ButtonGet_Click);
             // 
             // labelStart
             // 

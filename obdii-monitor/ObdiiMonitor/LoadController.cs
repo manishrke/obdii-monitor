@@ -146,7 +146,7 @@ namespace ObdiiMonitor
             // if nsIndex has a count of more than one, separate into separate files.
             if (nsIndex.Count > 1)
             {
-                string directoryName = this.controller.MainWindow.getSplitDirectoryName();
+                string directoryName = this.controller.MainWindow.GetSplitDirectoryName();
 
                 if (directoryName == string.Empty)
                 {
@@ -191,8 +191,8 @@ namespace ObdiiMonitor
                 endTime = defaultEndTime;
             }
 
-            this.controller.MainWindow.setTotalMsLabel(totalMs);
-            this.controller.MainWindow.setStartTimeEndTime(startTime, endTime);
+            this.controller.MainWindow.SetTotalMsLabel(totalMs);
+            this.controller.MainWindow.SetStartTimeEndTime(startTime, endTime);
 
             // now that the data has been loaded into the software
             // create a series of graphs to represent the data
