@@ -1,49 +1,83 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using System.Diagnostics;
-using System.Threading;
-
+﻿//-----------------------------------------------------------------------
+// <copyright file="TCWindow.cs" company="University of Louisville">
+//     Copyright (c) 2010 All Rights Reserved
+// </copyright>
+//-----------------------------------------------------------------------
 namespace ObdiiMonitor
 {
+    using System;
+    using System.Collections.Generic;
+    using System.ComponentModel;
+    using System.Data;
+    using System.Diagnostics;
+    using System.Drawing;
+    using System.Linq;
+    using System.Text;
+    using System.Threading;
+    using System.Windows.Forms;
+
+    /// <summary>
+    /// Trouble Code Window form
+    /// </summary>
     public partial class TCWindow : Form
     {
+        /// <summary>
+        /// Controller in MVC design pattern.
+        /// </summary>
         private Controller controller;
-        private string Codes = "0000";
-        
-        internal Controller Controller
-        {
-            set { controller = value; }
-        }
 
+        /// <summary>
+        /// Contains the trouble codes
+        /// </summary>
+        private string codes = "0000";
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TCWindow"/> class.
+        /// </summary>
         public TCWindow()
         {
             InitializeComponent();
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormIsClosing);
             this.Resize += new System.EventHandler(this.Resizing);
-            Rsize();
+            this.Rsize();
         }
+
+        /// <summary>
+        /// Sets the controller reference.
+        /// </summary>
+        /// <value>The controller reference.</value>
+        internal Controller Controller
+        {
+            set { this.controller = value; }
+        }
+
+        /// <summary>
+        /// Sets the data given a time in ms
+        /// </summary>
+        /// <param name="time">The time in ms.</param>
+        /// <param name="data">The data to set.</param>
         public void Set_Data(uint time, string data)
         {
-            string outdata = "";
+            string outdata = string.Empty;
             for (int i = 0; i < data.Length; i = i + 4)
             {
                 if (0 == (i % 14))
-                    i = i + 2;
-                bool added = false;
-                for (int j = 0; j < Codes.Length; j = j + 4)
                 {
-                    if (data.Substring(i,4) == Codes.Substring(j,4))
-                        added = true;
+                    i = i + 2;
                 }
+
+                bool added = false;
+                for (int j = 0; j < this.codes.Length; j = j + 4)
+                {
+                    if (data.Substring(i, 4) == this.codes.Substring(j, 4))
+                    {
+                        added = true;
+                    }
+                }
+
                 if (!added)
                 {
-                    Codes += data.Substring(i, 4);
+                    this.codes += data.Substring(i, 4);
                     bool goodData = true;
 
                     char[] values = { 'P', 'C', 'B', 'U' };
@@ -101,6 +135,7 @@ namespace ObdiiMonitor
                             goodData = false;
                             break;
                     }
+
                     if (goodData)
                     {
                         outdata += data.Substring(i + 1, 3);
@@ -112,18 +147,42 @@ namespace ObdiiMonitor
                 }
             }
         }
-        private void btnget_Click(object sender, EventArgs e)
+
+        /// <summary>
+        /// Enables the Get Trouble Codes and Reset Trouble Codes buttons.
+        /// </summary>
+        public void Enable()
         {
-            controller.Serial.Flush();
+            btnget.Enabled = true;
+            btnreset.Enabled = true;
+        }
+
+        /// <summary>
+        /// Disables the Get Trouble Codes and Reset Trouble Codes buttons.
+        /// </summary>
+        public void Disable()
+        {
+            btnget.Enabled = false;
+            btnreset.Enabled = false;
+        }
+
+        /// <summary>
+        /// Handles the Click event of the Btnget control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
+        private void Btnget_Click(object sender, EventArgs e)
+        {
+            this.controller.Serial.Flush();
             int loop = 0;
 
             this.controller.Serial.SendCommand("tc");
 
-            byte[] response = controller.Serial.DataReceived();
+            byte[] response = this.controller.Serial.DataReceived();
 
             while (response == null)
             {
-                response = controller.Serial.DataReceived();
+                response = this.controller.Serial.DataReceived();
                 Thread.Sleep(300);
                 if (loop > 30)
                 {
@@ -131,46 +190,61 @@ namespace ObdiiMonitor
                     this.controller.Serial.SendCommand("tc");
                     loop = 0;
                 }
+
                 loop++;
             }
 
-            controller.LoadController.LoadData(response);
+            this.controller.LoadController.LoadData(response);
         }
 
-        private void btnreset_Click(object sender, EventArgs e)
+        /// <summary>
+        /// Handles the Click event of the Btnreset control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
+        private void Btnreset_Click(object sender, EventArgs e)
         {
-            if (DialogResult.Yes == MessageBox.Show("This will clear all codes and sensor data. Are you sure you want to Reset Trouble Codes?",
-                            "Reset Trouble Codes", MessageBoxButtons.YesNo, MessageBoxIcon.Question))
+            if (DialogResult.Yes == MessageBox.Show(
+                "This will clear all codes and sensor data. Are you sure you want to Reset Trouble Codes?", 
+                "Reset Trouble Codes",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question))
             {
                 this.controller.Serial.SendCommand("tr");
-                Codes = "0000";
+                this.codes = "0000";
                 dataGridView1.Rows.Clear();
             }
         }
+
+        /// <summary>
+        /// Called when the event of the trouble code window being resized occurs
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
         private void Resizing(object sender, EventArgs e)
         {
-            Rsize();
+            this.Rsize();
         }
+
+        /// <summary>
+        /// Resizes this instance.
+        /// </summary>
         private void Rsize()
         {
             pnl.Width = this.Width;
             pnl.Height = btnreset.Top - (btnget.Top + btnget.Height + 15);
             btnreset.Top = this.Height - (50 + btnreset.Height);
         }
+
+        /// <summary>
+        /// Called when the event of the trouble code window closing occurs.
+        /// </summary>
+        /// <param name="sender">The sender.</param>
+        /// <param name="e">The <see cref="System.Windows.Forms.FormClosingEventArgs"/> instance containing the event data.</param>
         private void FormIsClosing(object sender, FormClosingEventArgs e)
         {
             e.Cancel = true;
             this.Hide();
-        }
-        public void Enable()
-        {
-            btnget.Enabled = true;
-            btnreset.Enabled = true;
-        }
-        public void Disable()
-        {
-            btnget.Enabled = false;
-            btnreset.Enabled = false;
         }
     }
 }

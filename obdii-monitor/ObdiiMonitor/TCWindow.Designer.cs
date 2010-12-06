@@ -46,7 +46,7 @@
             this.btnget.TabIndex = 0;
             this.btnget.Text = "Get Trouble Codes";
             this.btnget.UseVisualStyleBackColor = true;
-            this.btnget.Click += new System.EventHandler(this.btnget_Click);
+            this.btnget.Click += new System.EventHandler(this.Btnget_Click);
             // 
             // dataGridView1
             // 
@@ -73,7 +73,7 @@
             this.btnreset.TabIndex = 2;
             this.btnreset.Text = "Reset Trouble Codes";
             this.btnreset.UseVisualStyleBackColor = true;
-            this.btnreset.Click += new System.EventHandler(this.btnreset_Click);
+            this.btnreset.Click += new System.EventHandler(this.Btnreset_Click);
             // 
             // pnl
             // 
