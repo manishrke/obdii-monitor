@@ -59,6 +59,8 @@
             this.labelEnd = new System.Windows.Forms.Label();
             this.labelTotalMs = new System.Windows.Forms.Label();
             this.folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
+            this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.aboutOBDIIMonitorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip.SuspendLayout();
             this.panelCollectData.SuspendLayout();
             this.SuspendLayout();
@@ -67,7 +69,8 @@
             // 
             this.menuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
-            this.viewToolStripMenuItem});
+            this.viewToolStripMenuItem,
+            this.aboutToolStripMenuItem});
             this.menuStrip.Location = new System.Drawing.Point(0, 0);
             this.menuStrip.Name = "menuStrip";
             this.menuStrip.Size = new System.Drawing.Size(884, 24);
@@ -148,7 +151,7 @@
             // troubleCodesToolStripMenuItem
             // 
             this.troubleCodesToolStripMenuItem.Name = "troubleCodesToolStripMenuItem";
-            this.troubleCodesToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.troubleCodesToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
             this.troubleCodesToolStripMenuItem.Text = "Trouble Codes";
             this.troubleCodesToolStripMenuItem.Click += new System.EventHandler(this.TroubleCodesToolStripMenuItem_Click);
             // 
@@ -322,6 +325,21 @@
             this.labelTotalMs.TabIndex = 20;
             this.labelTotalMs.Text = "Total (ms):";
             // 
+            // aboutToolStripMenuItem
+            // 
+            this.aboutToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.aboutOBDIIMonitorToolStripMenuItem});
+            this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
+            this.aboutToolStripMenuItem.Text = "Help";
+            // 
+            // aboutOBDIIMonitorToolStripMenuItem
+            // 
+            this.aboutOBDIIMonitorToolStripMenuItem.Name = "aboutOBDIIMonitorToolStripMenuItem";
+            this.aboutOBDIIMonitorToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
+            this.aboutOBDIIMonitorToolStripMenuItem.Text = "About OBD-II Monitor";
+            this.aboutOBDIIMonitorToolStripMenuItem.Click += new System.EventHandler(this.AboutOBDIIMonitorToolStripMenuItem_Click);
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -343,7 +361,7 @@
             this.Controls.Add(this.buttonInitialize);
             this.MainMenuStrip = this.menuStrip;
             this.Name = "MainWindow";
-            this.Text = " ";
+            this.Text = " OBD-II Monitor";
             this.menuStrip.ResumeLayout(false);
             this.menuStrip.PerformLayout();
             this.panelCollectData.ResumeLayout(false);
@@ -386,5 +404,7 @@
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
         private System.Windows.Forms.Button MapButton;
         private System.Windows.Forms.Label HelpText;
+        private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem aboutOBDIIMonitorToolStripMenuItem;
     }
 }

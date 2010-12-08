@@ -32,6 +32,11 @@ namespace ObdiiMonitor
         internal Thread UpdateGraphPlots;
 
         /// <summary>
+        /// The current release version. THIS SHOULD BE UPDATED ANY TIME PRIOR TO EACH RELEASE.
+        /// </summary>
+        private const string ReleaseVersion = "0.0.0";
+
+        /// <summary>
         /// Maximum length of time in ms that live data can be collected in one run.
         /// </summary>
         private const int LiveGraphLength = 300000;
@@ -1121,7 +1126,7 @@ namespace ObdiiMonitor
 
         /// <summary>
         /// Handles the Click event of the MapButton control.
-        /// Will map the point in time determined by the CursorX (horizontal cursor) of a visible graph.
+        /// Will map the point in time determined by the CursorX (vertical cursor) of a visible graph.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
@@ -1156,6 +1161,33 @@ namespace ObdiiMonitor
             }
 
             return;
+        }
+
+        /// <summary>
+        /// Displays the "About" information for OBD-II Monitor
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
+        private void AboutOBDIIMonitorToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string about = string.Empty;
+
+            // Form string for about box
+            about += "OBD-II Monitor " + ReleaseVersion;
+            about += "\n\n(c) 2010 Justin Adams, Nicholas Bell, Martyn Rekowski, Bradley Schoch\n\n";
+            about += "This program is free software: you can redistribute it and/or modify\n";
+            about += "it under the terms of the GNU General Public License as published by\n";
+            about += "the Free Software Foundation, either version 3 of the License, or\n";
+            about += "(at your option) any later version.\n\n";
+            about += "This program is distributed in the hope that it will be useful,\n";
+            about += "but WITHOUT ANY WARRANTY; without even the implied warranty of\n";
+            about += "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n";
+            about += "GNU General Public License for more details.\n\n";
+            about += "You should have received a copy of the GNU General Public License\n";
+            about += "along with this program.  If not, see <http://www.gnu.org/licenses/>.";
+
+            // Display it
+            MessageBox.Show(about, "About OBD-II Monitor");
         }
     }
 }
