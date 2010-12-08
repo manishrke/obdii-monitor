@@ -123,7 +123,10 @@ namespace ObdiiMonitor
             this.Resize += new System.EventHandler(this.Resizing);
             this.troubleCodesToolStripMenuItem.Enabled = false;
             buttonGet.Enabled = false;
-            this.DisableTcWindow();
+            buttonCollect.Enabled = false;
+            buttonInitialize.Enabled = true;
+            comboBoxComPort.Enabled = true;
+            this.controller.TcWindow.Disable();
         }
 
         /// <summary>
@@ -703,7 +706,7 @@ namespace ObdiiMonitor
                     this.controller.US = true;
                 }
 
-                this.EnableTcWindow();
+                this.PostInitializeClick();
             }
             catch (Exception ex)
             {
@@ -1093,26 +1096,17 @@ namespace ObdiiMonitor
         }
 
         /// <summary>
-        /// Enables the Trouble Code window.
+        /// Enables buttons to perform operations after clicking the Initialize button
+        /// and connection with selected COM port has succeeded.  Prevents clicking 
+        /// Initialization button again or selecting input port again this run.
         /// </summary>
-        private void EnableTcWindow()
+        private void PostInitializeClick()
         {
             troubleCodesToolStripMenuItem.Enabled = true;
             buttonCollect.Enabled = true;
             buttonInitialize.Enabled = false;
             comboBoxComPort.Enabled = false;
             this.controller.TcWindow.Enable();
-        }
-
-        /// <summary>
-        /// Disables the Trouble Code window.
-        /// </summary>
-        private void DisableTcWindow()
-        {
-            buttonCollect.Enabled = false;
-            buttonInitialize.Enabled = true;
-            comboBoxComPort.Enabled = true;
-            this.controller.TcWindow.Disable();
         }
 
         /// <summary>
